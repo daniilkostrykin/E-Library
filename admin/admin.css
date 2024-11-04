@@ -67,10 +67,13 @@ body {
 #searchInput {
   border-radius: 10px;
 }
-
+#searchForm{
+  margin-bottom: 10px;
+}
 #find {
   background-color: #4caf50; /* Зеленый */
-  margin-left: -10px; /*убрать отступ, из-за flex*/
+ /* margin-left: -10px; /*убрать отступ, из-за flex*/
+  /*margin-top: -5px;*/
   border-radius: 0 10px 10px 0;
   border-left: 1px solid #ddd;
 }

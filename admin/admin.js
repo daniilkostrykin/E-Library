@@ -2,50 +2,37 @@ const BOOKS_KEY = "books";
 function logout() {
   window.location.href = "../index.html";
 }
-
 function displayBooks(books) {
   const table = document.getElementById("bookTable");
-  table.innerHTML = ""; // Очищаем таблицу перед добавлением новых данных
+  table.innerHTML = ""; // Очищаем таблицу
 
-  // Заголовок таблицы
   const headerRow = table.insertRow();
-  const headers = ["Название", "Автор", "Количество", "QR", "Местоположение"];
+  const headers = ["Название", "Автор", "Количество", "QR", "Наличие бумажной версии", "Местоположение"];
   headers.forEach((headerText) => {
     const header = headerRow.insertCell();
     header.textContent = headerText;
   });
 
-  // Заполнение таблицы данными из books
   books.forEach((book) => {
     const row = table.insertRow();
+    Object.entries(book).forEach(([key, value]) => {
+      const cell = row.insertCell();
 
-    Object.values(book).forEach((text) => {
-      if (typeof text === "boolean") {
-        const cell = row.insertCell(); // Создаем ячейку
+      if (key === "QR") {
         const qrElement = document.createElement("div");
-
-        if (text) {
-          qrElement.innerHTML = '<ion-icon name="qr-code-outline"></ion-icon>';
-        } else {
-          qrElement.textContent = "false";
-        }
-        cell.appendChild(qrElement); // Добавляем элемент в ячейку
-      } else if (typeof text === "string") {
-        row.insertCell().textContent = text;
-      } else if (typeof text === "object") {
-        const link = text[0];
-
-        const locationCell = row.insertCell();
-        locationCell.innerHTML =
-          '<ion-icon name="location-outline"></ion-icon>';
-      } else if (typeof text === "number") {
-        const cell = row.insertCell();
-        cell.textContent = text;
-        cell.style.color = "mediumseagreen";
+        qrElement.innerHTML = value ? '<ion-icon name="qr-code-outline"></ion-icon>' : "Нет";
+        cell.appendChild(qrElement);
+      } else if (key === "НаличиеБумажнойВерсии") {
+        cell.textContent = value ? "Да" : "Нет"; // Отображаем наличие бумажной версии
+      } else if (key === "Местоположение") {
+        cell.innerHTML = `<ion-icon name="location-outline"></ion-icon>`;
+      } else {
+        cell.textContent = value;
       }
     });
   });
 }
+
 
 function addBook() {
   const title = prompt("Введите название книги:");
@@ -56,6 +43,7 @@ function addBook() {
   const author = prompt("Введите автора книги:");
   const quantity = parseInt(prompt("Введите количество книг:"));
   const qr = confirm("Есть QR код?");
+  const hasPaperVersion = confirm("Есть бумажная версия?");
   const location = prompt("Введите местоположение книги:");
 
   if (title && author && quantity && location) {
@@ -69,6 +57,7 @@ function addBook() {
         Автор: author,
         Количество: quantity,
         QR: qr,
+        НаличиеБумажнойВерсии: hasPaperVersion,
         Местоположение: [link],
       };
 
@@ -114,6 +103,7 @@ function editBook() {
           prompt("Введите новое количество книг:", bookToEdit.Количество)
         );
         const qr = confirm("Есть QR код?", bookToEdit.QR);
+        const hasPaperVersion = confirm("Есть бумажная версия?", bookToEdit.НаличиеБумажнойВерсии); 
         const location = prompt(
           "Ссылка на карту:",
           bookToEdit.Местоположение[0]
@@ -125,6 +115,7 @@ function editBook() {
           Автор: author,
           Количество: quantity,
           QR: qr,
+          НаличиеБумажнойВерсии: hasPaperVersion,
           Местоположение: [location],
         };
 
