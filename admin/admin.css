@@ -8,7 +8,6 @@ body {
   min-height: 100vh; /* Занимать всю высоту экрана */
   background-image: url(https://images.unsplash.com/photo-1500993855538-c6a99f437aa7?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=750&q=80);
   background-size: cover;
-
 }
 
 #adminPanel {
@@ -20,17 +19,16 @@ body {
   box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.15);
 }
 
-/*
 #controls > button:hover,
 #controls input[type="submit"]:hover {
-  background-color: rgb(13, 235, 13); 
+  background-color: rgb(13, 235, 13);
 }
 
 #controls > button:active,
 #controls input[type="submit"]:active {
-  background-color: rgb(10, 180, 10); 
+  background-color: rgb(10, 180, 10);
 }
-*/
+
 #adminPanel table {
   width: 100%;
   border-collapse: collapse;
@@ -61,11 +59,10 @@ body {
 
 #controls button,
 #controls input[type="submit"] {
-  color: white;
+  color: black;
   padding: 12px;
   border-radius: 10px;
   margin: 5px 0; /* Отступ сверху/снизу для переноса */
- 
 }
 #searchInput {
   border-radius: 10px;
@@ -81,12 +78,12 @@ body {
 #controls button {
   border: none;
 }
-.add-book {
-  background-color: #3f84f2; /* Google Blue */
-}
 
-.edit-button {
-  background-color: blueviolet;
+#addBookBtn{
+  background-color: rgb(189, 132, 243);
+}
+.edit-book {
+  background-color: rgb(43, 144, 226);
 }
 
 .exit-button {
@@ -94,7 +91,7 @@ body {
   flex: 0 0 45px; /* фиксированная ширина */
 }
 
-.delete-book {
+#delete-book {
   background-color: rgb(226, 208, 43);
 }
 #search-outline {
