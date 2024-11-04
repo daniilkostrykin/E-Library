@@ -6,6 +6,9 @@ body {
   align-items: center; /* Центрировать по вертикали */
   justify-content: center; /* Центрировать по горизонтали */
   min-height: 100vh; /* Занимать всю высоту экрана */
+  background-image: url(https://images.unsplash.com/photo-1500993855538-c6a99f437aa7?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=750&q=80);
+  background-size: cover;
+
 }
 
 #adminPanel {
