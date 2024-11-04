@@ -1,0 +1,153 @@
+/* admin.css */
+body {
+  font-family: sans-serif;
+  background-color: dodgerblue;
+  margin: 0;
+  display: flex;
+  align-items: center; /* Центрировать по вертикали */
+  justify-content: center; /* Центрировать по горизонтали */
+  min-height: 100vh; /* Занимать всю высоту экрана */
+}
+
+#adminPanel {
+  width: 750px; /* Фиксированная ширина для таблицы */
+  max-width: 90%; /* Чтобы таблица адаптировалась к экранам разного размера */
+  background-color: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+}
+
+/*  стили для таблицы */
+
+#adminPanel table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+#adminPanel th,
+#adminPanel td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: left;
+}
+#adminPanel table tr th {
+  background-color: rgb(237, 240, 245); /* Заголовок */
+}
+/* стили для #controls */ /* admin.css */
+
+/* ... (остальные стили) ... */
+
+#controls {
+  display: flex;
+  justify-content: space-between; /* Равномерное распределение с промежутками */
+  align-items: center; /* Выравнивание по вертикали */
+  margin-top: 400px;
+  width: 100%;
+  flex-wrap: wrap;
+}
+
+#controls button,
+#controls input[type="submit"] {
+  color: white;
+  padding: 12px;
+  border-radius: 10px;
+  margin: 5px 0; /* Отступ сверху/снизу для переноса */
+  border: none;
+  outline: none;
+}
+
+.search-form {
+  display: flex;
+  align-items: center;
+  flex: 1 1 auto; /* input занимает все доступное пространство  */
+
+  max-width: calc(33% - 10px);
+}
+#searchInput {
+  border-radius: 10px;
+  margin: 5px 0;
+  padding: 9px;
+}
+.book-search-bar {
+  width: 100%; /*  вся ширина, определяемая .search-form */
+
+  border-radius: 10px 0 0 10px;
+  padding: 12px 20px;
+}
+
+#find {
+  background-color: #4caf50; /* Зеленый */
+  margin-left: -10px; /*убрать отступ, из-за flex*/
+}
+.add-book,
+.edit-button {
+  flex: 0 0 145px;
+}
+
+.add-book {
+  background-color: #4285f4; /* Google Blue */
+}
+
+.edit-button {
+  background-color: blueviolet;
+}
+
+.exit-button {
+  background-color: orangered;
+  flex: 0 0 145px; /* фиксированная ширина */
+}
+
+#controls > button:hover,
+#controls input[type="submit"]:hover {
+  background-color: grey;
+}
+
+/* Media queries для адаптивности (мобильные устройства) */
+@media (max-width: 768px) {
+  /* например, 768px */
+
+  .container {
+    width: calc(100% - 40px);
+  }
+
+  #adminPanel {
+    width: 100%;
+  }
+
+  #controls {
+    flex-direction: column; /* Кнопки располагаются друг под другом */
+
+    align-items: stretch;
+    width: 100%;
+  }
+
+  .search-form {
+    flex-direction: column; /* Кнопки располагаются друг под другом */
+
+    width: 100%;
+  }
+  .book-search-bar {
+    width: calc(
+      100% + 4px
+    ); /* Добавил к ширине отступы от боковых padding админпанели  */
+
+    border-radius: 10px;
+  }
+
+  input[type="submit"] {
+    width: 100%;
+
+    margin: 5px 0; /*Сделал margin что бы отделить друг от друга кнопки поиска и редактирования*/
+
+    border-radius: 10px;
+  }
+
+  #controls > button,
+  #controls input[type="submit"] {
+    margin-bottom: 10px;
+
+    width: 100%;
+  }
+}

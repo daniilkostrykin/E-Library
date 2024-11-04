@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width-device-width,initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="sie-edge" />
+
+    <link rel="stylesheet" type="text/css" href="styles.css" />
+    <title>Slider Form</title>
+    <script src="https://apis.google.com/js/platform.js" async defer></script>
+    <script
+      src="https://vk.com/js/api/openapi.js?171"
+      type="text/javascript"
+    ></script>
+  </head>
+
+  <body>
+    <div class="container" id="container">
+      <div class="form-container sign-up-container">
+        <form action="#">
+          <h1>Создать аккаунт</h1>
+          <div class="social-container">
+            <a href="#" class="social">
+              <ion-img
+                src="assets/orig.svg"
+                alt="Яндекс"
+                class="yandex-icon"
+              ></ion-img>
+            </a>
+            <a href="#" class="social" onclick="googleSignIn()">
+              <ion-icon name="logo-google"></ion-icon>
+            </a>
+            <a href="#" class="social" onclick="vkSignIn()">
+              <ion-icon name="logo-vk"></ion-icon>
+            </a>
+          </div>
+          <span>или используйте свою электронную почту для регистрации</span>
+          <input id="reg-name" type="text" placeholder="Имя" />
+          <input id="reg-email" type="email" placeholder="Email" />
+          <input id="reg-password" type="password" placeholder="Пароль" />
+          <button onclick="createAccount()" id="reg-submit">
+            Зарегистрироваться
+          </button>
+        </form>
+      </div>
+      <div class="form-container sign-in-container">
+        <form action="#">
+          <h1>Войти</h1>
+          <div class="social-container">
+            <a href="#" class="social">
+              <ion-img
+                src="assets/orig.svg"
+                alt="Яндекс"
+                class="yandex-icon"
+              ></ion-img>
+            </a>
+            <a href="#" class="social">
+              <ion-icon name="logo-google"></ion-icon>
+            </a>
+            <a href="#" class="social">
+              <ion-icon name="logo-vk"></ion-icon>
+            </a>
+          </div>
+          <span>или используйте Ваш аккаунт</span>
+          <input id="email" type="email" placeholder="Email" />
+          <input id="password" type="password" placeholder="Пароль" />
+          <button onclick="login()" id="signIn">Войти</button>
+        </form>
+      </div>
+      <div class="overlay-container">
+        <div class="overlay">
+          <div class="overlay-panel overlay-left">
+            <h1>С возвращением</h1>
+            <p>
+              Чтобы поддерживать с нами связь, пожалуйста, войдите в систему,
+              указав свои личные данные
+            </p>
+            <button class="ghost" id="signIn">Войти</button>
+          </div>
+          <div class="overlay-panel overlay-right">
+            <h1>Привет</h1>
+            <p>
+              Введите свои личные данные и отправляйтесь в путешествие вместе с
+              нами
+            </p>
+            <button class="ghost" id="signUp">Зарегистрироваться</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script src="script.js"></script>
+    <script src="https://unpkg.com/ionicons@4.2.2/dist/ionicons.js"></script>
+  </body>
+</html>
