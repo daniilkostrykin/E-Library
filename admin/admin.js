@@ -196,5 +196,7 @@ document.addEventListener("DOMContentLoaded", () => {
     searchBook();
   });
   document.getElementById("addBookBtn").addEventListener("click", addBook);
-  document.getElementById("edit-book").addEventListener("click", editBook);
-});
+  const editBookButton = document.querySelector(".edit-book");
+  if (editBookButton) {
+      editBookButton.addEventListener("click", editBook);
+  }});
