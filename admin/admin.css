@@ -46,6 +46,7 @@ body {
   margin-top: 400px;
   width: 100%;
   flex-wrap: wrap;
+  gap: 10px;
 }
 
 #controls button,
@@ -57,33 +58,15 @@ body {
   border: none;
   outline: none;
 }
-
-.search-form {
-  display: flex;
-  align-items: center;
-  flex: 1 1 auto; /* input занимает все доступное пространство  */
-
-  max-width: calc(33% - 10px);
-}
 #searchInput {
   border-radius: 10px;
-  margin: 5px 0;
-  padding: 9px;
-}
-.book-search-bar {
-  width: 100%; /*  вся ширина, определяемая .search-form */
-
-  border-radius: 10px 0 0 10px;
-  padding: 12px 20px;
 }
 
 #find {
   background-color: #4caf50; /* Зеленый */
   margin-left: -10px; /*убрать отступ, из-за flex*/
-}
-.add-book,
-.edit-button {
-  flex: 0 0 145px;
+  border-radius: 0 10px 10px 0;
+  border-left: 1px solid #ddd;
 }
 
 .add-book {
@@ -96,12 +79,17 @@ body {
 
 .exit-button {
   background-color: orangered;
-  flex: 0 0 145px; /* фиксированная ширина */
+  flex: 0 0 45px; /* фиксированная ширина */
 }
 
 #controls > button:hover,
 #controls input[type="submit"]:hover {
-  background-color: grey;
+  background-color: rgb(13, 235, 13);
+}
+
+.delete-book {
+  background-color: rgb(226, 208, 43);
+  border: 1px solid rgb(98, 98, 98);
 }
 
 /* Media queries для адаптивности (мобильные устройства) */
@@ -123,9 +111,8 @@ body {
     width: 100%;
   }
 
-  .search-form {
+  .searchForm {
     flex-direction: column; /* Кнопки располагаются друг под другом */
-
     width: 100%;
   }
   .book-search-bar {

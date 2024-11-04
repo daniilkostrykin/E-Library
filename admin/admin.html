@@ -9,7 +9,7 @@
     <div id="adminPanel">
       <h2>Панель администратора</h2>
 
-      <table>
+      <table id="bookTable">
         <tr>
           <th>Название книги</th>
           <th>Автор</th>
@@ -22,9 +22,10 @@
       <div id="controls">
         <form id="searchForm">
           <input type="text" id="searchInput" placeholder="Поиск книги..." />
-          <input type="submit"id="find" value="Найти" />
+          <input type="submit" id="find" value="Найти" />
         </form>
-        <button class="add-book">Добавить книгу</button>
+        <button onclick="addBook()"class="add-book">Добавить книгу</button>
+        <button class="delete-book">Удалить книгу</button>
 
         <button class="edit-button">Редактировать</button>
         <button onclick="logout()" class="exit-button">Выйти</button>
@@ -38,6 +39,6 @@
       nomodule
       src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"
     ></script>
-    <script src="admin/admin.js"></script>
+    <script src="admin.js"></script>
   </body>
 </html>
