@@ -1,18 +1,19 @@
 body {
-  font-family: sans-serif;
+  font-family: "Montserrat";
   background-color: dodgerblue;
   margin: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 100vh; 
+  min-height: 100vh;
   background-image: url(https://images.unsplash.com/photo-1500993855538-c6a99f437aa7?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=750&q=80);
   background-size: cover;
+
 }
 
 #adminPanel {
-  width: 955px; 
-  max-width: 90%; 
+  width: 955px;
+  max-width: 90%;
   background-color: white;
   padding: 20px;
   border-radius: 10px;
@@ -44,13 +45,13 @@ body {
   vertical-align: middle;
 }
 #adminPanel table tr th {
-  background-color: rgb(237, 240, 245); 
+  background-color: rgb(237, 240, 245);
 }
 
 #controls {
   display: flex;
-  justify-content: space-between; 
-  align-items: center; 
+  justify-content: space-between;
+  align-items: center;
   margin-top: 400px;
   width: 100%;
   flex-wrap: wrap;
@@ -59,15 +60,17 @@ body {
 
 #controls button,
 #controls input[type="submit"] {
-  color: black;
+  color: white;
+  background-color: #a09cf6;
   padding: 12px;
   border-radius: 10px;
-  margin: 5px 0; 
+  margin: 5px 0;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5); /* Смещение вни */
 }
 #searchInput {
   border-radius: 10px;
 }
-#searchForm{
+#searchForm {
   margin-bottom: 10px;
 }
 #find {
@@ -80,7 +83,7 @@ body {
   border: none;
 }
 
-#addBookBtn{
+#addBookBtn {
   background-color: rgb(189, 132, 243);
 }
 .edit-book {
@@ -89,7 +92,7 @@ body {
 
 .exit-button {
   background-color: orangered;
-  flex: 0 0 45px; 
+  flex: 0 0 45px;
 }
 
 #delete-book {
