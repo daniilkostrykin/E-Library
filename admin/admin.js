@@ -6,7 +6,7 @@ function logout() {
 
 function displayBooks(books) {
   const table = document.getElementById("bookTable");
-  table.innerHTML = ""; // Очищаем таблицу
+  table.innerHTML = ""; 
 
   const headerRow = table.insertRow();
   const headers = [
@@ -70,7 +70,7 @@ function addBook() {
       books.push(newBook);
       localStorage.setItem(BOOKS_KEY, JSON.stringify(books));
 
-      displayBooks(books); // Отображаем обновлённый список книг
+      displayBooks(books); 
     } else {
       alert("Добавьте ссылку!");
     }

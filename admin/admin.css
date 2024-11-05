@@ -3,16 +3,16 @@ body {
   background-color: dodgerblue;
   margin: 0;
   display: flex;
-  align-items: center; /* Центрировать по вертикали */
-  justify-content: center; /* Центрировать по горизонтали */
-  min-height: 100vh; /* Занимать всю высоту экрана */
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh; 
   background-image: url(https://images.unsplash.com/photo-1500993855538-c6a99f437aa7?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=750&q=80);
   background-size: cover;
 }
 
 #adminPanel {
-  width: 955px; /* Фиксированная ширина для таблицы */
-  max-width: 90%; /* Чтобы таблица адаптировалась к экранам разного размера */
+  width: 955px; 
+  max-width: 90%; 
   background-color: white;
   padding: 20px;
   border-radius: 10px;
@@ -44,13 +44,13 @@ body {
   vertical-align: middle;
 }
 #adminPanel table tr th {
-  background-color: rgb(237, 240, 245); /* Заголовок */
+  background-color: rgb(237, 240, 245); 
 }
 
 #controls {
   display: flex;
-  justify-content: space-between; /* Равномерное распределение с промежутками */
-  align-items: center; /* Выравнивание по вертикали */
+  justify-content: space-between; 
+  align-items: center; 
   margin-top: 400px;
   width: 100%;
   flex-wrap: wrap;
@@ -62,7 +62,7 @@ body {
   color: black;
   padding: 12px;
   border-radius: 10px;
-  margin: 5px 0; /* Отступ сверху/снизу для переноса */
+  margin: 5px 0; 
 }
 #searchInput {
   border-radius: 10px;
@@ -71,9 +71,7 @@ body {
   margin-bottom: 10px;
 }
 #find {
-  background-color: #4caf50; /* Зеленый */
- /* margin-left: -10px; /*убрать отступ, из-за flex*/
-  /*margin-top: -5px;*/
+  background-color: #4caf50;
   border-radius: 0 10px 10px 0;
   border-left: 1px solid #ddd;
 }
@@ -91,7 +89,7 @@ body {
 
 .exit-button {
   background-color: orangered;
-  flex: 0 0 45px; /* фиксированная ширина */
+  flex: 0 0 45px; 
 }
 
 #delete-book {
