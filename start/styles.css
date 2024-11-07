@@ -13,7 +13,7 @@ body {
   align-items: center;
   height: 100vh;
   margin: -20px 0 50px;
-  background-image: url(https://images.unsplash.com/photo-1500993855538-c6a99f437aa7?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=750&q=80);
+  background-image: url('../assets/background.avif');
   background-size: cover;
 }
 

@@ -1,12 +1,12 @@
 const BOOKS_KEY = "books";
 
 function logout() {
-  window.location.href = "../index.html";
+  window.location.href = "../start/index.html";
 }
 
 function displayBooks(books) {
   const table = document.getElementById("bookTable");
-  table.innerHTML = ""; 
+  table.innerHTML = "";
 
   const headerRow = table.insertRow();
   const headers = [
@@ -70,7 +70,7 @@ function addBook() {
       books.push(newBook);
       localStorage.setItem(BOOKS_KEY, JSON.stringify(books));
 
-      displayBooks(books); 
+      displayBooks(books);
     } else {
       alert("Добавьте ссылку!");
     }
@@ -137,7 +137,10 @@ function editBook() {
 
 function deleteBook() {
   const books = JSON.parse(localStorage.getItem(BOOKS_KEY)) || [];
-  const query = document.getElementById("searchInput").value.trim().toLowerCase();
+  const query = document
+    .getElementById("searchInput")
+    .value.trim()
+    .toLowerCase();
 
   if (query.length === 0) {
     alert("Введите название книги для удаления.");
@@ -198,5 +201,6 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("addBookBtn").addEventListener("click", addBook);
   const editBookButton = document.querySelector(".edit-book");
   if (editBookButton) {
-      editBookButton.addEventListener("click", editBook);
-  }});
+    editBookButton.addEventListener("click", editBook);
+  }
+});

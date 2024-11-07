@@ -112,7 +112,7 @@ function login() {
     const accounts = JSON.parse(localStorage.getItem(ACCOUNTS_KEY)) || [];
     if (email === "1" && password === "1") {
         // Перенаправляем на страницу администратора
-        window.location.href = "admin/admin.html"; 
+        window.location.href = "../admin/admin.html"; 
     } else {
         // Проверка наличия аккаунта с соответствующими email и паролем
         const account = accounts.find(account => account.email === email && account.password === password);
