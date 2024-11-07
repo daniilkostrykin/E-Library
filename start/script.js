@@ -1,14 +1,15 @@
 const signUpButton = document.getElementById("signUp");
-const signInButton = document.getElementById("signIn");
+const signInOverlayButton = document.getElementById("signInOverlayButton");
+const signInButton = document.getElementById("signInButton");
 const container = document.getElementById("container");
 
 signUpButton.addEventListener("click", () => {
   container.classList.add("right-panel-active");
 });
 
-signInButton.addEventListener("click", () => {
+signInOverlayButton.addEventListener("click", () => {
   container.classList.remove("right-panel-active");
-});/*
+}); /*
 // Инициализация Google API (Замените YOUR_GOOGLE_CLIENT_ID на ваш Client ID)
 gapi.load("auth2", () => {
   gapi.auth2.init({ client_id: "YOUR_GOOGLE_CLIENT_ID" });
@@ -71,56 +72,58 @@ const ACCOUNTS_KEY = "accounts";
 
 // Функция для добавления нового аккаунта
 function createAccount() {
-    const name = document.getElementById("reg-name").value;
-    const email = document.getElementById("reg-email").value;
-    const password = document.getElementById("reg-password").value;
+  const name = document.getElementById("reg-name").value;
+  const email = document.getElementById("reg-email").value;
+  const password = document.getElementById("reg-password").value;
 
-    // Проверка на пустые поля
-    if (!name || !email || !password) {
-        alert("Заполните все поля!");
-        return;
-    }
+  // Проверка на пустые поля
+  if (!name || !email || !password) {
+    alert("Заполните все поля!");
+  }
 
-    // Загружаем текущие аккаунты из localStorage
-    const accounts = JSON.parse(localStorage.getItem(ACCOUNTS_KEY)) || [];
+  // Загружаем текущие аккаунты из localStorage
+  const accounts = JSON.parse(localStorage.getItem(ACCOUNTS_KEY)) || [];
 
-    // Проверка на существующий email
-    if (accounts.some(account => account.email === email)) {
-        alert("Аккаунт с таким email уже существует!");
-        return;
-    }
+  // Проверка на существующий email
+  if (accounts.some((account) => account.email === email)) {
+    alert("Аккаунт с таким email уже существует!");
+    return;
+  }
 
-    // Добавляем новый аккаунт в массив и сохраняем его в localStorage
-    accounts.push({ name, email, password });
-    localStorage.setItem(ACCOUNTS_KEY, JSON.stringify(accounts));
+  // Добавляем новый аккаунт в массив и сохраняем его в localStorage
+  accounts.push({ name, email, password });
+  localStorage.setItem(ACCOUNTS_KEY, JSON.stringify(accounts));
 
-    alert("Аккаунт успешно создан!");
+  alert("Аккаунт успешно создан!");
 }
 
 // Функция для поиска аккаунта (вход в систему)
 function login() {
-    const email = document.getElementById("email").value;
-    const password = document.getElementById("password").value;
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
 
-    // Проверка на пустые поля
-    if (!email || !password) {
-        alert("Введите email и пароль!");
-        return;
-    }
+  // Проверка на пустые поля
+  if (!email || !password) {
+    alert("Введите email и пароль!");
+    return;
+  }
 
-    // Загружаем текущие аккаунты из localStorage
-    const accounts = JSON.parse(localStorage.getItem(ACCOUNTS_KEY)) || [];
-    if (email === "1" && password === "1") {
-        // Перенаправляем на страницу администратора
-        window.location.href = "../admin/admin.html"; 
+  // Загружаем текущие аккаунты из localStorage
+  const accounts = JSON.parse(localStorage.getItem(ACCOUNTS_KEY)) || [];
+  if (email === "1" && password === "1") {
+    // Перенаправляем на страницу администратора
+    window.location.href = "../admin/admin.html";
+  } else {
+    // Проверка наличия аккаунта с соответствующими email и паролем
+    const account = accounts.find(
+      (account) => account.email === email && account.password === password
+    );
+
+    if (account) {
+      alert("Вход успешен!");
+      // Здесь можно добавить дальнейшие действия, например, перенаправление
     } else {
-        // Проверка наличия аккаунта с соответствующими email и паролем
-        const account = accounts.find(account => account.email === email && account.password === password);
-
-        if (account) {
-            alert("Вход успешен!");
-            // Здесь можно добавить дальнейшие действия, например, перенаправление
-        } else {
-            alert("Неверный email или пароль!");
-        }
-    }}
+      alert("Неверный email или пароль!");
+    }
+  }
+}
