@@ -6,9 +6,8 @@ body {
   align-items: center;
   justify-content: center;
   min-height: 100vh;
-  background-image: url('../assets/background.avif');
+  background-image: url("../assets/background.avif");
   background-size: cover;
-
 }
 
 #adminPanel {
@@ -47,7 +46,13 @@ body {
 #adminPanel table tr th {
   background-color: rgb(237, 240, 245);
 }
+#adminPanel th:nth-child(3) {
+  color: black; /* Цвет текста для заголовка третьего столбца */
+}
 
+#adminPanel td:nth-child(3) {
+  color: green; /* Цвет текста для ячеек третьего столбца */
+}
 #controls {
   display: flex;
   justify-content: space-between;
@@ -69,6 +74,7 @@ body {
 }
 #searchInput {
   border-radius: 10px;
+  height: 34px;
 }
 #searchForm {
   margin-bottom: 10px;
@@ -91,7 +97,7 @@ body {
 }
 
 .exit-button {
-  background-color: orangered;
+  background-color: rgb(255, 101, 101) !important;
   flex: 0 0 45px;
 }
 

@@ -1,7 +1,7 @@
 const BOOKS_KEY = "books";
 
 function logout() {
-  window.location.href = "../start/index.html";
+  window.location.href = "../index.html";
 }
 
 function displayBooks(books) {
@@ -13,8 +13,8 @@ function displayBooks(books) {
     "Название",
     "Автор",
     "Количество",
-    "QR",
-    "Наличие бумажной версии",
+    "Online-версия",
+    "Бумажная версия",
     "Местоположение",
   ];
   headers.forEach((headerText) => {
@@ -27,8 +27,8 @@ function displayBooks(books) {
     Object.entries(book).forEach(([key, value]) => {
       const cell = row.insertCell();
 
-      if (key === "QR") {
-        const qrElement = document.createElement("div");
+      if (key === "Online-версия") {
+        const linkElement = document.createElement("div");
         qrElement.innerHTML = value
           ? '<ion-icon name="qr-code-outline"></ion-icon>'
           : "Нет";
@@ -50,7 +50,7 @@ function addBook() {
 
   const author = prompt("Введите автора книги:");
   const quantity = parseInt(prompt("Введите количество книг:"));
-  const qr = confirm("Есть QR код?");
+  const onlineVersion = prompt("Cсылка на online-версию:");
   const hasPaperVersion = confirm("Есть бумажная версия?");
   const location = prompt("Введите местоположение книги:");
 
@@ -61,8 +61,8 @@ function addBook() {
         Название: title,
         Автор: author,
         Количество: quantity,
-        QR: qr,
-        НаличиеБумажнойВерсии: hasPaperVersion,
+        OnlineВерсия: [link],
+        БумажнаяВерсия: hasPaperVersion,
         Местоположение: [link],
       };
 
@@ -101,7 +101,7 @@ function editBook() {
         const quantity = parseInt(
           prompt("Введите новое количество книг:", bookToEdit.Количество)
         );
-        const qr = confirm("Есть QR код?", bookToEdit.QR);
+        const onlineVersion = prompt("Cсылка на online-версию:");
         const hasPaperVersion = confirm(
           "Есть бумажная версия?",
           bookToEdit.НаличиеБумажнойВерсии
@@ -115,7 +115,7 @@ function editBook() {
           Название: title,
           Автор: author,
           Количество: quantity,
-          QR: qr,
+          OnlineВерсия: [link],
           НаличиеБумажнойВерсии: hasPaperVersion,
           Местоположение: [location],
         };
