@@ -35,7 +35,7 @@ function displayBooks(books) {
         input.type = "text";
         input.value = value || "";
         input.placeholder = "Введите URL";
-        input.style.width = "100%";
+        input.style.textAlign = "center"; // Это центрирует текст внутри поля ввода
 
         input.addEventListener("input", () => {
           document.getElementById("save-changes").disabled = false;

@@ -1,13 +1,17 @@
 body {
-  font-family: "Montserrat";
+  font-family: "Montserrat", sans-serif;
   background-color: rgb(92, 174, 255);
   margin: 0;
+  font-size: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
   min-height: 100vh;
   background-image: url("../assets/background.avif");
   background-size: cover;
+  background-repeat: no-repeat; /* Убирает повторение фона */
+  background-position: center; /* Центрирует фон */
+  overflow: hidden; /* Убирает возможные прокрутки */
 }
 
 #adminPanel {
@@ -72,12 +76,16 @@ body {
   margin: 5px 0;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5); 
   padding: 12px 20px; 
+   font-family: "Montserrat"
 }
 input {
   outline: none; /* Убирает черную рамку */
   border: none;  /* Убирает обводку */
   background: transparent; /* Убирает фон (если нужно) */
   color: inherit; /* Наследует цвет текста */
+  font-size: 16px;
+  align-items: center;
+  justify-content: center;
   font-family: "Montserrat", sans-serif !important; /* Принудительное использование шрифта */
 }
 input:focus {
