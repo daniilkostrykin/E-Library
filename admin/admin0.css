@@ -70,8 +70,7 @@ body {
   padding: 12px;
   border-radius: 10px;
   margin: 5px 0;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5); 
-  padding: 12px 20px; 
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5); /* Смещение вни */
 }
 #searchInput {
   border-radius: 10px;
@@ -91,18 +90,19 @@ body {
 }
 
 #addBookBtn {
-  background-color: rgb(134, 243, 132) !important;
+  background-color: rgb(189, 132, 243);
 }
 .edit-book {
   background-color: rgb(43, 144, 226);
 }
 
-#exit-button {
+.exit-button {
   background-color: rgb(255, 101, 101) !important;
+  flex: 0 0 45px;
 }
 
-#cancel {
-  background-color: rgb(138, 138, 138) !important;
+#delete-book {
+  background-color: rgb(226, 208, 43);
 }
 #search-outline {
   margin-top: 23px;

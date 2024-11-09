@@ -19,7 +19,6 @@
           <th>Бумажная версия</th>
           <th>Электронная версия</th>
           <th>Местоположение</th>
-          <th>Удаление</th>
         </tr>
       </table>
 
@@ -29,11 +28,11 @@
           <input type="text" id="searchInput" placeholder="Поиск книги..." />
           <input type="submit" id="find" value="Найти" />
         </form>
-        <button id="addBookBtn">Добавить</button>
-        <button id="save-changes">Сохранить</button>
+        <button id="addBookBtn">Добавить книгу</button>
+        <button id="delete-book">Удалить книгу</button>
 
-        <button id="cancel">Отмена</button>
-        <button onclick="logout()" id="exit-button">Выйти</button>
+        <button class="edit-book">Редактировать</button>
+        <button onclick="logout()" class="exit-button">Выйти</button>
       </div>
     </div>
     <script
