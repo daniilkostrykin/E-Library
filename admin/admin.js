@@ -58,7 +58,19 @@ function displayBooks(books) {
     const deleteButton = document.createElement("button");
     deleteButton.classList.add("action-button");
     deleteButton.textContent = "Удалить";
-
+    deleteButton.style.backgroundColor = "rgb(255, 101, 101)"; // Устанавливаем цвет фона
+    deleteButton.style.color = "white";         // Цвет текста
+    deleteButton.style.border = "none";         // Убираем рамку (если нужно)
+    deleteButton.style.padding = "8px 40px";    // Добавляем отступы
+    deleteButton.style.borderRadius = "10px";    // Закругляем края (если нужно)
+  /*  color: white;
+    background-color: #a09cf6;
+    padding: 12px;
+    border-radius: 10px;
+    margin: 5px 0;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+      background-color: rgb(255, 101, 101) !important; 
+    padding: 12px 20px; */
     deleteButton.addEventListener("click", () => {
       if (confirm("Вы уверены, что хотите удалить эту запись?")) {
         const books = JSON.parse(localStorage.getItem(BOOKS_KEY)) || [];
@@ -139,39 +151,6 @@ function addBook() {
   }
 }
 
-function deleteBook() {
-  const books = JSON.parse(localStorage.getItem(BOOKS_KEY)) || [];
-  const query = document
-    .getElementById("searchInput")
-    .value.trim()
-    .toLowerCase();
-
-  if (query.length === 0) {
-    alert("Введите название книги для удаления.");
-    return;
-  }
-
-  const filteredBooks = books.filter(
-    (book) => book.Название.toLowerCase() === query
-  );
-
-  if (filteredBooks.length === 1) {
-    const bookToDelete = filteredBooks[0];
-    if (confirm("Удалить книгу " + bookToDelete.Название + "?")) {
-      const index = books.indexOf(bookToDelete);
-      if (index > -1) {
-        books.splice(index, 1);
-        localStorage.setItem(BOOKS_KEY, JSON.stringify(books));
-        displayBooks(books);
-      }
-    }
-  } else if (filteredBooks.length > 1) {
-    alert("Слишком много совпадений.");
-  } else {
-    alert("Совпадений не найдено!");
-  }
-}
-
 function searchBook() {
   const books = JSON.parse(localStorage.getItem(BOOKS_KEY)) || [];
   const query = document.getElementById("searchInput").value.toLowerCase();
@@ -210,6 +189,5 @@ document.addEventListener("DOMContentLoaded", () => {
     .getElementById("save-changes")
     .addEventListener("click", saveEditBook);
   document.getElementById("cancel").addEventListener("click", cancelEditBook);
-  document.getElementById("delete-book").addEventListener("click", deleteBook);
   document.getElementById("exit-button").addEventListener("click", logout);
 });
