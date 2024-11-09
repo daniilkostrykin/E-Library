@@ -31,23 +31,26 @@ function displayBooks(books) {
       const cell = row.insertCell();
 
       if (key === "Электронная версия") {
-        if (value) {
-          const linkElement = document.createElement("a");
-          linkElement.href = value;
-          linkElement.textContent = "Ссылка";
-          cell.appendChild(linkElement);
-        } else {
-          cell.textContent = "Нет";
-        }
+        const input = document.createElement("input");
+        input.type = "text";
+        input.value = value || "";
+        input.placeholder = "Введите URL";
+        input.style.width = "100%";
+
+        input.addEventListener("input", () => {
+          document.getElementById("save-changes").disabled = false;
+          document.getElementById("cancel").disabled = false;
+        });
+
+        cell.appendChild(input);
       } else {
         cell.textContent = value;
+        cell.contentEditable = true;
+        cell.addEventListener("input", () => {
+          document.getElementById("save-changes").disabled = false;
+          document.getElementById("cancel").disabled = false;
+        });
       }
-
-      cell.contentEditable = true; // Ячейки можно редактировать
-      cell.addEventListener("input", () => {
-        document.getElementById("save-changes").disabled = false;
-        document.getElementById("cancel").disabled = false;
-      });
     });
 
     // Кнопка удаления
@@ -85,10 +88,7 @@ function saveEditBook() {
       Название: cells[0].textContent,
       Автор: cells[1].textContent,
       Количество: parseInt(cells[2].textContent),
-      "Электронная версия":
-        cells[3].firstChild instanceof HTMLAnchorElement
-          ? cells[3].firstChild.href
-          : cells[3].textContent,
+      "Электронная версия": cells[3].firstChild.value, // Читаем значение из input
       Местоположение: cells[4].textContent,
     };
     newBooks.push(newBook);

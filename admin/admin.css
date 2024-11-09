@@ -73,6 +73,21 @@ body {
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5); 
   padding: 12px 20px; 
 }
+input {
+  outline: none; /* Убирает черную рамку */
+  border: none;  /* Убирает обводку */
+  background: transparent; /* Убирает фон (если нужно) */
+  color: inherit; /* Наследует цвет текста */
+  font-family: "Montserrat", sans-serif !important; /* Принудительное использование шрифта */
+}
+input:focus {
+  outline: none; /* Убирает рамку при фокусе */
+}
+ a {
+  font-family: inherit;
+  color: inherit;
+  text-decoration: none;
+}
 #searchInput {
   border-radius: 10px;
   height: 34px;
