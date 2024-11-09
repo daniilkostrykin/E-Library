@@ -13,8 +13,7 @@ function displayBooks(books) {
     "Название",
     "Автор",
     "Количество",
-    "Online-версия",
-    "Бумажная версия",
+    "Электронная версия", 
     "Местоположение",
   ];
   headers.forEach((headerText) => {
@@ -27,16 +26,21 @@ function displayBooks(books) {
     Object.entries(book).forEach(([key, value]) => {
       const cell = row.insertCell();
 
-      if (key === "Online-версия") {
-        const linkElement = document.createElement("div");
-        qrElement.innerHTML = value
-          ? '<ion-icon name="qr-code-outline"></ion-icon>'
-          : "Нет";
-        cell.appendChild(qrElement);
-      } else if (key === "НаличиеБумажнойВерсии") {
-        cell.textContent = value ? "Да" : "Нет";
+      if (key === "Электронная версия") {
+        // Проверяем, есть ли значение для электронной версии
+        if (value) {
+          // Если есть, создаем ссылку
+          const linkElement = document.createElement("a");
+          linkElement.href = value;
+          linkElement.textContent = "Ссылка"; // Или можно отобразить QR-код
+          cell.appendChild(linkElement);
+        } else {
+          // Если нет, отображаем "Нет"
+          cell.textContent = "Нет";
+        }
       } else if (key === "Местоположение") {
-        cell.innerHTML = `<ion-icon name="location-outline"></ion-icon>`;
+        // Отображаем текст местоположения
+        cell.textContent = value;
       } else {
         cell.textContent = value;
       }
@@ -50,20 +54,17 @@ function addBook() {
 
   const author = prompt("Введите автора книги:");
   const quantity = parseInt(prompt("Введите количество книг:"));
-  const onlineVersion = prompt("Cсылка на online-версию:");
-  const hasPaperVersion = confirm("Есть бумажная версия?");
+  const onlineVersion = prompt("Cсылка на электронную версию:");
   const location = prompt("Введите местоположение книги:");
 
-  if (title && author && quantity && location) {
-    const link = prompt("Ссылка на карту:");
-    if (link.length > 0) {
+  if (title && author && location && quantity >= 0) {
+    if (onlineVersion.length > 0) {
       const newBook = {
         Название: title,
         Автор: author,
         Количество: quantity,
-        OnlineВерсия: [link],
-        БумажнаяВерсия: hasPaperVersion,
-        Местоположение: [link],
+        "Электронная версия": onlineVersion,
+        Местоположение: location,
       };
 
       const books = JSON.parse(localStorage.getItem(BOOKS_KEY)) || [];
@@ -101,13 +102,12 @@ function editBook() {
         const quantity = parseInt(
           prompt("Введите новое количество книг:", bookToEdit.Количество)
         );
-        const onlineVersion = prompt("Cсылка на online-версию:");
-        const hasPaperVersion = confirm(
-          "Есть бумажная версия?",
-          bookToEdit.НаличиеБумажнойВерсии
+        const onlineVersion = prompt(
+          "Cсылка на электронную версию:",
+          bookToEdit["Электронная версия"]
         );
         const location = prompt(
-          "Ссылка на карту:",
+          "Новое местоположение книги:",
           bookToEdit.Местоположение[0]
         );
 
@@ -115,9 +115,8 @@ function editBook() {
           Название: title,
           Автор: author,
           Количество: quantity,
-          OnlineВерсия: [link],
-          НаличиеБумажнойВерсии: hasPaperVersion,
-          Местоположение: [location],
+          "Электронная версия": onlineVersion,
+          Местоположение: location,
         };
 
         const index = books.indexOf(bookToEdit);
