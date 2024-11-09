@@ -13,7 +13,7 @@ body {
   align-items: center;
   height: 100vh;
   margin: -20px 0 50px;
-  background-image: url('../assets/background.avif');
+  background-image: url('assets/background.avif');
   background-size: cover;
 }
 
