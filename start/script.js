@@ -1,134 +1,113 @@
+// script.js
+const ACCOUNTS_KEY = "accounts";
+
 const signUpButton = document.getElementById("signUp");
 const signInOverlayButton = document.getElementById("signInOverlayButton");
 const signInButton = document.getElementById("signInButton");
 const container = document.getElementById("container");
+const regForm = document.querySelector(".sign-up-container form");
+const loginForm = document.querySelector(".sign-in-container form");
 
+//Обработчики событий переключения панели
 signUpButton.addEventListener("click", () => {
   container.classList.add("right-panel-active");
 });
 
 signInOverlayButton.addEventListener("click", () => {
   container.classList.remove("right-panel-active");
-}); 
-/*
- Инициализация Google API (Замените YOUR_GOOGLE_CLIENT_ID на ваш Client ID)
-gapi.load("auth2", () => {
-  gapi.auth2.init({ client_id: "YOUR_GOOGLE_CLIENT_ID" });
 });
 
-// Инициализация VK API (Замените YOUR_VK_APP_ID на ваш App ID)
-VK.init({ apiId: "YOUR_VK_APP_ID" });
-function googleSignIn() {
-  const googleAuth = gapi.auth2.getAuthInstance(); // Убедитесь, что gapi загружена
-  googleAuth
-    .signIn()
-    .then((googleUser) => { 
-      const profile = googleUser.getBasicProfile();
-      const idToken = googleUser.getAuthResponse().id_token;
+//Регистрация нового пользователя
+function createAccount(event) {
+  //отменяем стандартное поведение формы
+  event.preventDefault();
 
-      // Отправьте idToken на ваш сервер для верификации и создания сессии
-      fetch("/your-backend-auth-endpoint", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id_token: idToken }),
-      })
-        .then((response) => response.json())
-        .then((data) => {
-          // Обработайте ответ сервера (например, редирект на защищенную страницу)
-          console.log("Успешная авторизация Google:", data);
-        })
-        .catch((error) => {
-          console.error("Ошибка авторизации Google:", error);
-        });
-    })
-    .catch((error) => {
-      console.error("Ошибка входа Google:", error);
-    });
-}
+  const name = regForm.elements["reg-name"].value.trim();
+  const email = regForm.elements["reg-email"].value.trim();
+  const password = regForm.elements["reg-password"].value;
+  const confirmPassword = regForm.elements["reg-password-confirm"].value;
 
-function vkSignIn() {
-  VK.Auth.login(function (response) {
-    if (response.session) {
-      // access_token получен, отправьте его на сервер для верификации
-      fetch("/your-backend-auth-endpoint", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ access_token: response.session.access_token }),
-      })
-        .then((response) => response.json())
-        .then((data) => {
-          console.log("Успешная авторизация VK:", data);
-        })
-        .catch((error) => {
-          console.error("Ошибка авторизации VK:", error);
-        });
-    } else {
-      console.error("Авторизация VK отклонена");
-    }
-  }, 2); // 2 - запрос прав на доступ к email
-}*/
-// script.js
-// Создаем ключ для хранения аккаунтов в localStorage
-const ACCOUNTS_KEY = "accounts";
+  if (!validateRegistration(name, email, password, confirmPassword)) return;
 
-// Функция для добавления нового аккаунта
-function createAccount() {
-  const name = document.getElementById("reg-name").value;
-  const email = document.getElementById("reg-email").value;
-  const password = document.getElementById("reg-password").value;
-
-  // Проверка на пустые поля
-  if (!name || !email || !password) {
-    alert("Заполните все поля!");
-  }
-
-  // Загружаем текущие аккаунты из localStorage
   const accounts = JSON.parse(localStorage.getItem(ACCOUNTS_KEY)) || [];
 
-  // Проверка на существующий email
   if (accounts.some((account) => account.email === email)) {
     alert("Аккаунт с таким email уже существует!");
     return;
   }
 
-  // Добавляем новый аккаунт в массив и сохраняем его в localStorage
   accounts.push({ name, email, password });
   localStorage.setItem(ACCOUNTS_KEY, JSON.stringify(accounts));
 
   alert("Аккаунт успешно создан!");
+  regForm.reset(); //сбрасываем значения полей после регистрации
+  container.classList.remove("right-panel-active"); //возвращаемся к форме авторизации
 }
+
+function validateRegistration(name, email, password, confirmPassword) {
+  //валидация имени
+  if (name.length < 2 || name.length > 50) {
+    alert("Имя должно содержать от 2 до 50 символов!");
+    return false;
+  }
+
+  //валидация почты
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  if (!emailRegex.test(email)) {
+    alert("Введите корректный email");
+    return false;
+  }
+
+  //Валидация пароля
+
+  const passwordRegex = /^(?=.*[A-Za-z])[A-Za-z\d@$!%*?&]{8,}$/;
+  if (!passwordRegex.test(password)) {
+    alert("Пароль должен содержать минимум 8 символов");
+
+    return false;
+  }
+
+  if (password !== confirmPassword) {
+    alert("Пароли не совпадают!");
+    return false;
+  }
+
+  return true;
+}
+
+// Авторизация
 signInButton.addEventListener("click", login);
-
-// Функция для поиска аккаунта (вход в систему)
 function login(event) {
-  event.preventDefault(); // Предотвращение стандартного поведения submit
+  event.preventDefault();
 
-  const email = document.getElementById("email").value;
-  const password = document.getElementById("password").value;
+  const email = loginForm.elements["email"].value.trim();
+  const password = loginForm.elements["password"].value.trim();
 
-  // Проверка на пустые поля
   if (!email || !password) {
     alert("Введите email и пароль!");
     return;
   }
 
-  // Загружаем текущие аккаунты из localStorage
-  const accounts = JSON.parse(localStorage.getItem(ACCOUNTS_KEY)) || [];
   if (email === "1" && password === "1") {
-    // Перенаправляем на страницу администратора
-    window.location.href = "../admin/admin.html";
+    window.location.href = "admin/admin.html";
     console.log("Вход в административную");
-  } else {
-    // Проверка наличия аккаунта с соответствующими email и паролем
-    const account = accounts.find(
-      (account) => account.email === email && account.password === password
-    );
 
-    if (account) {
-      alert("Вход успешен!");
-      // Здесь можно добавить дальнейшие действия, например, перенаправление
-    } else {
-      alert("Неверный email или пароль!");
-    }
+    return;
+  }
+
+  const accounts = JSON.parse(localStorage.getItem(ACCOUNTS_KEY)) || [];
+
+  const account = accounts.find(
+    (account) => account.email === email && account.password === password
+  );
+
+  if (account) {
+    alert("Вход успешен!");
+    // Здесь можно добавить дальнейшие действия, например, перенаправление
+  } else {
+    alert("Неверный email или пароль!");
   }
 }
+const regSubmitButton = document.getElementById("reg-submit"); //  Или другой селектор для кнопки
+regSubmitButton.addEventListener("click", createAccount); // <---  Без скобок!
