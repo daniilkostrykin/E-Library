@@ -9,8 +9,9 @@ signUpButton.addEventListener("click", () => {
 
 signInOverlayButton.addEventListener("click", () => {
   container.classList.remove("right-panel-active");
-}); /*
-// Инициализация Google API (Замените YOUR_GOOGLE_CLIENT_ID на ваш Client ID)
+}); 
+/*
+ Инициализация Google API (Замените YOUR_GOOGLE_CLIENT_ID на ваш Client ID)
 gapi.load("auth2", () => {
   gapi.auth2.init({ client_id: "YOUR_GOOGLE_CLIENT_ID" });
 });
@@ -96,9 +97,12 @@ function createAccount() {
 
   alert("Аккаунт успешно создан!");
 }
+signInButton.addEventListener("click", login);
 
 // Функция для поиска аккаунта (вход в систему)
-function login() {
+function login(event) {
+  event.preventDefault(); // Предотвращение стандартного поведения submit
+
   const email = document.getElementById("email").value;
   const password = document.getElementById("password").value;
 
@@ -113,6 +117,7 @@ function login() {
   if (email === "1" && password === "1") {
     // Перенаправляем на страницу администратора
     window.location.href = "../admin/admin.html";
+    console.log("Вход в административную");
   } else {
     // Проверка наличия аккаунта с соответствующими email и паролем
     const account = accounts.find(
