@@ -176,6 +176,14 @@ function searchStudent() {
   if (!students || students.length === 0) {
     updateControlsMargin(false);
   }
+  // Очищаем таблицу книг, если она существует
+  const bookTable = document.getElementById("bookTable");
+  if (bookTable) {
+    bookTable.remove();
+  }
+  if (!students || students.length === 0) {
+    updateControlsMargin(false);
+  }
 
   const query = document
     .getElementById("searchInput1")
@@ -201,6 +209,123 @@ function searchStudent() {
 
   // Добавлено:  отображаем отфильтрованных студентов
   displayStudents(filteredStudents);
+  updateControlsMargin(true);
+}
+
+function createCancelButton(formId, inputId, submitButton) {
+  const cancelButton = document.createElement("button");
+  cancelButton.textContent = "Отмена";
+  cancelButton.style.backgroundColor = "gray";
+  cancelButton.style.color = "white";
+  cancelButton.style.padding = "12px 20px";
+  cancelButton.style.borderRadius = "10px";
+  cancelButton.style.border = "none";
+
+  cancelButton.addEventListener("click", (event) => {
+    event.preventDefault();
+    document.getElementById(inputId).value = "";
+
+    if (inputId === "searchInput") {
+      const oldTable = document.getElementById("bookTable");
+      if (oldTable) {
+        oldTable.remove();
+        updateControlsMargin(false);
+      }
+    } else {
+      const oldTable = document.getElementById("studentsTable");
+      if (oldTable) {
+        oldTable.remove();
+        updateControlsMargin(false);
+      }
+    }
+
+    submitButton.style.display = ""; // Показываем кнопку "Найти"
+    cancelButton.remove(); // Удаляем кнопку "Отмена"
+  });
+
+  return cancelButton;
+}
+
+function handleSearchFormSubmit(formId, inputId) {
+  const form = document.getElementById(formId);
+
+  form.addEventListener("submit", (event) => {
+    event.preventDefault();
+
+    const input = document.getElementById(inputId);
+
+    if (input.value.trim() !== "") {
+      const submitButton = form.elements[form.elements.length - 1];
+
+      submitButton.style.display = "none";
+
+      const cancelButton = createCancelButton(formId, inputId, submitButton); // Передаем submitButton
+
+      cancelButton.classList.add("cancel-button");
+
+      form.insertBefore(cancelButton, submitButton.nextSibling);
+
+      if (formId === "searchForm") {
+        searchBook();
+      } else {
+        searchStudent();
+      }
+    }
+  }); // конец обработчика submit
+}
+function getRandomItem(array) {
+  return array[Math.floor(Math.random() * array.length)];
+}
+
+function getRandomFIO() {
+  const lastNames = [
+    "Иванов",
+    "Петров",
+    "Сидоров",
+    "Кузнецов",
+    "Смирнов",
+    "Попов",
+    "Лебедев",
+    "Козлов",
+    "Новиков",
+    "Морозов",
+  ];
+
+  const firstNames = [
+    "Александр",
+    "Алексей",
+    "Анастасия",
+    "Андрей",
+    "Анна",
+    "Дмитрий",
+    "Екатерина",
+    "Иван",
+    "Кирилл",
+    "Мария",
+  ];
+
+  const middleNames = [
+    "Александрович",
+    "Алексеевна",
+    "Иванович",
+    "Дмитриевна",
+    "Петрович",
+    "Андреевна",
+    "Сергеевич",
+    "Викторовна",
+    "Николаевич",
+    "Владимировна",
+  ];
+
+  const lastName = getRandomItem(lastNames);
+  const firstName = getRandomItem(firstNames);
+  const middleName = getRandomItem(middleNames);
+
+  return `${lastName} ${firstName} ${middleName}`;
+}
+function updateControlsMargin(hasData) {
+  const controls = document.getElementById("controls");
+  controls.style.marginTop = hasData ? "40px" : "400px";
 }
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -272,71 +397,18 @@ document.addEventListener("DOMContentLoaded", () => {
       Местоположение: "Главная библиотека, зал 2, полка 25",
     },
   ];
-
+  handleSearchFormSubmit("searchForm", "searchInput"); // Для  книг
+  handleSearchFormSubmit("searchForm1", "searchInput1"); // Для  студентов
   localStorage.setItem("books", JSON.stringify(initial_books)); // УДАЛИТЬ ПОСЛЕ ЗАПОЛНЕНИЯ ЧЕРЕЗ ИНТЕРФЕЙС
 
   document.getElementById("edit-book").addEventListener("click", edit);
 
-  document.getElementById("searchForm").addEventListener("submit", (event) => {
+  /* document.getElementById("searchForm").addEventListener("submit", (event) => {
     event.preventDefault();
     searchBook();
   });
   document.getElementById("searchForm1").addEventListener("submit", (event) => {
     event.preventDefault();
     searchStudent();
-  });
+  });*/
 });
-function getRandomItem(array) {
-  return array[Math.floor(Math.random() * array.length)];
-}
-
-function getRandomFIO() {
-  const lastNames = [
-    "Иванов",
-    "Петров",
-    "Сидоров",
-    "Кузнецов",
-    "Смирнов",
-    "Попов",
-    "Лебедев",
-    "Козлов",
-    "Новиков",
-    "Морозов",
-  ];
-
-  const firstNames = [
-    "Александр",
-    "Алексей",
-    "Анастасия",
-    "Андрей",
-    "Анна",
-    "Дмитрий",
-    "Екатерина",
-    "Иван",
-    "Кирилл",
-    "Мария",
-  ];
-
-  const middleNames = [
-    "Александрович",
-    "Алексеевна",
-    "Иванович",
-    "Дмитриевна",
-    "Петрович",
-    "Андреевна",
-    "Сергеевич",
-    "Викторовна",
-    "Николаевич",
-    "Владимировна",
-  ];
-
-  const lastName = getRandomItem(lastNames);
-  const firstName = getRandomItem(firstNames);
-  const middleName = getRandomItem(middleNames);
-
-  return `${lastName} ${firstName} ${middleName}`;
-}
-function updateControlsMargin(hasData) {
-  const controls = document.getElementById("controls");
-  controls.style.marginTop = hasData ? "40px" : "400px";
-}
