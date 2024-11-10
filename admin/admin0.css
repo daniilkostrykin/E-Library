@@ -55,12 +55,12 @@ body {
 }
 #controls {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-start;
   align-items: center;
   margin-top: 400px;
   width: 100%;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 5px;
 }
 
 #controls button,
@@ -89,9 +89,6 @@ body {
   border: none;
 }
 
-#addBookBtn {
-  background-color: rgb(189, 132, 243);
-}
 .edit-book {
   background-color: rgb(43, 144, 226);
 }

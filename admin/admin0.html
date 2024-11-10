@@ -4,23 +4,14 @@
     <meta charset="UTF-8" />
     <title>Панель администратора</title>
     <link rel="stylesheet" href="admin.css" />
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
-
+    <link
+      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
   </head>
   <body>
     <div id="adminPanel">
       <h2>Панель администратора</h2>
-
-      <table id="bookTable">
-        <tr>
-          <th>Название книги</th>
-          <th>Автор</th>
-          <th>Количество</th>
-          <th>Бумажная версия</th>
-          <th>Электронная версия</th>
-          <th>Местоположение</th>
-        </tr>
-      </table>
 
       <div id="controls">
         <form id="searchForm">
@@ -28,11 +19,16 @@
           <input type="text" id="searchInput" placeholder="Поиск книги..." />
           <input type="submit" id="find" value="Найти" />
         </form>
-        <button id="addBookBtn">Добавить книгу</button>
-        <button id="delete-book">Удалить книгу</button>
-
-        <button class="edit-book">Редактировать</button>
-        <button onclick="logout()" class="exit-button">Выйти</button>
+        <form id="searchForm1">
+          <ion-icon name="search-outline" id="search-outline"></ion-icon>
+          <input
+            type="text"
+            id="searchInput1"
+            placeholder="Поиск студента по номеру или ФИО..."
+          />
+          <input type="submit" id="find1" value="Найти" />
+        </form>
+        <button onclick="edit()" id="edit-book">Редактировать</button>
       </div>
     </div>
     <script
@@ -43,6 +39,6 @@
       nomodule
       src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"
     ></script>
-    <script src="admin.js"></script>
+    <script src="admin0.js"></script>
   </body>
 </html>

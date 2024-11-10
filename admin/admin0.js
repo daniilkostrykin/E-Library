@@ -1,7 +1,6 @@
 const BOOKS_KEY = "books";
-
-function logout() {
-  window.location.href = "../index.html";
+function edit() {
+  window.location.href = "admin.html";
 }
 
 function displayBooks(books) {
@@ -13,7 +12,7 @@ function displayBooks(books) {
     "Название",
     "Автор",
     "Количество",
-    "Электронная версия", 
+    "Электронная версия",
     "Местоположение",
   ];
   headers.forEach((headerText) => {
@@ -48,124 +47,6 @@ function displayBooks(books) {
   });
 }
 
-function addBook() {
-  const title = prompt("Введите название книги:");
-  if (title === null) return;
-
-  const author = prompt("Введите автора книги:");
-  const quantity = parseInt(prompt("Введите количество книг:"));
-  const onlineVersion = prompt("Cсылка на электронную версию:");
-  const location = prompt("Введите местоположение книги:");
-
-  if (title && author && location && quantity >= 0) {
-    if (onlineVersion.length > 0) {
-      const newBook = {
-        Название: title,
-        Автор: author,
-        Количество: quantity,
-        "Электронная версия": onlineVersion,
-        Местоположение: location,
-      };
-
-      const books = JSON.parse(localStorage.getItem(BOOKS_KEY)) || [];
-      books.push(newBook);
-      localStorage.setItem(BOOKS_KEY, JSON.stringify(books));
-
-      displayBooks(books);
-    } else {
-      alert("Добавьте ссылку!");
-    }
-  } else {
-    alert("Заполните все поля!");
-  }
-}
-
-function editBook() {
-  const query = document.getElementById("searchInput").value.toLowerCase();
-  const books = JSON.parse(localStorage.getItem(BOOKS_KEY)) || [];
-
-  if (query.length) {
-    const filteredBooks = books.filter(
-      (book) =>
-        book.Название.toLowerCase().includes(query) ||
-        book.Автор.toLowerCase().includes(query)
-    );
-
-    if (filteredBooks.length === 1) {
-      const bookToEdit = filteredBooks[0];
-      if (confirm("Редактировать эту книгу " + bookToEdit.Название + " ?")) {
-        const title = prompt(
-          "Введите новое название книги:",
-          bookToEdit.Название
-        );
-        const author = prompt("Введите нового автора книги:", bookToEdit.Автор);
-        const quantity = parseInt(
-          prompt("Введите новое количество книг:", bookToEdit.Количество)
-        );
-        const onlineVersion = prompt(
-          "Cсылка на электронную версию:",
-          bookToEdit["Электронная версия"]
-        );
-        const location = prompt(
-          "Новое местоположение книги:",
-          bookToEdit.Местоположение[0]
-        );
-
-        const newBook = {
-          Название: title,
-          Автор: author,
-          Количество: quantity,
-          "Электронная версия": onlineVersion,
-          Местоположение: location,
-        };
-
-        const index = books.indexOf(bookToEdit);
-        if (index > -1) {
-          books.splice(index, 1, newBook);
-          localStorage.setItem(BOOKS_KEY, JSON.stringify(books));
-          displayBooks(books);
-        }
-      }
-    } else {
-      alert("Совпадений не найдено!");
-    }
-  } else {
-    alert("Введите название книги в поле поиска.");
-  }
-}
-
-function deleteBook() {
-  const books = JSON.parse(localStorage.getItem(BOOKS_KEY)) || [];
-  const query = document
-    .getElementById("searchInput")
-    .value.trim()
-    .toLowerCase();
-
-  if (query.length === 0) {
-    alert("Введите название книги для удаления.");
-    return;
-  }
-
-  const filteredBooks = books.filter(
-    (book) => book.Название.toLowerCase() === query
-  );
-
-  if (filteredBooks.length > 1) {
-    alert("Слишком много результатов");
-  } else if (filteredBooks.length === 1) {
-    const bookToDelete = filteredBooks[0];
-    if (confirm("Удалить книгу " + bookToDelete.Название + "?")) {
-      const index = books.indexOf(bookToDelete);
-      if (index > -1) {
-        books.splice(index, 1);
-        localStorage.setItem(BOOKS_KEY, JSON.stringify(books));
-        displayBooks(books);
-      }
-    }
-  } else {
-    alert("Совпадений не найдено!");
-  }
-}
 
 function searchBook() {
   const books = JSON.parse(localStorage.getItem(BOOKS_KEY)) || [];
@@ -187,19 +68,38 @@ function searchBook() {
     }
   }
 }
+function searchStudent() {
+  const books = JSON.parse(localStorage.getItem(BOOKS_KEY)) || [];
+  const query = document.getElementById("searchInput1").value.toLowerCase();
+
+  if (query.length === 0) {
+    displayBooks(books);
+  } else {
+    const filteredBooks = books.filter(
+      (book) =>
+        book.Название.toLowerCase().includes(query) ||
+        book.Автор.toLowerCase().includes(query)
+    );
+
+    if (filteredBooks.length) {
+      displayBooks(filteredBooks);
+    } else {
+      alert("Совпадений не найдено!");
+    }
+  }
+}
 
 document.addEventListener("DOMContentLoaded", () => {
   const books = JSON.parse(localStorage.getItem(BOOKS_KEY)) || [];
   displayBooks(books);
+  document.getElementById("edit-book").addEventListener("click", edit);
 
-  document.getElementById("delete-book").addEventListener("click", deleteBook);
   document.getElementById("searchForm").addEventListener("submit", (event) => {
     event.preventDefault();
     searchBook();
   });
-  document.getElementById("addBookBtn").addEventListener("click", addBook);
-  const editBookButton = document.querySelector(".edit-book");
-  if (editBookButton) {
-    editBookButton.addEventListener("click", editBook);
-  }
+  document.getElementById("searchForm1").addEventListener("submit", (event) => {
+    event.preventDefault();
+    searchStudent();
+  });
 });

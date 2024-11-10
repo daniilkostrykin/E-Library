@@ -2,7 +2,7 @@ const BOOKS_KEY = "books";
 let originalBooks = []; // Глобальная переменная для хранения оригинальных данных
 
 function logout() {
-  window.location.href = "../index.html";
+  window.location.href = "admin0.html";
 }
 
 function displayBooks(books) {
