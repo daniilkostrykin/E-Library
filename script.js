@@ -90,7 +90,7 @@ function login(event) {
   }
 
   if (email === "1" && password === "1") {
-    window.location.href = "admin/admin.html";
+    window.location.href = "admin/admin0.html";
     console.log("Вход в административную");
 
     return;
