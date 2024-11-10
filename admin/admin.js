@@ -79,6 +79,7 @@ function displayBooks(books) {
         });
       }
     });
+  
 
     // Кнопка удаления
     const actionCell = row.insertCell();
@@ -90,7 +91,7 @@ function displayBooks(books) {
     deleteButton.style.border = "none";
     deleteButton.style.padding = "8px 40px";
     deleteButton.style.borderRadius = "10px";
-    deleteButton.style.fontFamily = "Montserrat,Times New Roman, sans-serif !important";
+    deleteButton.style.fontFamily = "Montserrat !important";
 
     deleteButton.addEventListener("click", () => {
       if (confirm("Вы уверены, что хотите удалить эту запись?")) {
