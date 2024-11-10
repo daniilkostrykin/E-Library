@@ -8,6 +8,7 @@ body {
   min-height: 100vh;
   background-image: url("../assets/background.avif");
   background-size: cover;
+  background-repeat: no-repeat;
 }
 
 #adminPanel {
@@ -112,7 +113,8 @@ input[type="text"] {
 }
 
 #edit-book {
-  background-color: #a09cf6;}
+  background-color: #a09cf6;
+}
 
 #search-outline,
 #search-outline1 {
