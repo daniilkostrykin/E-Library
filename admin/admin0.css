@@ -11,12 +11,19 @@ body {
 }
 
 #adminPanel {
-  width: 955px;
+  width: 1080px;
   max-width: 90%;
   background-color: white;
   padding: 20px;
   border-radius: 10px;
   box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+#controls button,
+#controls input[type="submit"],
+#controls input[type="text"] {
+  font-family: "Montserrat", sans-serif;
+  cursor: pointer;
 }
 
 #controls > button:hover,
@@ -47,60 +54,67 @@ body {
   background-color: rgb(237, 240, 245);
 }
 #adminPanel th:nth-child(3) {
-  color: black; /* Цвет текста для заголовка третьего столбца */
+  color: black;
 }
 
 #adminPanel td:nth-child(3) {
-  color: green; /* Цвет текста для ячеек третьего столбца */
+  color: green;
 }
+
 #controls {
   display: flex;
   justify-content: flex-start;
   align-items: center;
   margin-top: 400px;
   width: 100%;
-  flex-wrap: wrap;
-  gap: 5px;
+  gap: 20px;
 }
 
 #controls button,
 #controls input[type="submit"] {
   color: white;
-  background-color: #a09cf6;
-  padding: 12px;
+
+  padding: 12px 20px;
   border-radius: 10px;
-  margin: 5px 0;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5); /* Смещение вни */
-}
-#searchInput {
-  border-radius: 10px;
-  height: 34px;
-}
-#searchForm {
-  margin-bottom: 10px;
-}
-#find {
-  background-color: #4caf50;
-  border-radius: 0 10px 10px 0;
-  border-left: 1px solid #ddd;
-}
-#controls input,
-#controls button {
   border: none;
 }
 
-.edit-book {
-  background-color: rgb(43, 144, 226);
+input[type="text"] {
+  outline: none;
+  border: none;
+  background: transparent;
+  color: inherit;
+  font-size: 16px;
+}
+#searchForm,
+#searchForm1 {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 30px;
+}
+#searchInput {
+  border-radius: 10px;
+  padding: 5px 10px;
+  box-sizing: border-box;
+}
+#searchInput1 {
+  border-radius: 10px;
+  padding: 5px 10px;
+  box-sizing: border-box;
+  width: 360px;
 }
 
-.exit-button {
-  background-color: rgb(255, 101, 101) !important;
-  flex: 0 0 45px;
+.find {
+  background-color: #a5dca7;
+  border-radius: 0 10px 10px 0;
+  border-left: 1px solid #ddd;
 }
 
-#delete-book {
-  background-color: rgb(226, 208, 43);
-}
-#search-outline {
-  margin-top: 23px;
+#edit-book {
+  background-color: #a09cf6;}
+
+#search-outline,
+#search-outline1 {
+  margin-top: 10px;
 }
