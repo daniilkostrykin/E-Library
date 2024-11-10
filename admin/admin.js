@@ -19,9 +19,12 @@ function displayBooks(books) {
     "Местоположение",
     "Удаление",
   ];
-  headers.forEach((headerText) => {
+  headers.forEach((headerText, index) => {
     const header = headerRow.insertCell();
     header.textContent = headerText;
+    if (headerText === "Количество") {
+      header.style.color = "black"; // Заголовок черного цвета
+    }
   });
 
   // Данные книг
@@ -43,6 +46,30 @@ function displayBooks(books) {
         });
 
         cell.appendChild(input);
+      } else if (key === "Количество") {
+        cell.textContent = value;
+        cell.contentEditable = true;
+
+        // Установить цвет текста в зависимости от значения
+        updateCellColor(cell, value);
+
+        cell.addEventListener("input", () => {
+          let newValue = cell.textContent.trim();
+
+          // Убираем лидирующие нули
+          if (/^0\d+/.test(newValue)) {
+            newValue = parseInt(newValue, 10).toString();
+            cell.textContent = newValue;
+          }
+
+          // Запрет на отрицательные значения и некорректный ввод
+          if (isNaN(newValue) || parseInt(newValue, 10) < 0) {
+            cell.textContent = 0; // Устанавливаем 0 по умолчанию
+          }
+          updateCellColor(cell, cell.textContent);
+          document.getElementById("save-changes").disabled = false;
+          document.getElementById("cancel").disabled = false;
+        });
       } else {
         cell.textContent = value;
         cell.contentEditable = true;
@@ -58,19 +85,12 @@ function displayBooks(books) {
     const deleteButton = document.createElement("button");
     deleteButton.classList.add("action-button");
     deleteButton.textContent = "Удалить";
-    deleteButton.style.backgroundColor = "rgb(255, 101, 101)"; // Устанавливаем цвет фона
-    deleteButton.style.color = "white";         // Цвет текста
-    deleteButton.style.border = "none";         // Убираем рамку (если нужно)
-    deleteButton.style.padding = "8px 40px";    // Добавляем отступы
-    deleteButton.style.borderRadius = "10px";    // Закругляем края (если нужно)
-  /*  color: white;
-    background-color: #a09cf6;
-    padding: 12px;
-    border-radius: 10px;
-    margin: 5px 0;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
-      background-color: rgb(255, 101, 101) !important; 
-    padding: 12px 20px; */
+    deleteButton.style.backgroundColor = "rgb(255, 101, 101)";
+    deleteButton.style.color = "white";
+    deleteButton.style.border = "none";
+    deleteButton.style.padding = "8px 40px";
+    deleteButton.style.borderRadius = "10px";
+
     deleteButton.addEventListener("click", () => {
       if (confirm("Вы уверены, что хотите удалить эту запись?")) {
         const books = JSON.parse(localStorage.getItem(BOOKS_KEY)) || [];
@@ -85,6 +105,16 @@ function displayBooks(books) {
 
     actionCell.appendChild(deleteButton);
   });
+}
+
+// Вспомогательная функция для обновления цвета текста в ячейке "Количество"
+function updateCellColor(cell, value) {
+  const numValue = parseInt(value, 10);
+  if (numValue > 0) {
+    cell.style.color = "rgb(134, 243, 132)";
+  } else if (numValue === 0) {
+    cell.style.color = "red";
+  }
 }
 
 function saveEditBook() {
@@ -120,36 +150,63 @@ function cancelEditBook() {
 }
 
 function addBook() {
-  const title = prompt("Введите название книги:");
-  if (title === null) return;
+  let title, author, quantity, onlineVersion, location;
 
-  const author = prompt("Введите автора книги:");
-  const quantity = parseInt(prompt("Введите количество книг:"));
-  const onlineVersion = prompt("Cсылка на электронную версию:");
-  const location = prompt("Введите местоположение книги:");
-
-  if (title && author && location && quantity >= 0) {
-    if (onlineVersion.length > 0) {
-      const newBook = {
-        Название: title,
-        Автор: author,
-        Количество: quantity,
-        "Электронная версия": onlineVersion,
-        Местоположение: location,
-      };
-
-      const books = JSON.parse(localStorage.getItem(BOOKS_KEY)) || [];
-      books.push(newBook);
-      localStorage.setItem(BOOKS_KEY, JSON.stringify(books));
-
-      displayBooks(books);
-    } else {
-      alert("Добавьте ссылку!");
-    }
-  } else {
-    alert("Заполните все поля!");
+  // Ввод названия книги
+  while (true) {
+    title = prompt("Введите название книги:").trim();
+    if (title) break; // Если название введено, выходим из цикла
+    alert("Название книги обязательно!");
   }
+
+  // Ввод автора книги
+  while (true) {
+    author = prompt("Введите автора книги:").trim();
+    if (author) break; // Если автор введен, выходим из цикла
+    alert("Автор книги обязателен!");
+  }
+
+  // Ввод количества книг
+  while (true) {
+    const input = prompt("Введите количество книг:");
+    quantity = parseInt(input);
+    if (!isNaN(quantity) && quantity >= 0) break; // Если введено число >= 0, выходим из цикла
+    alert("Количество должно быть положительным числом или 0!");
+  }
+
+  // Ввод ссылки на электронную версию
+  while (true) {
+    onlineVersion = prompt("Введите ссылку на электронную версию:").trim();
+    if (onlineVersion) break; // Если ссылка введена, выходим из цикла
+    alert("Ссылка на электронную версию обязательна!");
+  }
+
+  // Ввод местоположения книги
+  while (true) {
+    location = prompt("Введите местоположение книги:").trim();
+    if (location) break; // Если местоположение введено, выходим из цикла
+    alert("Местоположение книги обязательно!");
+  }
+
+  // Создаем объект новой книги
+  const newBook = {
+    Название: title,
+    Автор: author,
+    Количество: quantity,
+    "Электронная версия": onlineVersion,
+    Местоположение: location,
+  };
+
+  // Сохраняем в локальное хранилище
+  const books = JSON.parse(localStorage.getItem(BOOKS_KEY)) || [];
+  books.push(newBook);
+  localStorage.setItem(BOOKS_KEY, JSON.stringify(books));
+  originalBooks = JSON.parse(JSON.stringify(books));
+
+  // Обновляем отображение книг
+  displayBooks(books);
 }
+
 
 function searchBook() {
   const books = JSON.parse(localStorage.getItem(BOOKS_KEY)) || [];
