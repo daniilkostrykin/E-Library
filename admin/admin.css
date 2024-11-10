@@ -104,7 +104,7 @@ a {
 #searchForm {
   margin-bottom: 10px;
 }
-.action-button{
+.action-button {
   font-family: "Montserrat", sans-serif;
 }
 #find {
@@ -117,20 +117,48 @@ a {
   border: none;
 }
 
+/* Добавление затемнения для кнопки "addBookBtn" */
 #addBookBtn {
   background-color: rgb(134, 243, 132) !important;
-}
-.edit-book {
-  background-color: rgb(43, 144, 226);
+  transition: background-color 0.3s ease; /* Анимация для плавного перехода */
 }
 
+#addBookBtn:hover {
+  background-color: rgb(114, 223, 112) !important; /* Темнее при наведении */
+}
+
+#addBookBtn:active {
+  background-color: rgb(94, 203, 92) !important; /* Еще темнее при нажатии */
+}
+
+/* Добавление затемнения для кнопки "exit-button" */
 #exit-button {
   background-color: rgb(255, 101, 101) !important;
+  transition: background-color 0.3s ease;
 }
 
+#exit-button:hover {
+  background-color: rgb(235, 81, 81) !important;
+}
+
+#exit-button:active {
+  background-color: rgb(215, 61, 61) !important;
+}
+
+/* Добавление затемнения для кнопки "cancel" */
 #cancel {
   background-color: rgb(138, 138, 138) !important;
+  transition: background-color 0.3s ease;
 }
+
+#cancel:hover {
+  background-color: rgb(118, 118, 118) !important;
+}
+
+#cancel:active {
+  background-color: rgb(98, 98, 98) !important;
+}
+
 #search-outline {
   margin-top: 23px;
 }
