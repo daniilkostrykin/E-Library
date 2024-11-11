@@ -398,7 +398,7 @@ document.addEventListener("DOMContentLoaded", () => {
     },
   ];
   handleSearchFormSubmit("searchForm", "searchInput"); // Для  книг
-  handleSearchFormSubmit("searchForm1", "searchInput1"); // Для  студентов
+  handleSearchFormSubmit("searchStudentForm", "searchInput1"); // Для  студентов
   localStorage.setItem("books", JSON.stringify(initial_books)); // УДАЛИТЬ ПОСЛЕ ЗАПОЛНЕНИЯ ЧЕРЕЗ ИНТЕРФЕЙС
 
   document.getElementById("edit-book").addEventListener("click", edit);
