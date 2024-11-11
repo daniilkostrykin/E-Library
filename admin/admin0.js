@@ -50,7 +50,10 @@ function displayBooks(books) {
         if (value) {
           const linkElement = document.createElement("a");
           linkElement.href = value;
-          linkElement.textContent = "Ссылка";
+          const bookIcon = document.createElement("ion-icon");
+          bookIcon.name = "book"; // Устанавливаем имя иконки книги
+          bookIcon.style.fontSize = "24px"; // При необходимости задайте размер иконки
+          linkElement.appendChild(bookIcon);
           cell.appendChild(linkElement);
         } else {
           cell.textContent = "Нет";
