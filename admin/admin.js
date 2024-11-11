@@ -1,3 +1,4 @@
+//admin.js
 const BOOKS_KEY = "books";
 let originalBooks = []; // Глобальная переменная для хранения оригинальных данных
 
@@ -79,7 +80,6 @@ function displayBooks(books) {
         });
       }
     });
-  
 
     // Кнопка удаления
     const actionCell = row.insertCell();
@@ -199,16 +199,20 @@ function addBook() {
     Местоположение: location,
   };
 
-  // Сохраняем в локальное хранилище
-  const books = JSON.parse(localStorage.getItem(BOOKS_KEY)) || [];
+  // Получаем книги из localStorage, добавляем новую и сохраняем обратно
+  let books = JSON.parse(localStorage.getItem(BOOKS_KEY)) || [];
   books.push(newBook);
   localStorage.setItem(BOOKS_KEY, JSON.stringify(books));
-  originalBooks = JSON.parse(JSON.stringify(books));
+  originalBooks = JSON.parse(localStorage.getItem(BOOKS_KEY)); // <-- Обновить originalBooks
+  displayBooks(originalBooks); // <-- Перерисовать таблицу с новыми данными
 
-  // Обновляем отображение книг
-  displayBooks(books);
+  console.log("Добавленная книга:", newBook);
+  console.log("Обновленный массив книг:", books);
 }
-
+// Функция для сохранения массива книг в localStorage
+function saveBooksToLocalStorage(books) {
+  localStorage.setItem(BOOKS_KEY, JSON.stringify(books)); // Сохраняем обновленный массив
+}
 
 function searchBook() {
   const books = JSON.parse(localStorage.getItem(BOOKS_KEY)) || [];
@@ -232,7 +236,7 @@ function searchBook() {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  let books = JSON.parse(localStorage.getItem(BOOKS_KEY)) || [];
+  const books = JSON.parse(localStorage.getItem(BOOKS_KEY)) || [];
   originalBooks = JSON.parse(JSON.stringify(books));
   document.getElementById("save-changes").disabled = true;
   document.getElementById("cancel").disabled = true;

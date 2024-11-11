@@ -1,3 +1,4 @@
+//admin0.js
 const STUDENTS_KEY = "students";
 const BOOKS_KEY = "books";
 let students = [];
@@ -354,11 +355,7 @@ function updateControlsMargin(hasData) {
   const controls = document.getElementById("controls");
   controls.style.marginTop = hasData ? "40px" : "400px";
 }
-
-document.addEventListener("DOMContentLoaded", () => {
-  // 1. Загружаем книги из localStorage
-  const books = JSON.parse(localStorage.getItem(BOOKS_KEY)) || [];
-
+function fillStrorage() {
   // 2. Загружаем студентов из localStorage или создаем новых, если их нет
   students = JSON.parse(localStorage.getItem(STUDENTS_KEY)) || [];
 
@@ -424,18 +421,12 @@ document.addEventListener("DOMContentLoaded", () => {
       Местоположение: "Главная библиотека, зал 2, полка 25",
     },
   ];
+}
+document.addEventListener("DOMContentLoaded", () => {
+  const books = JSON.parse(localStorage.getItem(BOOKS_KEY)) || [];
+  originalBooks = JSON.parse(JSON.stringify(books));
+  fillStrorage();
   handleSearchFormSubmit("searchForm", "searchInput"); // Для  книг
   handleSearchFormSubmit("searchStudentForm", "searchInput1"); // Для  студентов
-  localStorage.setItem("books", JSON.stringify(initial_books)); // УДАЛИТЬ ПОСЛЕ ЗАПОЛНЕНИЯ ЧЕРЕЗ ИНТЕРФЕЙС
-
   document.getElementById("edit-book").addEventListener("click", edit);
-
-  /* document.getElementById("searchForm").addEventListener("submit", (event) => {
-    event.preventDefault();
-    searchBook();
-  });
-  document.getElementById("searchForm1").addEventListener("submit", (event) => {
-    event.preventDefault();
-    searchStudent();
-  });*/
 });
