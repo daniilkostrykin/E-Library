@@ -68,13 +68,18 @@ function displayBooks(books) {
 }
 
 function searchBook() {
+  const studentsTable = document.getElementById("studentsTable");
+  if (studentsTable) {
+    studentsTable.remove();
+  }
+
   const books = JSON.parse(localStorage.getItem(BOOKS_KEY)) || [];
   const query = document
     .getElementById("searchInput")
     .value.trim()
     .toLowerCase();
 
-  const booksTable = document.getElementById("booksTable");
+  const bookTable = document.getElementById("bookTable");
 
   // Если поле ввода пустое
   if (!query) {
@@ -100,8 +105,8 @@ function searchBook() {
     updateControlsMargin(true); // Устанавливаем маленький отступ
   } else {
     alert("Совпадений не найдено!");
-    if (booksTable) {
-      booksTable.remove(); // Удаляем таблицу, если она существует
+    if (bookTable) {
+      bookTable.remove(); // Удаляем таблицу, если она существует
     }
     updateControlsMargin(false); // Устанавливаем большой отступ
   }
@@ -220,32 +225,54 @@ function createCancelButton(formId, inputId, submitButton) {
   cancelButton.style.padding = "12px 20px";
   cancelButton.style.borderRadius = "10px";
   cancelButton.style.border = "none";
+  cancelButton.classList.add("cancel-button"); // Добавляем класс для удобства поиска
 
   cancelButton.addEventListener("click", (event) => {
     event.preventDefault();
+
+    // 1. Очищаем текущую форму
     document.getElementById(inputId).value = "";
 
-    if (inputId === "searchInput") {
-      const oldTable = document.getElementById("bookTable");
-      if (oldTable) {
-        oldTable.remove();
-        updateControlsMargin(false);
-      }
-    } else {
-      const oldTable = document.getElementById("studentsTable");
-      if (oldTable) {
-        oldTable.remove();
-        updateControlsMargin(false);
-      }
+    // 2. Удаляем таблицу, связанную с текущей формой
+    const tableId = formId === "searchForm" ? "bookTable" : "studentsTable";
+    const oldTable = document.getElementById(tableId);
+    if (oldTable) {
+      oldTable.remove();
+      updateControlsMargin(false);
     }
 
-    submitButton.style.display = ""; // Показываем кнопку "Найти"
-    cancelButton.remove(); // Удаляем кнопку "Отмена"
+    // 3. Восстанавливаем кнопку "Найти" текущей формы
+    submitButton.style.display = "";
+
+    // 4. Удаляем кнопку "Отмена" текущей формы
+    cancelButton.remove();
+
+    // 5. Очищаем другую форму и убираем её кнопку "Отмена"
+    const otherFormId =
+      formId === "searchForm" ? "searchStudentForm" : "searchForm";
+    const otherInput = document
+      .getElementById(otherFormId)
+      .querySelector("input[type='text']");
+    const otherCancelButton = document
+      .getElementById(otherFormId)
+      .querySelector(".cancel-button");
+    const otherSubmitButton = document
+      .getElementById(otherFormId)
+      .querySelector(".find");
+
+    if (otherInput) {
+      otherInput.value = "";
+    }
+    if (otherCancelButton) {
+      otherCancelButton.remove();
+      if (otherSubmitButton) {
+        otherSubmitButton.style.display = "";
+      }
+    }
   });
 
   return cancelButton;
 }
-
 function handleSearchFormSubmit(formId, inputId) {
   const form = document.getElementById(formId);
 
