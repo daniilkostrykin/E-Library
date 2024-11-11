@@ -148,6 +148,7 @@ function login(event) {
   } else {
     alert("Неверный email или пароль!");
   }
-}
+} 
+
 const regSubmitButton = document.getElementById("reg-submit"); //  Или другой селектор для кнопки
 regSubmitButton.addEventListener("click", createAccount); // <---  Без скобок!
