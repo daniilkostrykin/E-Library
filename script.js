@@ -1,6 +1,6 @@
 // script.js
 const ACCOUNTS_KEY = "accounts";
-
+const STUDENTS_KEY = "students";
 const signUpButton = document.getElementById("signUp");
 const signInOverlayButton = document.getElementById("signInOverlayButton");
 const signInButton = document.getElementById("signInButton");
@@ -21,8 +21,6 @@ signInOverlayButton.addEventListener("click", () => {
 
 //Регистрация нового пользователя
 function createAccount(event) {
-  event.preventDefault();
-
   const name = regForm.elements["reg-name"].value.trim();
   const group = regForm.elements["reg-group"].value.trim();
   const email = regForm.elements["reg-email"].value.trim();
@@ -41,20 +39,53 @@ function createAccount(event) {
 
   accounts.push({ name, group, email, password });
   localStorage.setItem(ACCOUNTS_KEY, JSON.stringify(accounts));
+  updateStudentsInLocalStorage({ name, group, email }); // Передаем только нужные данные
 
   alert("Аккаунт успешно создан!");
   regForm.reset(); //сбрасываем значения полей после регистрации
   container.classList.remove("right-panel-active"); //возвращаемся к форме авторизации
 }
+function updateStudentsInLocalStorage(newStudentData) {
+  const photoPlaceholder = "/assets/img-placeholder.png";
+  console.log("Путь к изображению (script.js):", photoPlaceholder);
+
+  let newStudent = {
+    // Объект в формате как для массива students
+    Фото: photoPlaceholder, // Добавляем плейсхолдер для фото
+    ФИО: newStudentData.name, // Обратите внимание на правильное имя поля
+    Группа: newStudentData.group, // group
+  };
+  console.log("newStudent:", newStudent);
+
+  // Считываем текущих студентов
+  let students = JSON.parse(localStorage.getItem(STUDENTS_KEY)) || [];
+
+  students.push(newStudent); // Добавляем данные нового студента
+
+  localStorage.setItem(STUDENTS_KEY, JSON.stringify(students)); // Сохраняем
+}
 
 function validateRegistration(name, group, email, password, confirmPassword) {
   //валидация имени
-  if (name.length < 2 || name.length > 50) {
-    alert("Имя должно содержать от 2 до 50 символов!");
+  const nameParts = name.trim().split(/\s+/); // Разделяем ФИО на части по пробелам
+
+  if (nameParts.length < 2) {
+    alert("ФИО должно содержать минимум две части (имя и фамилию)!");
     return false;
   }
+
+  for (const part of nameParts) {
+
+    if (part.length < 2 || part.length > 50) {
+      alert(
+        "Каждая часть ФИО (имя, фамилия, отчество) должна содержать от 2 до 50 символов!"
+      );
+      return false;
+    }
+  }
+
   //валидация группы
-  const groupRegex = /^[A-Za-z]{3}-\d{3}$/;
+  const groupRegex = /^[А-Я]{3}-\d{3}$/;
 
   if (!groupRegex.test(group)) {
     alert("Введите корректную группу");

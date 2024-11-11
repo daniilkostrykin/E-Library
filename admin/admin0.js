@@ -373,6 +373,7 @@ function fillStrorage() {
       "ИВТ-302",
     ];
     const photoPlaceholder = "../assets/img-placeholder.png"; // Убедитесь, что путь правильный
+    console.log("Путь к изображению (admin0.js):", photoPlaceholder);
 
     for (let i = 1; i <= 50; i++) {
       const fullName = getRandomFIO();
