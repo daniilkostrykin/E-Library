@@ -7,7 +7,9 @@ const signInButton = document.getElementById("signInButton");
 const container = document.getElementById("container");
 const regForm = document.querySelector(".sign-up-container form");
 const loginForm = document.querySelector(".sign-in-container form");
-
+function forgotPassword() {
+  window.location.href = "forgotPassword/mail.html";
+}
 //Обработчики событий переключения панели
 signUpButton.addEventListener("click", () => {
   container.classList.add("right-panel-active");

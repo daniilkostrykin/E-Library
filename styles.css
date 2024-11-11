@@ -13,7 +13,7 @@ body {
   align-items: center;
   height: 100vh;
   margin: -20px 0 50px;
-  background-image: url('assets/background.avif');
+  background-image: url("assets/background.avif");
   background-size: cover;
 }
 
@@ -99,7 +99,7 @@ button {
   letter-spacing: 1px;
   text-transform: uppercase;
   transition: transform 80ms ease-in;
-  margin-top: 20px; 
+  margin-top: 20px;
 }
 
 input[type="text"] {
@@ -261,11 +261,29 @@ button.ghost {
   transform: translateX(20%);
 }
 .yandex-icon {
-    width: 24px; /* Или другой подходящий размер */
-    height: 24px;
-  }
-  
-  .social-container .social > * { /* Чтобы иконки были одинакового размера */
-      width: 24px;
-      height: 24px;
-  }
+  width: 24px; /* Или другой подходящий размер */
+  height: 24px;
+}
+
+.social-container .social > * {
+  /* Чтобы иконки были одинакового размера */
+  width: 24px;
+  height: 24px;
+}
+#forgotPassword {
+  font-size: 12px; /* Размер текста */
+  text-align: left !important; /* Выравнивание текста влево */
+  display: block; /* Сделать элемент блочным для новой строки */
+  margin-top: 15px;
+  margin-left: -128px; /* Отступ слева */
+  color: #fff; /* Цвет текста */
+  cursor: pointer; /* Указатель при наведении */
+}
+
+#forgotPassword:hover {
+  text-decoration: underline; /* Подчеркивание при наведении */
+}
+.form-container form {
+  /* ... другие стили */
+  text-align: left; /* Выравнивание по левому краю */
+}

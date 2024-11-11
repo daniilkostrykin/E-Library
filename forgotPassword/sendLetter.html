@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="sie-edge" />
+
+    <link rel="stylesheet" type="text/css" href="sendLetter.css" />
+    <title>E-Library</title>
+    <script src="https://apis.google.com/js/platform.js" async defer></script>
+    <script
+      src="https://vk.com/js/api/openapi.js?171"
+      type="text/javascript"
+    ></script>
+  </head>
+
+  <body>
+    <div class="container" id="container">
+      <div class="form-container sign-in-container">
+        <div class="header">
+          <h1>Восстановление пароля</h1>
+        </div>
+        <div class="description">
+          <h4>На ваш адрес было отправлено письмо с восстановлением пароля</h4>
+        </div>
+        <button onclick="signIn()" id="signInButton">Войти</button>
+      </div>
+    </div>
+    <script>
+      function signIn() {
+        window.location.href = "../index.html"; // Перенаправление
+      }
+    </script>
+    <script src="https://unpkg.com/ionicons@4.2.2/dist/ionicons.js"></script>
+  </body>
+</html>
