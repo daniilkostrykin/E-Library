@@ -53,13 +53,18 @@ body {
   font-family: "Montserrat", sans-serif;
   cursor: pointer;
 }
-#controls > button:hover,
+
 #controls input[type="submit"]:hover {
-  background-color: #645cff;
+  background-color: #5cff7a;
 }
-#controls > button:active,
 #controls input[type="submit"]:active {
-  background-color: #261bfb;
+  background-color: #1ff346;
+}
+#controls > button:hover {
+  background-color: #2b21e8;
+}
+#controls > button:active {
+  background-color: #221ac3;
 }
 #controls button,
 #controls input[type="submit"],
@@ -104,6 +109,9 @@ input[type="text"] {
 
 #edit-book {
   background-color: #a09cf6;
+  /*  margin-left: 32px; /* Отодвигает кнопку максимально вправо */
+  position: relative; /* Или absolute, если нужно относительно родителя */
+  left: 32px; /* Сдвиг вправо */
 }
 
 #search-outline,
