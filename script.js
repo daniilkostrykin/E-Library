@@ -19,15 +19,16 @@ signInOverlayButton.addEventListener("click", () => {
 
 //Регистрация нового пользователя
 function createAccount(event) {
-  //отменяем стандартное поведение формы
   event.preventDefault();
 
   const name = regForm.elements["reg-name"].value.trim();
+  const group = regForm.elements["reg-group"].value.trim();
   const email = regForm.elements["reg-email"].value.trim();
   const password = regForm.elements["reg-password"].value;
   const confirmPassword = regForm.elements["reg-password-confirm"].value;
 
-  if (!validateRegistration(name, email, password, confirmPassword)) return;
+  if (!validateRegistration(name, group, email, password, confirmPassword))
+    return;
 
   const accounts = JSON.parse(localStorage.getItem(ACCOUNTS_KEY)) || [];
 
@@ -36,7 +37,7 @@ function createAccount(event) {
     return;
   }
 
-  accounts.push({ name, email, password });
+  accounts.push({ name, group, email, password });
   localStorage.setItem(ACCOUNTS_KEY, JSON.stringify(accounts));
 
   alert("Аккаунт успешно создан!");
@@ -44,13 +45,19 @@ function createAccount(event) {
   container.classList.remove("right-panel-active"); //возвращаемся к форме авторизации
 }
 
-function validateRegistration(name, email, password, confirmPassword) {
+function validateRegistration(name, group, email, password, confirmPassword) {
   //валидация имени
   if (name.length < 2 || name.length > 50) {
     alert("Имя должно содержать от 2 до 50 символов!");
     return false;
   }
+  //валидация группы
+  const groupRegex = /^[A-Za-z]{3}-\d{3}$/;
 
+  if (!groupRegex.test(group)) {
+    alert("Введите корректную группу");
+    return false;
+  }
   //валидация почты
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 

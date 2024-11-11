@@ -109,9 +109,8 @@ input[type="text"] {
 
 #edit-book {
   background-color: #a09cf6;
-  /*  margin-left: 32px; /* Отодвигает кнопку максимально вправо */
-  position: relative; /* Или absolute, если нужно относительно родителя */
-  left: 32px; /* Сдвиг вправо */
+  position: relative;
+  left: 32px; 
 }
 
 #search-outline,
