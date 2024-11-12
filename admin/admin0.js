@@ -2,10 +2,17 @@
 const STUDENTS_KEY = "students";
 const BOOKS_KEY = "books";
 let students = [];
+let isNotFoundMessageShown = false; // Флаг для отслеживания показа сообщения
+
 function edit() {
   window.location.href = "admin.html";
 }
 function displayBooks(books) {
+  //Удаляем предыдущую таблицу книг, если она существует
+  const oldTable = document.getElementById("bookTable"); //находим предыдущую
+  if (oldTable) {
+    oldTable.remove(); //если существует, удаляем её перед добавлением новой
+  }
   const adminPanel = document.getElementById("adminPanel");
 
   //Создаем таблицу динамически
@@ -26,12 +33,6 @@ function displayBooks(books) {
     const header = headerRow.insertCell();
     header.textContent = headerText;
   });
-
-  //Удаляем предыдущую таблицу книг, если она существует
-  const oldTable = document.getElementById("bookTable"); //находим предыдущую
-  if (oldTable) {
-    oldTable.remove(); //если существует, удаляем её перед добавлением новой
-  }
 
   // Проверяем есть ли данные, чтобы не выводить пустую таблицу
 
@@ -78,6 +79,7 @@ function displayBooks(books) {
 }
 
 function searchBook() {
+  clearPreviousResults(); // Удаляем предыдущие результаты
   const studentsTable = document.getElementById("studentsTable");
   if (studentsTable) {
     studentsTable.remove();
@@ -93,14 +95,7 @@ function searchBook() {
 
   // Если поле ввода пустое
   if (!query) {
-    //  удаляем таблицу, если она есть
-
-    const oldTable = document.getElementById("bookTable");
-    if (oldTable) {
-      oldTable.remove();
-    }
-    updateControlsMargin(false); // Вызовите вашу функцию, если необходимо
-    return; // ничего не отображаем
+    return;
   }
   // Поиск книг
   const filteredBooks = books.filter(
@@ -114,14 +109,68 @@ function searchBook() {
     displayBooks(filteredBooks);
     updateControlsMargin(true); // Устанавливаем маленький отступ
   } else {
-    alert("Совпадений не найдено!");
-    if (bookTable) {
-      bookTable.remove(); // Удаляем таблицу, если она существует
-    }
-    updateControlsMargin(false); // Устанавливаем большой отступ
+    displayMessage(
+      `Книги с названием или автором "${query}" не найдено.`,
+      "searchForm"
+    ); // Передаем formId
+
+    updateControlsMargin(false); // Так как  таблица не отображается
+
+    isNotFoundMessageShown = true;
   }
 }
 
+function searchStudent() {
+  clearPreviousResults(); // Удаляем предыдущие результаты
+  const oldTable = document.getElementById("studentsTable");
+  if (oldTable) {
+    oldTable.remove();
+  } // Проверяем, есть ли студенты
+  if (!students || students.length === 0) {
+    updateControlsMargin(false);
+  }
+  // Очищаем таблицу книг, если она существует
+  const bookTable = document.getElementById("bookTable");
+  if (bookTable) {
+    bookTable.remove();
+  }
+  if (!students || students.length === 0) {
+    updateControlsMargin(false);
+  }
+
+  const query = document
+    .getElementById("searchInput1")
+    .value.toLowerCase()
+    .trim();
+
+  // Добавлено:  если запрос пустой, отображаем ВСЕХ студентов.
+  if (!query) {
+    //  displayStudents(students); // students - это глобальный массив.  Убедитесь что данные студентов добавлены в localStorage в DOMContentLoaded
+    updateControlsMargin(false);
+    return;
+  }
+
+  //  если есть запрос
+  const filteredStudents = students.filter((student) => {
+    //  students - это глобальный массив
+
+    return (
+      student.ФИО.toLowerCase().includes(query) ||
+      student.Группа.toLowerCase().includes(query)
+    );
+  });
+
+  if (filteredStudents.length) {
+    displayStudents(filteredStudents);
+
+    updateControlsMargin(true);
+  } else {
+    displayMessage(
+      `Студента с ФИО или группой "${query}" не найдено.`,
+      "searchStudentForm"
+    ); // Передаем formId
+  }
+}
 function displayStudents(students) {
   if (students.length === 0) {
     return;
@@ -182,51 +231,46 @@ function displayStudents(students) {
   adminPanel.insertBefore(studentsTable, controls);
   updateControlsMargin(true);
 }
+function displayMessage(messageText, formId = null) {
+  clearPreviousResults();
 
-function searchStudent() {
-  const oldTable = document.getElementById("studentsTable");
-  if (oldTable) {
-    oldTable.remove();
-  } // Проверяем, есть ли студенты
-  if (!students || students.length === 0) {
-    updateControlsMargin(false);
-  }
-  // Очищаем таблицу книг, если она существует
+  const panel = document.getElementById("panel");
+  const message = document.createElement("p");
+  message.textContent = messageText;
+  message.style.textAlign = "center";
+  message.style.justifyContent = "center";
+
+  message.style.marginTop = "20px";
+  // Генерируем уникальный ID на основе времени или formId, если он передан
+  const messageId = formId
+    ? `notFoundMessage-${formId}`
+    : `notFoundMessage-${Date.now()}`;
+  message.id = messageId;
+
+  panel.appendChild(message);
+  updateControlsMargin(!formId);
+  isNotFoundMessageShown = true;
+}
+function clearPreviousResults() {
+  // Удаляем таблицу книг
   const bookTable = document.getElementById("bookTable");
   if (bookTable) {
     bookTable.remove();
   }
-  if (!students || students.length === 0) {
-    updateControlsMargin(false);
+  // Удаляем таблицу студентов
+  const studentsTable = document.getElementById("studentsTable");
+  if (studentsTable) {
+    studentsTable.remove();
   }
 
-  const query = document
-    .getElementById("searchInput1")
-    .value.toLowerCase()
-    .trim();
-
-  // Добавлено:  если запрос пустой, отображаем ВСЕХ студентов.
-  if (!query) {
-    //  displayStudents(students); // students - это глобальный массив.  Убедитесь что данные студентов добавлены в localStorage в DOMContentLoaded
-    updateControlsMargin(false); //  Убедитесь, что отступ установлен в 40px
-    return;
-  }
-
-  //  если есть запрос
-  const filteredStudents = students.filter((student) => {
-    //  students - это глобальный массив
-
-    return (
-      student.ФИО.toLowerCase().includes(query) ||
-      student.Группа.toLowerCase().includes(query)
-    );
-  });
-
-  // Добавлено:  отображаем отфильтрованных студентов
-  displayStudents(filteredStudents);
-  updateControlsMargin(true);
+  // Удаляем сообщение "не найдено"
+  // Удаляем все сообщения "не найдено"  - можно изменить, если нужно удалять только последнее
+  const notFoundMessages = document.querySelectorAll(
+    '[id^="notFoundMessage-"]'
+  ); // Селектор для всех ID, начинающихся с "notFoundMessage-"
+  notFoundMessages.forEach((message) => message.remove());
+  isNotFoundMessageShown = false;
 }
-
 function createCancelButton(formId, inputId, submitButton) {
   const cancelButton = document.createElement("button");
   cancelButton.textContent = "Отмена";
@@ -239,6 +283,7 @@ function createCancelButton(formId, inputId, submitButton) {
 
   cancelButton.addEventListener("click", (event) => {
     event.preventDefault();
+    clearPreviousResults();
 
     // 1. Очищаем текущую форму
     document.getElementById(inputId).value = "";

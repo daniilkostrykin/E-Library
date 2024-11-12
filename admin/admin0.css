@@ -110,10 +110,19 @@ input[type="text"] {
 #edit-book {
   background-color: #a09cf6;
   position: relative;
-  left: 32px; 
+  left: 32px;
 }
 
 #search-outline,
 #search-outline1 {
   margin-top: 10px;
+}
+
+#notFoundMessage-searchForm,
+#notFoundMessage-searchStudentForm,  /* И другие сообщения, если есть */
+[id^="notFoundMessage-"] {
+  /*  Селектор для всех ID, начинающихся с "notFoundMessage-" */
+  width: 50%; /*  Или другая подходящая ширина  */
+  margin: auto;
+  padding: 100px;
 }
