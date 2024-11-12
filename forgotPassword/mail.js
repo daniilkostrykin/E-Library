@@ -8,17 +8,24 @@ document
 
     if (email === "") {
       alert("Пожалуйста, введите адрес электронной почты.");
-      emailInput.focus(); // Фокус на поле ввода email
+      emailInput.focus();
     } else if (!isValidEmail(email)) {
-      // <---  Добавляем проверку на валидность
       alert("Пожалуйста, введите корректный адрес электронной почты.");
-    } else {
+    } else if (checkAccountExists(email)) {
       window.location.href = "sendLetter.html";
+    } else {
+      alert(
+        "Пользователь с таким email не найден. Пожалуйста, зарегистрируйтесь!"
+      );
+      window.location.href = "../index.html";
     }
   });
 
 function isValidEmail(email) {
-  // Функция проверки валидности email (простая)
-  // Простая проверка на наличие @ и точки
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+function checkAccountExists(email) {
+  const accounts = JSON.parse(localStorage.getItem("accounts")) || [];
+
+  return accounts.some((account) => account.email === email);
 }
