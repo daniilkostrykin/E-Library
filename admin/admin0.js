@@ -58,6 +58,11 @@ function displayBooks(books) {
         } else {
           cell.textContent = "Нет";
         }
+      } else if (key === "Количество") {
+        cell.textContent = value;
+
+        // Установить цвет текста в зависимости от значения
+        updateCellColor(cell, value);
       } else if (key === "Местоположение") {
         cell.textContent = value;
       } else {
@@ -69,6 +74,7 @@ function displayBooks(books) {
   const controls = document.getElementById("controls");
   adminPanel.insertBefore(table, controls);
   updateControlsMargin(true);
+  updateCellColor(cell, value);
 }
 
 function searchBook() {
@@ -358,6 +364,14 @@ function updateControlsMargin(hasData) {
   const controls = document.getElementById("controls");
   controls.style.marginTop = hasData ? "40px" : "400px";
 }
+function updateCellColor(cell, value) {
+  const numValue = parseInt(value, 10);
+  if (numValue > 0) {
+    cell.style.color = "rgb(134, 243, 132)";
+  } else if (numValue === 0) {
+    cell.style.color = "red";
+  }
+}
 function fillStrorage() {
   // 2. Загружаем студентов из localStorage или создаем новых, если их нет
   students = JSON.parse(localStorage.getItem(STUDENTS_KEY)) || [];
@@ -425,11 +439,12 @@ function fillStrorage() {
       Местоположение: "Главная библиотека, зал 2, полка 25",
     },
   ];
+  localStorage.setItem(BOOKS_KEY, JSON.stringify(initial_books)); // <--- Add this line !!!
 }
 document.addEventListener("DOMContentLoaded", () => {
+  fillStrorage();
   const books = JSON.parse(localStorage.getItem(BOOKS_KEY)) || [];
   originalBooks = JSON.parse(JSON.stringify(books));
-  fillStrorage();
   handleSearchFormSubmit("searchForm", "searchInput"); // Для  книг
   handleSearchFormSubmit("searchStudentForm", "searchInput1"); // Для  студентов
   document.getElementById("edit-book").addEventListener("click", edit);

@@ -21,6 +21,7 @@ signInOverlayButton.addEventListener("click", () => {
 
 //Регистрация нового пользователя
 function createAccount(event) {
+  event.preventDefault();
   const name = regForm.elements["reg-name"].value.trim();
   const group = regForm.elements["reg-group"].value.trim();
   const email = regForm.elements["reg-email"].value.trim();
