@@ -234,29 +234,41 @@ function displayStudents(students) {
 function displayMessage(messageText, formId = null) {
   clearPreviousResults();
 
-  const panel = document.getElementById("panel");
+  const adminPanel = document.getElementById("adminPanel");
+
+  // Создаем контейнер для сообщения
+  const messageContainer = document.createElement("div");
+  messageContainer.id = "notFoundMessageContainer";
+  messageContainer.style.display = "flex";
+  messageContainer.style.justifyContent = "center";
+  messageContainer.style.alignItems = "center";
+  messageContainer.style.position = "absolute";
+  messageContainer.style.top = "50%";
+  messageContainer.style.left = "50%";
+  messageContainer.style.transform = "translate(-50%, -50%)";
+  messageContainer.style.textAlign = "center";
+
+  // Создаем текстовое сообщение
   const message = document.createElement("p");
   message.textContent = messageText;
-  message.style.textAlign = "center";
-  message.style.justifyContent = "center";
+  message.style.margin = "0";
+  message.style.fontSize = "18px";
+  message.style.color = "#333";
 
-  message.style.marginTop = "20px";
-  // Генерируем уникальный ID на основе времени или formId, если он передан
-  const messageId = formId
-    ? `notFoundMessage-${formId}`
-    : `notFoundMessage-${Date.now()}`;
-  message.id = messageId;
+  // Вставляем сообщение в контейнер
+  messageContainer.appendChild(message);
+  adminPanel.appendChild(messageContainer);
 
-  panel.appendChild(message);
-  updateControlsMargin(!formId);
   isNotFoundMessageShown = true;
 }
+
 function clearPreviousResults() {
   // Удаляем таблицу книг
   const bookTable = document.getElementById("bookTable");
   if (bookTable) {
     bookTable.remove();
   }
+
   // Удаляем таблицу студентов
   const studentsTable = document.getElementById("studentsTable");
   if (studentsTable) {
@@ -264,13 +276,16 @@ function clearPreviousResults() {
   }
 
   // Удаляем сообщение "не найдено"
-  // Удаляем все сообщения "не найдено"  - можно изменить, если нужно удалять только последнее
-  const notFoundMessages = document.querySelectorAll(
-    '[id^="notFoundMessage-"]'
-  ); // Селектор для всех ID, начинающихся с "notFoundMessage-"
-  notFoundMessages.forEach((message) => message.remove());
+  const notFoundMessageContainer = document.getElementById(
+    "notFoundMessageContainer"
+  );
+  if (notFoundMessageContainer) {
+    notFoundMessageContainer.remove();
+  }
+
   isNotFoundMessageShown = false;
 }
+
 function createCancelButton(formId, inputId, submitButton) {
   const cancelButton = document.createElement("button");
   cancelButton.textContent = "Отмена";
