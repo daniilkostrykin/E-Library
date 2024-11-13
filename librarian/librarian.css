@@ -1,0 +1,155 @@
+body {
+  font-family: "Montserrat";
+  background-color: rgb(92, 174, 255);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background-image: url("../assets/background.avif");
+  background-size: cover;
+  background-repeat: no-repeat;
+}
+
+#adminPanel {
+  width: 1080px;
+  max-width: 90%;
+  background-color: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+#adminPanel table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+}
+
+#adminPanel th,
+#adminPanel td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: center;
+  vertical-align: middle;
+}
+#adminPanel table tr th {
+  background-color: rgb(237, 240, 245);
+}
+
+#controls {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  margin-top: 400px;
+  width: 100%;
+  gap: 20px;
+}
+#controls button,
+#controls input[type="submit"],
+#controls input[type="text"],
+.cancel-button {
+  font-family: "Montserrat", sans-serif;
+  cursor: pointer;
+}
+
+#controls input[type="submit"]:hover {
+  background-color: #5cff7a;
+}
+#controls input[type="submit"]:active {
+  background-color: #1ff346;
+}
+#controls > button:hover {
+  background-color: #2b21e8;
+}
+#controls > button:active {
+  background-color: #221ac3;
+}
+#controls button,
+#controls input[type="submit"],
+.cancel-button {
+  color: white;
+  padding: 12px 20px;
+  border-radius: 10px;
+  border: none;
+}
+
+input[type="text"] {
+  outline: none;
+  border: none;
+  background: transparent;
+  color: inherit;
+  font-size: 16px;
+}
+#searchForm,
+#searchForm1 {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 30px;
+}
+#searchInput {
+  border-radius: 10px;
+  padding: 5px 10px;
+  box-sizing: border-box;
+}
+#searchInput1 {
+  border-radius: 10px;
+  padding: 5px 10px;
+  box-sizing: border-box;
+  width: 360px;
+}
+
+.find {
+  background-color: #a5dca7;
+  border-radius: 0 10px 10px 0;
+  border-left: 1px solid #ddd;
+}
+
+#exit {
+  background-color: #c61d1de7;
+  position: relative;
+  left: 32px;
+}
+
+#search-outline,
+#search-outline1 {
+  margin-top: 10px;
+}
+
+#notFoundMessage-searchForm,
+  #notFoundMessage-searchStudentForm,  /* И другие сообщения, если есть */
+  [id^="notFoundMessage-"] {
+  /*  Селектор для всех ID, начинающихся с "notFoundMessage-" */
+  width: 50%; /*  Или другая подходящая ширина  */
+  margin: auto;
+  padding: 100px;
+}
+.tooltip-container {
+  position: relative;
+  display: inline-block;
+}
+
+.tooltiptext {
+  visibility: hidden;
+  width: 150px;
+  background-color: #222;
+  color: #fff;
+  text-align: center;
+  padding: 5px;
+  border-radius: 4px;
+  position: absolute;
+  z-index: 1;
+  bottom: 125%;
+  left: 50%;
+  transform: translateX(-50%);
+  opacity: 0;
+  transition: opacity 0.3s;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.tooltip-container:hover .tooltiptext {
+  visibility: visible;
+  opacity: 1;
+}
