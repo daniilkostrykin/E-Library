@@ -2,7 +2,7 @@
 const BOOKS_KEY = "books";
 
 function goToLibrary() {
-  window.location.href = "user_library.html";
+  window.location.href = "../library/library.html";
 }
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -194,7 +194,7 @@ function searchBook(event) {
       actionCell.style.display = "flex";
       actionCell.style.justifyContent = "center";
       actionCell.style.alignItems = "center";
-      
+
       const takeButton = document.createElement("button");
       takeButton.classList.add("action-button");
       takeButton.textContent = "Взять книгу";
@@ -204,10 +204,9 @@ function searchBook(event) {
       takeButton.style.padding = "8px 16px";
       takeButton.style.borderRadius = "10px";
       takeButton.style.fontFamily = "Montserrat, sans-serif";
-      
+
       // Добавляем кнопку в ячейку
       actionCell.appendChild(takeButton);
-      
 
       // Обработчик события для кнопки
       takeButton.addEventListener("click", () => takeBook(book));
@@ -222,56 +221,63 @@ function searchBook(event) {
 // Функция для добавления книги к списку взятых
 
 function takeBook(book) {
-  const account = getLoggedInAccount();
+  const account = getLoggedInAccount(); // Получаем данные текущего пользователя
 
-  if (!account) {
-    return alert("Вы не авторизованы! Пожалуйста, войдите в аккаунт.");
+  let takenFor; // Переменная для хранения email,  за кого берем книгу
+
+  if (!account || account.role != "admin") {
+    // Если пользователь не залогинен или не админ
+    takenFor = prompt(
+      "Введите email пользователя, за которого берете книгу",
+      ""
+    )
+      .trim()
+      .toLowerCase();
+    if (!takenFor) {
+      return alert("Email не введён!");
+    }
+
+    if (!validateEmail(takenFor)) {
+      return alert("Email не корректный");
+    } //валидация email
+  } else if (account.role === "admin") {
+    takenFor = account.email; //Авторизированный админ может взять себе
   }
 
-  // Проверяем роль пользователя
-  if (account.role === "librarian") {
-    return alert("Функция 'взять книгу' недоступна для библиотекаря.");
+  let takenBooks = JSON.parse(localStorage.getItem("takenBooks")) || []; // Загружаем данные
+
+  let userBooks = takenBooks.find((item) => item.userEmail === takenFor);
+
+  if (!userBooks) {
+    userBooks = { userEmail: takenFor, books: [] }; // Создаем, если не найден
+
+    takenBooks.push(userBooks);
   }
 
-  const accountEmail = account.email;
-  const userTakenBooks = loadUserBooks(accountEmail) || [];
+  let isAlreadyTaken = userBooks.books.find((b) => b.name === book["Название"]);
 
-  // Проверка, взята ли книга
-  const isAlreadyTaken = userTakenBooks.find(
-    (b) => b.name === book["Название"]
-  );
+  if (isAlreadyTaken) return alert("Вы уже взяли эту книгу!");
 
-  if (isAlreadyTaken) {
-    return alert("Вы уже взяли эту книгу!");
-  }
-
-  // Добавляем книгу
-  userTakenBooks.push({
+  userBooks.books.push({
     name: book["Название"],
+
     author: book["Автор"],
-    dueDate: "01.02.2024", // Пример даты возврата
+
+    dueDate: "01.02.2024", //  Или  другая  логика для установки  срока
   });
 
-  // Загружаем текущие данные о взятых книгах
-  const takenBooks = JSON.parse(localStorage.getItem("takenBooks")) || [];
-  const userIndex = takenBooks.findIndex(
-    (item) => item.userEmail === accountEmail
-  );
-
-  if (userIndex !== -1) {
-    // Если пользователь уже есть в списке, обновляем его данные
-    takenBooks[userIndex].books = userTakenBooks;
-  } else {
-    // Если пользователя ещё нет, добавляем
-    takenBooks.push({ userEmail: accountEmail, books: userTakenBooks });
+  saveTakenBooksToLocalStorage(takenBooks); // Добавлено
+  alert(`Книга "${book["Название"]}" успешно взята пользователем ${takenFor}.`); // Оповещаем
+  // Обновляем  список взятых книг, если  пользователь  находится в  личном  кабинете
+  if (account && takenFor === account.email) {
+    displayUserBooks(userBooks.books);
   }
-
-  // Сохраняем данные в localStorage
-  localStorage.setItem("takenBooks", JSON.stringify(takenBooks));
-
-  alert(`Книга "${book["Название"]}" успешно взята.`);
 }
 
+function validateEmail(email) {
+  // Регулярное выражение для  проверки email
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
 function saveTakenBooksToLocalStorage(newEntry) {
   const takenBooks = JSON.parse(localStorage.getItem("takenBooks")) || [];
   const updatedBooks = takenBooks.filter(
@@ -284,4 +290,36 @@ function saveTakenBooksToLocalStorage(newEntry) {
 function logout() {
   localStorage.removeItem("loggedInEmail");
   window.location.href = "../index.html";
+}
+function getURLParams() {
+  const params = new URLSearchParams(window.location.search);
+
+  return {
+    fio: decodeURIComponent(params.get("fio")),
+
+    group: decodeURIComponent(params.get("group")),
+  };
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  const urlParams = getURLParams(); // Получаем параметры из URL *ПЕРЕД* вызовом displayUserInfo
+
+  // Если параметры есть:
+  if (urlParams.fio && urlParams.group) {
+    displayStudentInfo(urlParams);
+    // Иначе отображаем данные пользователя из localStorage
+  } else {
+    const account = getLoggedInAccount();
+
+    displayUserInfo(account);
+  }
+  searchBookSetup();
+});
+
+function displayStudentInfo(studentData) {
+  // Отобразить информацию студента, скрыв данные пользователя
+  document.getElementById("user-name").textContent = studentData.fio;
+
+  document.getElementById("user-group").textContent = studentData.group;
+  document.getElementById("user-photo").src = studentData.photo;
 }

@@ -42,7 +42,7 @@ body {
   cursor: pointer;
   font-family: "Montserrat", sans-serif;
 }
-p{
+p {
   text-align: center;
   justify-content: center;
   margin-top: 60px;
@@ -54,7 +54,7 @@ h2 {
 
 .user-info {
   display: flex; /* Flexbox для .user-info */
-  align-items: center;
+  align-items: flex-start;
   margin-top: 18px;
   margin-bottom: 10px; /* Уменьшаем нижний отступ */
 }
@@ -65,16 +65,30 @@ h2 {
   object-fit: cover; /* Правильно обрезает фотографию, чтобы она вписалась в круг */
   margin-right: 20px; /* Расстояние между фото и данными */
   margin-bottom: 0;
+  align-self: center;
 }
 
+.info-details {
+  display: flex; /* Делаем info-details flex-контейнером*/
+
+  flex-direction: column; /* Выравниваем элементы вертикально */
+  align-items: flex-start; /* Выравниваем элементы по левому краю */
+}
 .info-details p {
   margin: 15px 0px; /* Расстояние между p */
+  display: flex; /* Делаем p flex-контейнером */
+
+  align-items: center; /* Выравнивание элементов по центру */
 }
 .info-details span:first-child {
-  /* Добавляем стиль к первому span */
-  display: inline-block; /* Преобразовывает в блочный */
-  min-width: 100px; /* Задаем фиксированную ширину */
+  width: fit-content; /* Задаем ширину по содержимому*/
+
   font-weight: bold;
+
+  margin-right: 5px; /* Расстояние до текста*/
+}
+.info-details span + span {
+  align-items: center;
 }
 
 hr {
@@ -187,7 +201,6 @@ h3 {
   height: 34px;
   border: none;
   font-family: "Montserrat", sans-serif;
-
 }
 #searchInput:focus {
   outline: none;
@@ -224,7 +237,6 @@ button:focus {
   border: 1px solid #ddd; /*  Границы  */
   padding: 8px;
   text-align: left;
-  text-align: center;  /* Центрирование  текста по горизонтали */
+  text-align: center; /* Центрирование  текста по горизонтали */
   vertical-align: middle; /* Центрирование  текста  по вертикали  */
-
 }

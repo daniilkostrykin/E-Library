@@ -4,8 +4,9 @@ const BOOKS_KEY = "books";
 let students = [];
 let isNotFoundMessageShown = false; // Флаг для отслеживания показа сообщения
 
-function edit() {
-  window.location.href = "admin.html";
+function logout() {
+
+  window.location.href = "../index.html"; // Перенаправляем  на  личный кабинет (обрати внимание на  путь)
 }
 function displayBooks(books) {
   //Удаляем предыдущую таблицу книг, если она существует
