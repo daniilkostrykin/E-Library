@@ -191,15 +191,23 @@ function searchBook(event) {
 
       // Кнопка "Взять книгу"
       const actionCell = row.insertCell();
+      actionCell.style.display = "flex";
+      actionCell.style.justifyContent = "center";
+      actionCell.style.alignItems = "center";
+      
       const takeButton = document.createElement("button");
       takeButton.classList.add("action-button");
       takeButton.textContent = "Взять книгу";
       takeButton.style.backgroundColor = "rgb(41, 128, 185)";
       takeButton.style.color = "white";
       takeButton.style.border = "none";
-      takeButton.style.padding = "8px 40px";
+      takeButton.style.padding = "8px 16px";
       takeButton.style.borderRadius = "10px";
       takeButton.style.fontFamily = "Montserrat, sans-serif";
+      
+      // Добавляем кнопку в ячейку
+      actionCell.appendChild(takeButton);
+      
 
       // Обработчик события для кнопки
       takeButton.addEventListener("click", () => takeBook(book));
@@ -215,35 +223,52 @@ function searchBook(event) {
 
 function takeBook(book) {
   const account = getLoggedInAccount();
+
   if (!account) {
-    alert("Вы не авторизованы!");
-    return;
+    return alert("Вы не авторизованы! Пожалуйста, войдите в аккаунт.");
+  }
+
+  // Проверяем роль пользователя
+  if (account.role === "librarian") {
+    return alert("Функция 'взять книгу' недоступна для библиотекаря.");
   }
 
   const accountEmail = account.email;
-  let userTakenBooks = loadUserBooks(accountEmail) || [];
+  const userTakenBooks = loadUserBooks(accountEmail) || [];
 
+  // Проверка, взята ли книга
   const isAlreadyTaken = userTakenBooks.find(
     (b) => b.name === book["Название"]
   );
 
   if (isAlreadyTaken) {
-    alert("Вы уже взяли эту книгу!");
-    return;
+    return alert("Вы уже взяли эту книгу!");
   }
 
+  // Добавляем книгу
   userTakenBooks.push({
     name: book["Название"],
     author: book["Автор"],
-    dueDate: "01.02.2024", // Пример даты сдачи
+    dueDate: "01.02.2024", // Пример даты возврата
   });
 
-  saveTakenBooksToLocalStorage({
-    userEmail: accountEmail,
-    books: userTakenBooks,
-  });
+  // Загружаем текущие данные о взятых книгах
+  const takenBooks = JSON.parse(localStorage.getItem("takenBooks")) || [];
+  const userIndex = takenBooks.findIndex(
+    (item) => item.userEmail === accountEmail
+  );
 
-  displayUserBooks(userTakenBooks); // Обновление интерфейса
+  if (userIndex !== -1) {
+    // Если пользователь уже есть в списке, обновляем его данные
+    takenBooks[userIndex].books = userTakenBooks;
+  } else {
+    // Если пользователя ещё нет, добавляем
+    takenBooks.push({ userEmail: accountEmail, books: userTakenBooks });
+  }
+
+  // Сохраняем данные в localStorage
+  localStorage.setItem("takenBooks", JSON.stringify(takenBooks));
+
   alert(`Книга "${book["Название"]}" успешно взята.`);
 }
 

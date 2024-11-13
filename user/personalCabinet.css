@@ -9,6 +9,7 @@ body {
   background-image: url("../assets/background.avif");
   background-size: cover;
   background-repeat: no-repeat;
+  font-size: 16px;
 }
 
 .container {
@@ -26,7 +27,7 @@ body {
   display: flex; /* Flexbox для горизонтального расположения кнопок */
   justify-content: flex-end; /* Выравнивание по правому краю */
   position: absolute; /* Абсолютное позиционирование */
-  top: 28px; /* Отступ сверху */
+  top: 50px; /* Отступ сверху */
   right: 34px; /* Отступ справа */
   gap: 10px; /* Расстояние между кнопками */
   font-family: "Montserrat", sans-serif;
@@ -41,7 +42,11 @@ body {
   cursor: pointer;
   font-family: "Montserrat", sans-serif;
 }
-
+p{
+  text-align: center;
+  justify-content: center;
+  margin-top: 60px;
+}
 h2 {
   text-align: center;
   margin-bottom: 20px;
@@ -178,10 +183,14 @@ h3 {
 }
 #searchInput {
   border-radius: 10px;
+  font-size: 16px !important;
   height: 34px;
   border: none;
   font-family: "Montserrat", sans-serif;
 
+}
+#searchInput:focus {
+  outline: none;
 }
 #searchForm {
   margin-bottom: 10px;
@@ -215,4 +224,7 @@ button:focus {
   border: 1px solid #ddd; /*  Границы  */
   padding: 8px;
   text-align: left;
+  text-align: center;  /* Центрирование  текста по горизонтали */
+  vertical-align: middle; /* Центрирование  текста  по вертикали  */
+
 }
