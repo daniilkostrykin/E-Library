@@ -16,7 +16,7 @@ body {
   border-radius: 10px;
   box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.2);
   padding: 30px;
-  width: 700px;
+  width: 1080px;
   display: flex;
   flex-direction: column; /*  Располагаем  элементы  вертикально */
   position: relative;
@@ -29,6 +29,7 @@ body {
   top: 28px; /* Отступ сверху */
   right: 34px; /* Отступ справа */
   gap: 10px; /* Расстояние между кнопками */
+  font-family: "Montserrat", sans-serif;
 }
 
 #controls button {
@@ -81,7 +82,7 @@ hr {
 
 .buttons button,
 .container .book-list button,
-input[type="submit"] {
+#find {
   /* Стили для кнопок */
   background-color: #41a0ff;
   color: white;
@@ -172,8 +173,46 @@ h3 {
   width: 30%;
 }
 
-/*  Убираем ненужные стили date*/
-
 .date {
   margin-right: 0;
+}
+#searchInput {
+  border-radius: 10px;
+  height: 34px;
+  border: none;
+  font-family: "Montserrat", sans-serif;
+
+}
+#searchForm {
+  margin-bottom: 10px;
+  margin-top: 200px;
+}
+
+#search-outline {
+  margin-top: 23px;
+}
+button {
+  outline: none; /* Убирает черную рамку */
+  border: none; /* Убирает обводку */
+  background: transparent; /* Убирает фон (если нужно) */
+  color: inherit; /* Наследует цвет текста */
+  font-size: 16px;
+  align-items: center;
+  justify-content: center;
+  font-family: "Montserrat", sans-serif;
+}
+button:focus {
+  outline: none; /* Убирает рамку при фокусе */
+}
+#booksTable {
+  width: 100%;
+  border-collapse: collapse; /*  Объединение границ ячеек*/
+
+  margin-top: 20px;
+}
+#booksTable th,
+#booksTable td {
+  border: 1px solid #ddd; /*  Границы  */
+  padding: 8px;
+  text-align: left;
 }

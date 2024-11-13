@@ -61,10 +61,10 @@ body {
   background-color: #1ff346;
 }
 #controls > button:hover {
-  background-color: #2b21e8;
+  background-color: #f91111;
 }
 #controls > button:active {
-  background-color: #221ac3;
+  background-color: #f91111d8;
 }
 #controls button,
 #controls input[type="submit"],
@@ -111,6 +111,7 @@ input[type="text"] {
   background-color: #c61d1de7;
   position: relative;
   left: 32px;
+  width: 140px;
 }
 
 #search-outline,

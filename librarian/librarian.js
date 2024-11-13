@@ -7,94 +7,40 @@ let isNotFoundMessageShown = false; // Флаг для отслеживания 
 function logout() {
   window.location.href = "../index.html";
 }
-function displayBooks(books) {
-  //Удаляем предыдущую таблицу книг, если она существует
-  const oldTable = document.getElementById("bookTable"); //находим предыдущую
-  if (oldTable) {
-    oldTable.remove(); //если существует, удаляем её перед добавлением новой
-  }
-  const adminPanel = document.getElementById("adminPanel");
-
-  //Создаем таблицу динамически
-  const table = document.createElement("table");
-  table.id = "bookTable";
-  adminPanel.appendChild(table);
-
-  // Заголовок таблицы
-  const headerRow = table.insertRow();
-  const headers = [
-    "Название",
-    "Автор",
-    "Количество",
-    "Электронная версия",
-    "Местоположение",
-  ];
-  headers.forEach((headerText) => {
-    const header = headerRow.insertCell();
-    header.textContent = headerText;
-  });
-
-  // Проверяем есть ли данные, чтобы не выводить пустую таблицу
-
-  if (!books || books.length === 0) {
-    updateControlsMargin(false);
-    return; // Прерываем функцию, если нет данных
-  }
-
-  books.forEach((book) => {
-    // добавляем данные только если они есть в localStorage
-    const row = table.insertRow();
-    Object.entries(book).forEach(([key, value]) => {
-      const cell = row.insertCell();
-
-      if (key === "Электронная версия") {
-        if (value) {
-          const linkElement = document.createElement("a");
-          linkElement.href = value;
-          linkElement.target = "_blank"; // Открыть в новой вкладке
-
-          // Создаем элемент подсказки
-          const tooltipText = document.createElement("span");
-          tooltipText.classList.add("tooltiptext");
-          tooltipText.textContent = "Открыть ссылку в новой вкладке"; // Текст подсказки
-
-          // Создаем иконку книги
-          const bookIcon = document.createElement("ion-icon");
-          bookIcon.name = "book"; // Устанавливаем имя иконки книги
-          bookIcon.style.fontSize = "24px";
-
-          // Добавляем иконку в ссылку
-          linkElement.appendChild(bookIcon);
-
-          // Оборачиваем ссылку и подсказку в контейнер для стилизации
-          const tooltipContainer = document.createElement("div");
-          tooltipContainer.classList.add("tooltip-container");
-          tooltipContainer.appendChild(linkElement);
-          tooltipContainer.appendChild(tooltipText);
-
-          // Добавляем контейнер в ячейку таблицы
-          cell.appendChild(tooltipContainer);
-        } else {
-          cell.textContent = "Нет";
-        }
-      } else if (key === "Количество") {
-        cell.textContent = value;
-        // Установить цвет текста в зависимости от значения
-        updateCellColor(cell, value);
-      } else if (key === "Местоположение") {
-        cell.textContent = value;
-      } else {
-        cell.textContent = value;
-      }
+function displayBooks(filteredBooks) {
+    const booksTableContainer = document.getElementById('booksTableContainer');
+    booksTableContainer.innerHTML = ''; // Очистка текущего списка
+  
+    filteredBooks.forEach(book => {
+      const bookRow = document.createElement('div');
+      bookRow.classList.add('book-row');
+  
+      bookRow.innerHTML = `
+        <span class="book-title">${book.title}</span>
+        <span class="book-author-title">${book.author}</span>
+        <span class="book-date-title">${book.dueDate}</span>
+      `;
+  
+      booksTableContainer.appendChild(bookRow);
     });
+  }
+
+// Обработчик формы поиска
+document.getElementById('searchForm').addEventListener('submit', function(event) {
+    event.preventDefault(); // Предотвращаем перезагрузку страницы
+  
+    const searchQuery = document.getElementById('searchInput').value.toLowerCase(); // Получаем введенный запрос
+    const filteredBooks = books.filter(book => 
+      book.title.toLowerCase().includes(searchQuery) || 
+      book.author.toLowerCase().includes(searchQuery) ||
+      book.dueDate.includes(searchQuery)
+    );
+  
+    displayBooks(filteredBooks); // Отображаем отфильтрованные книги
   });
-
-  const controls = document.getElementById("controls");
-  adminPanel.insertBefore(table, controls);
-  updateControlsMargin(true);
-  updateCellColor(cell, value);
-}
-
+  
+  // Изначальное отображение всех книг
+  displayBooks(books);
 function searchBook() {
   clearPreviousResults(); // Удаляем предыдущие результаты
   const studentsTable = document.getElementById("studentsTable");

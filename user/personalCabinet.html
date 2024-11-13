@@ -4,6 +4,10 @@
     <meta charset="UTF-8" />
     <title>Личный кабинет</title>
     <link rel="stylesheet" href="personalCabinet.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
     <link rel="icon" href="../assets/favicon2.png" type="image/x-icon" />
   </head>
   <body>
@@ -37,7 +41,28 @@
           <span class="book-date-title">Срок сдачи</span>
         </div>
       </div>
+      <table id="booksTable" style="display: none">
+        <thead>
+          <tr>
+            <th>Название</th>
+            <th>Автор</th>
+
+            <th>Количество</th>
+
+            <th id="takeBook">Взять книгу</th>
+          </tr>
+        </thead>
+
+        <tbody id="booksTableBody"></tbody>
+      </table>
+      <div id="result"></div>
+      <form id="searchForm">
+        <ion-icon name="search-outline" id="search-outline"></ion-icon>
+        <input type="text" id="searchInput" placeholder="Поиск книги..." />
+        <button type="button" id="find">Найти</button>
+      </form>
     </div>
+
     <script src="personalCabinet.js"></script>
   </body>
 </html>
