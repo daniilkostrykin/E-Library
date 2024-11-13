@@ -51,17 +51,34 @@ function displayBooks(books) {
         if (value) {
           const linkElement = document.createElement("a");
           linkElement.href = value;
+          linkElement.target = "_blank"; // Открыть в новой вкладке
+
+          // Создаем элемент подсказки
+          const tooltipText = document.createElement("span");
+          tooltipText.classList.add("tooltiptext");
+          tooltipText.textContent = "Открыть ссылку в новой вкладке"; // Текст подсказки
+
+          // Создаем иконку книги
           const bookIcon = document.createElement("ion-icon");
           bookIcon.name = "book"; // Устанавливаем имя иконки книги
-          bookIcon.style.fontSize = "24px"; // При необходимости задайте размер иконки
+          bookIcon.style.fontSize = "24px";
+
+          // Добавляем иконку в ссылку
           linkElement.appendChild(bookIcon);
-          cell.appendChild(linkElement);
+
+          // Оборачиваем ссылку и подсказку в контейнер для стилизации
+          const tooltipContainer = document.createElement("div");
+          tooltipContainer.classList.add("tooltip-container");
+          tooltipContainer.appendChild(linkElement);
+          tooltipContainer.appendChild(tooltipText);
+
+          // Добавляем контейнер в ячейку таблицы
+          cell.appendChild(tooltipContainer);
         } else {
           cell.textContent = "Нет";
         }
       } else if (key === "Количество") {
         cell.textContent = value;
-
         // Установить цвет текста в зависимости от значения
         updateCellColor(cell, value);
       } else if (key === "Местоположение") {
@@ -110,7 +127,7 @@ function searchBook() {
     updateControlsMargin(true); // Устанавливаем маленький отступ
   } else {
     displayMessage(
-      `Книги с названием или автором "${query}" не найдено.`,
+      `Книги с названием или автором "${query}" не найдено в системе`,
       "searchForm"
     ); // Передаем formId
 
@@ -166,7 +183,7 @@ function searchStudent() {
     updateControlsMargin(true);
   } else {
     displayMessage(
-      `Студента с ФИО или группой "${query}" не найдено.`,
+      `Студента с ФИО или группой "${query}" не найден в системе`,
       "searchStudentForm"
     ); // Передаем formId
   }

@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Личный кабинет</title>
+    <link rel="stylesheet" href="personalCabinet.css" />
+    <link rel="icon" href="../assets/favicon2.png" type="image/x-icon" />
+  </head>
+  <body>
+    <div class="container">
+      <div id="controls">
+        <button id="goToLibrary" onclick="goToLibrary()">В библиотеку</button>
+        <button id="logout" onclick="logout()">Выйти</button>
+      </div>
+      <div class="user-info">
+        <img
+          id="user-photo"
+          src="../assets/img-placeholder.png"
+          alt="Фото профиля"
+        />
+        <div class="info-details">
+          <p><span>ФИО:</span> <span id="user-name"></span></p>
+          <p><span>Группа:</span> <span id="user-group"></span></p>
+          <p>
+            <span>Задолженности:</span>
+            <span id="user-debt" style="color: #ea242e"></span>
+          </p>
+        </div>
+      </div>
+      <hr />
+
+      <h3>Список взятых книг:</h3>
+      <div class="book-list">
+        <div class="book-header">
+          <span class="book-title">Название</span>
+          <span class="book-author-title">Автор</span>
+          <span class="book-date-title">Срок сдачи</span>
+        </div>
+      </div>
+    </div>
+    <script src="personalCabinet.js"></script>
+  </body>
+</html>

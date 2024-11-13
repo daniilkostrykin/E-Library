@@ -1,0 +1,179 @@
+body {
+  font-family: "Montserrat", sans-serif; /* Подключаем шрифт Montserrat */
+  background-color: #2b7bff; /* Голубой цвет фона */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  margin: 0;
+  background-image: url("../assets/background.avif");
+  background-size: cover;
+  background-repeat: no-repeat;
+}
+
+.container {
+  background-color: white;
+  border-radius: 10px;
+  box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.2);
+  padding: 30px;
+  width: 700px;
+  display: flex;
+  flex-direction: column; /*  Располагаем  элементы  вертикально */
+  position: relative;
+}
+
+#controls {
+  display: flex; /* Flexbox для горизонтального расположения кнопок */
+  justify-content: flex-end; /* Выравнивание по правому краю */
+  position: absolute; /* Абсолютное позиционирование */
+  top: 28px; /* Отступ сверху */
+  right: 34px; /* Отступ справа */
+  gap: 10px; /* Расстояние между кнопками */
+}
+
+#controls button {
+  color: white;
+  padding: 12px 20px;
+  border-radius: 10px;
+  border: none;
+  padding: 10px 20px; /* Удобный размер кнопок */
+  cursor: pointer;
+  font-family: "Montserrat", sans-serif;
+}
+
+h2 {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.user-info {
+  display: flex; /* Flexbox для .user-info */
+  align-items: center;
+  margin-top: 18px;
+  margin-bottom: 10px; /* Уменьшаем нижний отступ */
+}
+.user-info img {
+  width: 100px; /* Фиксированная ширина */
+  height: 100px; /* Фиксированная высота */
+  border-radius: 50%;
+  object-fit: cover; /* Правильно обрезает фотографию, чтобы она вписалась в круг */
+  margin-right: 20px; /* Расстояние между фото и данными */
+  margin-bottom: 0;
+}
+
+.info-details p {
+  margin: 15px 0px; /* Расстояние между p */
+}
+.info-details span:first-child {
+  /* Добавляем стиль к первому span */
+  display: inline-block; /* Преобразовывает в блочный */
+  min-width: 100px; /* Задаем фиксированную ширину */
+  font-weight: bold;
+}
+
+hr {
+  margin-top: 38px;
+  border: none;
+  border-top: 1px solid #eee;
+  margin: 10px 0;
+  display: none;
+}
+
+.buttons button,
+.container .book-list button,
+input[type="submit"] {
+  /* Стили для кнопок */
+  background-color: #41a0ff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  padding: 10px 20px;
+  margin-top: 15px;
+  margin-right: 20px;
+  font-family: "Montserrat", sans-serif; /* Используем шрифт Montserrat для кнопок */
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.book-list .book-item {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding-top: 15px;
+}
+
+.book-name {
+  padding-right: 40px;
+}
+
+.buttons button:hover {
+  background-color: #41a0ffb3;
+  color: white;
+}
+
+.date {
+  margin-right: -145px;
+}
+#user-photo {
+  /* Позволяет изменить изображение, добавив другой src */
+  content: url("");
+}
+
+#goToLibrary {
+  background-color: green;
+}
+#logout {
+  background-color: red;
+}
+h3 {
+  text-align: left;
+  margin-bottom: 10px; /* Уменьшил нижний отступ */
+  margin-top: 0px; /* Уменьшил верхний отступ */
+}
+
+.book-list {
+  margin-top: 0; /* Убираем лишний отступ сверху */
+  padding: 0; /* Убираем лишние внутренние отступы */
+}
+/*  Стили для заголовков */
+.book-header {
+  display: flex;
+  justify-content: space-between; /*  Равномерное распределение*/
+  font-weight: bold;
+  margin-bottom: 10px; /* Отступ под  заголовками*/
+}
+
+.book-title {
+  width: 35%; /* Ширина колонки с названием*/
+}
+.book-author-title {
+  width: 35%; /* Ширина колонки с автором*/
+}
+.book-date-title {
+  width: 30%; /* Ширина колонки  с датой*/
+}
+
+.book-item {
+  display: flex;
+
+  justify-content: space-between;
+  padding: 5px 0; /* Отступ между строками */
+}
+
+.book-name {
+  width: 35%;
+}
+
+.book-author {
+  width: 35%;
+}
+
+.book-date {
+  width: 30%;
+}
+
+/*  Убираем ненужные стили date*/
+
+.date {
+  margin-right: 0;
+}

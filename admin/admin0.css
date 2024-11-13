@@ -126,3 +126,30 @@ input[type="text"] {
   margin: auto;
   padding: 100px;
 }
+.tooltip-container {
+  position: relative;
+  display: inline-block;
+}
+
+.tooltiptext {
+  visibility: hidden;
+  width: 150px;
+  background-color: #222;
+  color: #fff;
+  text-align: center;
+  padding: 5px;
+  border-radius: 4px;
+  position: absolute;
+  z-index: 1;
+  bottom: 125%;
+  left: 50%;
+  transform: translateX(-50%);
+  opacity: 0;
+  transition: opacity 0.3s;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.tooltip-container:hover .tooltiptext {
+  visibility: visible;
+  opacity: 1;
+}
