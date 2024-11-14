@@ -38,10 +38,9 @@ function createAccount(event) {
     return;
   }
 
-  accounts.push({ name, group, email, password, role: "user" });
+  const nextId = generateNextAccountId(accounts); // Generate a unique ID
+  accounts.push({ id: nextId, name, group, email, password, role: "user", debts: [], books:[] }); // Include ID and initialize debts/books
   localStorage.setItem(ACCOUNTS_KEY, JSON.stringify(accounts));
-  updateStudentsInLocalStorage({ name, group, email, role: "user" }); // Передаем только нужные данные
-
   alert("Аккаунт успешно создан!");
   regForm.reset(); //сбрасываем значения полей после регистрации
   container.classList.remove("right-panel-active"); //возвращаемся к форме авторизации
@@ -64,6 +63,13 @@ function updateStudentsInLocalStorage(newStudentData) {
   students.push(newStudent); // Добавляем данные нового студента
 
   localStorage.setItem(STUDENTS_KEY, JSON.stringify(students)); // Сохраняем
+}
+function generateNextAccountId(accounts) {
+  if (accounts.length === 0) {
+    return 1; 
+  }
+  const highestId = Math.max(...accounts.map(account => account.id));
+  return highestId + 1;
 }
 
 // Авторизация
@@ -163,7 +169,7 @@ function checkRole() {
   } else if (account.role === "librarian") {
     window.location.href = "librarian/librarian0.html"; //  Создай новую папку librarian
   } else {
-    window.location.href = 'user/personalCabinet.html';
+    window.location.href = "user/personalCabinet.html";
   }
 }
 

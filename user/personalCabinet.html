@@ -1,68 +1,50 @@
+<!-- personalCabinet.html -->
 <!DOCTYPE html>
 <html lang="ru">
-  <head>
-    <meta charset="UTF-8" />
+<head>
+    <meta charset="UTF-8">
     <title>Личный кабинет</title>
-    <link rel="stylesheet" href="personalCabinet.css" />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap"
-      rel="stylesheet"
-    />
-    <link rel="icon" href="../assets/favicon2.png" type="image/x-icon" />
-  </head>
-  <body>
+    <link rel="stylesheet" href="personalCabinet.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="icon" href="../assets/favicon2.png" type="image/x-icon">
+</head>
+<body>
     <div class="container">
-      <div id="controls">
-        <button id="goToLibrary" onclick="goToLibrary()">В библиотеку</button>
-        <button id="logout" onclick="logout()">Выйти</button>
-      </div>
-      <div class="user-info">
-        <img
-          id="user-photo"
-          src="../assets/img-placeholder.png"
-          alt="Фото профиля"
-        />
-        <div class="info-details">
-          <p><span>ФИО:</span> <span id="user-name"></span></p>
-          <p><span>Группа:</span> <span id="user-group"></span></p>
-          <p>
-            <span>Задолженности:</span>
-            <span id="user-debt" style="color: #ea242e"></span>
-          </p>
+        <div id="controls">
+            <button id="goToLibrary" onclick="goToLibrary()">В библиотеку</button>
+            <button id="logout" onclick="logout()">Выйти</button>
         </div>
-      </div>
-      <hr />
-
-      <h3 style="display: none">Список взятых книг:</h3>
-      <div class="book-list" style="display: none">
-        <div class="book-header">
-          <span class="book-title">Название</span>
-          <span class="book-author-title">Автор</span>
-          <span class="book-date-title">Срок сдачи</span>
+        <div class="user-info">
+            <img id="user-photo" src="../assets/img-placeholder.png" alt="Фото профиля">
+            <div class="info-details">
+                <p><span>ФИО:</span> <span id="user-name"></span></p>
+                <p><span>Группа:</span> <span id="user-group"></span></p>
+                <p><span>Задолженности:</span> <span id="user-debt"></span></p>
+            </div>
         </div>
-      </div>
-      <table id="booksTable" style="display: none">
-        <thead>
-          <tr>
-            <th>Название</th>
-            <th>Автор</th>
+        <hr>
 
-            <th>Количество</th>
+        <h3 style="display:none">Список взятых книг:</h3>
+        <div class="book-list" style="display:none"></div>
 
-            <th id="takeBook">Взять книгу</th>
-          </tr>
-        </thead>
+        <div id="search-area" style="display: none;">
+            <input type="text" id="searchInput" placeholder="Введите название или автора книги...">
+            <button id="find">Найти</button>
+        </div>
 
-        <tbody id="booksTableBody"></tbody>
-      </table>
-      <div id="result"></div>
-      <form id="searchForm">
-        <ion-icon name="search-outline" id="search-outline"></ion-icon>
-        <input type="text" id="searchInput" placeholder="Поиск книги..." />
-        <button type="button" id="find">Найти</button>
-      </form>
+        <table id="booksTable" style="display: none;">
+            <thead>
+                <tr>
+                    <th>Название</th>
+                    <th>Автор</th>
+                    <th>Количество</th>
+                    <th>Действие</th>
+                </tr>
+            </thead>
+            <tbody id="booksTableBody"></tbody>
+        </table>
+        <div id="result"></div>
     </div>
-
     <script src="personalCabinet.js"></script>
-  </body>
+</body>
 </html>
