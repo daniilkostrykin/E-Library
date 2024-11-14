@@ -38,7 +38,7 @@ function createAccount(event) {
     return;
   }
 
-  accounts.push({ name, group, email, password });
+  accounts.push({ name, group, email, password, role: "user" });
   localStorage.setItem(ACCOUNTS_KEY, JSON.stringify(accounts));
   updateStudentsInLocalStorage({ name, group, email, role: "user" }); // Передаем только нужные данные
 
@@ -156,12 +156,14 @@ function checkRole() {
   if (!account) {
     // Пользователь не залогинен
     //  .. логика отображения  формы входа...
+    alert("Пользователь не залогинен");
+    return;
   } else if (account.role === "admin") {
     window.location.href = "admin/admin0.html";
   } else if (account.role === "librarian") {
     window.location.href = "librarian/librarian0.html"; //  Создай новую папку librarian
   } else {
-    window.location.href = 'user.html';
+    window.location.href = 'user/personalCabinet.html';
   }
 }
 
@@ -176,6 +178,3 @@ function getLoggedInAccount() {
 }
 const regSubmitButton = document.getElementById("reg-submit");
 regSubmitButton.addEventListener("click", createAccount);
-document.addEventListener("DOMContentLoaded", () => {
-  checkRole();
-});

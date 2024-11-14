@@ -14,14 +14,15 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 function displayUserInfo(account) {
-  if (account) {
-    document.getElementById("user-name").textContent = account.name;
-    document.getElementById("user-group").textContent = account.group;
-
+  if (account && account.role !== "admin") {
+    // Добавлено условие!
+    document.getElementById("user-name").textContent =
+      account.name || "Нет данных";
+    document.getElementById("user-group").textContent =
+      account.group || "Нет данных";
     document.getElementById("user-photo").src = "../assets/dima.jpg";
-
+    // Загружайте книги ТОЛЬКО для авторизованных пользователей
     const userBooks = loadUserBooks(account.email);
-
     displayUserBooks(userBooks);
   }
 }
@@ -223,52 +224,42 @@ function searchBook(event) {
 function takeBook(book) {
   const account = getLoggedInAccount(); // Получаем данные текущего пользователя
 
-  let takenFor; // Переменная для хранения email,  за кого берем книгу
+  let takenFor = account
+    ? account.email
+    : prompt("Введите email").trim().toLowerCase(); // Используем email залогиненного пользователя, если он есть
 
-  if (!account || account.role != "admin") {
-    // Если пользователь не залогинен или не админ
-    takenFor = prompt(
-      "Введите email пользователя, за которого берете книгу",
-      ""
-    )
-      .trim()
-      .toLowerCase();
-    if (!takenFor) {
-      return alert("Email не введён!");
-    }
+  if (!takenFor) {
+    alert("Email не введен!");
 
-    if (!validateEmail(takenFor)) {
-      return alert("Email не корректный");
-    } //валидация email
-  } else if (account.role === "admin") {
-    takenFor = account.email; //Авторизированный админ может взять себе
+    return;
   }
 
-  let takenBooks = JSON.parse(localStorage.getItem("takenBooks")) || []; // Загружаем данные
+  if (!validateEmail(takenFor)) {
+    return alert("Email не корректный");
+  }
+
+  let takenBooks = JSON.parse(localStorage.getItem("takenBooks")) || [];
 
   let userBooks = takenBooks.find((item) => item.userEmail === takenFor);
 
   if (!userBooks) {
-    userBooks = { userEmail: takenFor, books: [] }; // Создаем, если не найден
-
+    userBooks = { userEmail: takenFor, books: [] };
     takenBooks.push(userBooks);
   }
-
-  let isAlreadyTaken = userBooks.books.find((b) => b.name === book["Название"]);
+  let isAlreadyTaken = userBooks.books.find((b) => b.name === book.Название);
 
   if (isAlreadyTaken) return alert("Вы уже взяли эту книгу!");
 
   userBooks.books.push({
     name: book["Название"],
-
     author: book["Автор"],
+    dueDate: "01.02.2024",
+  }); // Упрощено. Логику  с dueDate нужно  пересмотреть
 
-    dueDate: "01.02.2024", //  Или  другая  логика для установки  срока
-  });
+  saveTakenBooksToLocalStorage(takenBooks);
 
-  saveTakenBooksToLocalStorage(takenBooks); // Добавлено
-  alert(`Книга "${book["Название"]}" успешно взята пользователем ${takenFor}.`); // Оповещаем
-  // Обновляем  список взятых книг, если  пользователь  находится в  личном  кабинете
+  alert(`Книга "${book["Название"]}" успешно взята пользователем ${takenFor}.`);
+  displayUserBooks(userBooks.books); // Обновляем  список взятых книг, если  пользователь  находится в  личном  кабинете
   if (account && takenFor === account.email) {
     displayUserBooks(userBooks.books);
   }
@@ -302,24 +293,25 @@ function getURLParams() {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  const urlParams = getURLParams(); // Получаем параметры из URL *ПЕРЕД* вызовом displayUserInfo
+  const account = getLoggedInAccount();
 
-  // Если параметры есть:
-  if (urlParams.fio && urlParams.group) {
-    displayStudentInfo(urlParams);
-    // Иначе отображаем данные пользователя из localStorage
-  } else {
-    const account = getLoggedInAccount();
+  displayUserInfo(account);
 
-    displayUserInfo(account);
-  }
   searchBookSetup();
 });
 
 function displayStudentInfo(studentData) {
   // Отобразить информацию студента, скрыв данные пользователя
-  document.getElementById("user-name").textContent = studentData.fio;
+  document.getElementById("user-name").textContent =
+    studentData.fio || "Нет данных";
 
-  document.getElementById("user-group").textContent = studentData.group;
-  document.getElementById("user-photo").src = studentData.photo;
+  document.getElementById("user-group").textContent =
+    studentData.group || "Нет данных";
+  document.getElementById("user-photo").src =
+    studentData.photo || "../assets/img-placeholder.png";
+  document.getElementById("controls").style.display = "none"; // Или сделайте кнопки неактивными.
+
+  document.getElementById("user-debt").style.display = "none";
+  document.querySelector("h3").style.display = "none";
+  document.querySelector(".book-list").style.display = "none";
 }
