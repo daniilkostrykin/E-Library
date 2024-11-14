@@ -71,25 +71,27 @@ function createAccount(event) {
 let students = [];
 function updateStudentsInLocalStorage(newStudentData) {
   if (newStudentData.role !== "admin" && newStudentData.role !== "librarian") {
-    // Проверяем, что это НЕ админ
-
     const photoPlaceholder = "/assets/img-placeholder.png";
-    console.log("Путь к изображению (script.js):", photoPlaceholder);
-
     let newStudent = {
-      // Объект в формате как для массива students
-      Фото: photoPlaceholder, // Добавляем плейсхолдер для фото
-      ФИО: newStudentData.name, // Обратите внимание на правильное имя поля
-      Группа: newStudentData.group, // group
+      Фото: photoPlaceholder,
+      ФИО: newStudentData.name,
+      Группа: newStudentData.group,
     };
-    console.log("newStudent:", newStudent);
-    let nextStudentId = 1;
 
-    // Определяем следующий доступный ID
-    if (students.length > 0) {
-      nextStudentId = Math.max(...students.map((s) => s.id)) + 1;
+    let nextStudentId = 1;
+    const allAccounts = JSON.parse(localStorage.getItem(ACCOUNTS_KEY)) || [];
+    if (allAccounts.length > 0) {
+      // Получаем массив существующих ID, исключая `undefined` или `null`
+      const existingIds = allAccounts
+        .map((a) => a.id)
+        .filter((id) => id != null);
+
+      if (existingIds.length > 0) {
+        nextStudentId = Math.max(...existingIds) + 1;
+      }
     }
-    newStudent.id = nextStudentId; // Добавляем ID студенту
+
+    newStudent.id = nextStudentId;
 
     students.push(newStudent);
     localStorage.setItem(STUDENTS_KEY, JSON.stringify(students));
@@ -98,8 +100,9 @@ function updateStudentsInLocalStorage(newStudentData) {
     const newAccount = accounts.find(
       (account) => account.email === newStudentData.email
     );
+
     if (newAccount) {
-      newAccount.id = nextStudentId; // Добавляем ID в аккаунт
+      newAccount.id = nextStudentId;
       localStorage.setItem(ACCOUNTS_KEY, JSON.stringify(accounts));
     }
   }
@@ -190,23 +193,22 @@ function validateRegistration(name, group, email, password, confirmPassword) {
   return true;
 }
 function checkRole() {
-  const account = getLoggedInAccount(); //  Функция для получения данных текущего пользователя (см. ниже)
+  const account = getLoggedInAccount();
 
   if (!account) {
-    // Пользователь не залогинен
-    //  .. логика отображения  формы входа...
     return;
-  } else if (account.role === "admin") {
+  }
+
+  if (account.role === "admin") {
     window.location.href = "admin/admin0.html";
   } else if (account.role === "librarian") {
-    window.location.href = "librarian/librarian.html"; //  Создай новую папку librarian
+    window.location.href = "librarian/librarian.html";
   } else {
-    // Перенаправляем на личный кабинет пользователя с его данными
     window.location.href = `user/personalCabinet.html?fio=${encodeURIComponent(
       account.name
     )}&group=${encodeURIComponent(account.group)}&id=${encodeURIComponent(
       account.id
-    )}`; //  Передаем все данные пользователя
+    )}`;
   }
 }
 

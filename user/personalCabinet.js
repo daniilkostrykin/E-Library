@@ -303,34 +303,67 @@ function getURLParams() {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  const urlParams = getURLParams(); // Получаем параметры из URL *ПЕРЕД* вызовом displayUserInfo
+  const urlParams = getURLParams();
   const loggedInAccount = getLoggedInAccount();
 
-  // Если параметры есть:
-  if (urlParams.fio && urlParams.group) {
-    const studentId = parseInt(urlParams.id, 10); // Преобразуем id в число
+  if (urlParams.id) {
+    const studentId = parseInt(urlParams.id, 10);
+    // Дополнительные проверки и вывод в консоль
+    console.log("URL Params:", urlParams);
+    console.log("Student ID (parsed):", studentId);
+    console.log("Students Key:", STUDENTS_KEY);
+    const studentsData = localStorage.getItem(STUDENTS_KEY); // Получаем данные из localStorage
+    console.log("Raw students data from localStorage:", studentsData); // Выводим "сырые" данные
 
-    const students = JSON.parse(localStorage.getItem(STUDENTS_KEY)) || [];
+    let students = [];
 
-    // Ищем студента по id, а не по индексу
+    if (studentsData) {
+      try {
+        students = JSON.parse(studentsData);
+      } catch (error) {
+        console.error("Error parsing students data:", error);
+
+        alert(
+          "Ошибка загрузки данных студентов из localStorage.  Данные повреждены."
+        );
+
+        return;
+      }
+    } else {
+      console.warn(
+        "No students found in LocalStorage using key ",
+        STUDENTS_KEY
+      ); // Предупреждение
+    }
+
+    console.log("Students array:", students); //  Выводим массив студентов
+
     const student = students.find((s) => s.id === studentId);
 
     if (student) {
-      document.querySelector(".book-list").style.display = "block"; //  Делаем видимым
-      displayStudentInfo(urlParams, studentId); // Передаем studentId
-      // ... (остальной код)
+      displayStudentInfo(urlParams, studentId);
     } else {
-      alert("Студент не найден!");
+      console.error("Student not found.  Student ID:", studentId); //  Ошибка  в  консоль
+
+      alert("Студент не найден! Проверьте правильность id.");
     }
-  } else if (loggedInAccount) {
-    // Если залогинился обычный пользователь
+  }
+
+  if (loggedInAccount) {
     displayUserInfo(loggedInAccount);
     searchBookSetup();
+
     document.querySelector(".book-list").style.display = "block";
+
     document.getElementById("goToLibrary").style.display = "block";
+
     document.getElementById("logout").style.display = "block";
-  } else if (!loggedInAccount && !urlParams.fio) {
-    //  Если  нет  ни URL-параметров, ни залогиненного пользователя, перенаправляем на  главную
+  } else if (
+    !loggedInAccount &&
+    !urlParams.fio &&
+    !urlParams.group &&
+    !urlParams.id
+  ) {
     window.location.href = "../index.html";
   }
 });

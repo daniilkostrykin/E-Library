@@ -206,11 +206,6 @@ function displayStudents(students) {
   });
 
   students.forEach((student, index) => {
-    if (student.role !== "user") {
-      //  Отображаем роль, только если она не "user"
-      const roleCell = row.insertCell();
-      roleCell.textContent = student.role;
-    }
     const row = studentsTable.insertRow();
 
     const photoCell = row.insertCell(); // ячейка для фото
@@ -246,7 +241,7 @@ function displayStudents(students) {
     openHistoryButton.addEventListener("click", () => {
       //            const fio = student.ФИО;
       // const group = student.Группа;
-      goToPersonalCabinet(student, index); //Передаем index
+      goToPersonalCabinet(student); //Передаем index
     });
     //      actionsCell.appendChild(openHistoryButton);
 
@@ -452,7 +447,7 @@ function getRandomFIO(id) {
   const middleName = getRandomItem(middleNames);
   return {
     fio: `${lastName} ${firstName} ${middleName}`,
-    id: id //  Возвращаем id вместе с ФИО
+    id: id, //  Возвращаем id вместе с ФИО
   };
 }
 function updateControlsMargin(hasData) {
@@ -467,16 +462,15 @@ function updateCellColor(cell, value) {
     cell.style.color = "red";
   }
 }
-function goToPersonalCabinet(student, index) {
-  // !!!! ДОБАВЛЕН  index
+function goToPersonalCabinet(student) {
+  //  index здесь не нужен
   const fio = student.ФИО;
-
   const group = student.Группа;
+  const id = student.id; // Получаем id из объекта student
 
   window.location.href = `../user/personalCabinet.html?fio=${encodeURIComponent(
     fio
-  )}&group=${encodeURIComponent(group)}&id=${encodeURIComponent(index)}`;
-  // Правильный  путь  и  использование  id
+  )}&group=${encodeURIComponent(group)}&id=${encodeURIComponent(id)}`;
 }
 function fillStrorage() {
   // 2. Загружаем студентов из localStorage или создаем новых, если их нет
@@ -484,7 +478,6 @@ function fillStrorage() {
 
   // ЕСЛИ В localStorage НЕТ СТУДЕНТОВ, СОЗДАЕМ ИХ И СОХРАНЯЕМ
   if (students.length === 0) {
-
     const groups = [
       "ИБМ-101",
       "ИБМ-102",
@@ -497,14 +490,14 @@ function fillStrorage() {
     console.log("Путь к изображению (admin0.js):", photoPlaceholder);
 
     for (let i = 1; i <= 50; i++) {
-      const studentData = getRandomFIO(i+100);
+      const studentData = getRandomFIO(i + 100);
       const group = getRandomItem(groups);
       students.push({
         Фото: photoPlaceholder,
         ФИО: studentData.fio,
         Группа: getRandomItem(groups),
         role: "user",
-        id: studentData.id
+        id: studentData.id,
       });
     }
     localStorage.setItem(STUDENTS_KEY, JSON.stringify(students)); // Сохраняем студентов в localStorage
