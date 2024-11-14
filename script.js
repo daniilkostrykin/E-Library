@@ -37,33 +37,72 @@ function createAccount(event) {
     alert("Аккаунт с таким email уже существует!");
     return;
   }
+  let role = "user";
+  if (name.toLowerCase().includes("librarian")) {
+    role = "librarian";
+  }
+  if (email === "1" && password === "1") {
+    role = "admin";
+    const newAccount = { name, group, email, password, role };
+    accounts.push(newAccount);
+    localStorage.setItem(ACCOUNTS_KEY, JSON.stringify(accounts)); // Сохраняем аккаунт админа
 
-  accounts.push({ name, group, email, password });
+    localStorage.setItem("loggedInEmail", email); // Логиним админа
+    checkRole(); // Перенаправляем в админ панель
+
+    alert("Вход успешен!");
+    regForm.reset();
+    container.classList.remove("right-panel-active");
+
+    return; // Останавливаем выполнение функции, чтобы не создавать обычный аккаунт
+  }
+
+  // Создаем обычный аккаунт:
+  const newAccount = { name, group, email, password, role };
+  accounts.push(newAccount);
   localStorage.setItem(ACCOUNTS_KEY, JSON.stringify(accounts));
-  updateStudentsInLocalStorage({ name, group, email, role: "user" }); // Передаем только нужные данные
+
+  updateStudentsInLocalStorage(newAccount);
 
   alert("Аккаунт успешно создан!");
-  regForm.reset(); //сбрасываем значения полей после регистрации
-  container.classList.remove("right-panel-active"); //возвращаемся к форме авторизации
+  regForm.reset();
+  container.classList.remove("right-panel-active");
 }
+let students = [];
 function updateStudentsInLocalStorage(newStudentData) {
-  const photoPlaceholder = "/assets/img-placeholder.png";
-  console.log("Путь к изображению (script.js):", photoPlaceholder);
+  if (newStudentData.role !== "admin" && newStudentData.role !== "librarian") {
+    // Проверяем, что это НЕ админ
 
-  let newStudent = {
-    // Объект в формате как для массива students
-    Фото: photoPlaceholder, // Добавляем плейсхолдер для фото
-    ФИО: newStudentData.name, // Обратите внимание на правильное имя поля
-    Группа: newStudentData.group, // group
-  };
-  console.log("newStudent:", newStudent);
+    const photoPlaceholder = "/assets/img-placeholder.png";
+    console.log("Путь к изображению (script.js):", photoPlaceholder);
 
-  // Считываем текущих студентов
-  let students = JSON.parse(localStorage.getItem(STUDENTS_KEY)) || [];
+    let newStudent = {
+      // Объект в формате как для массива students
+      Фото: photoPlaceholder, // Добавляем плейсхолдер для фото
+      ФИО: newStudentData.name, // Обратите внимание на правильное имя поля
+      Группа: newStudentData.group, // group
+    };
+    console.log("newStudent:", newStudent);
+    let nextStudentId = 1;
 
-  students.push(newStudent); // Добавляем данные нового студента
+    // Определяем следующий доступный ID
+    if (students.length > 0) {
+      nextStudentId = Math.max(...students.map((s) => s.id)) + 1;
+    }
+    newStudent.id = nextStudentId; // Добавляем ID студенту
 
-  localStorage.setItem(STUDENTS_KEY, JSON.stringify(students)); // Сохраняем
+    students.push(newStudent);
+    localStorage.setItem(STUDENTS_KEY, JSON.stringify(students));
+
+    const accounts = JSON.parse(localStorage.getItem(ACCOUNTS_KEY)) || [];
+    const newAccount = accounts.find(
+      (account) => account.email === newStudentData.email
+    );
+    if (newAccount) {
+      newAccount.id = nextStudentId; // Добавляем ID в аккаунт
+      localStorage.setItem(ACCOUNTS_KEY, JSON.stringify(accounts));
+    }
+  }
 }
 
 // Авторизация
@@ -156,12 +195,18 @@ function checkRole() {
   if (!account) {
     // Пользователь не залогинен
     //  .. логика отображения  формы входа...
+    return;
   } else if (account.role === "admin") {
     window.location.href = "admin/admin0.html";
   } else if (account.role === "librarian") {
-    window.location.href = "librarian/librarian0.html"; //  Создай новую папку librarian
+    window.location.href = "librarian/librarian.html"; //  Создай новую папку librarian
   } else {
-    window.location.href = 'user.html';
+    // Перенаправляем на личный кабинет пользователя с его данными
+    window.location.href = `user/personalCabinet.html?fio=${encodeURIComponent(
+      account.name
+    )}&group=${encodeURIComponent(account.group)}&id=${encodeURIComponent(
+      account.id
+    )}`; //  Передаем все данные пользователя
   }
 }
 

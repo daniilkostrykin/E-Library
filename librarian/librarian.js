@@ -4,9 +4,10 @@ const BOOKS_KEY = "books";
 let students = [];
 let isNotFoundMessageShown = false; // Флаг для отслеживания показа сообщения
 
-function edit() {
-  window.location.href = "admin.html";
+function logout() {
+  window.location.href = "../index.html";
 }
+
 function displayBooks(books) {
   //Удаляем предыдущую таблицу книг, если она существует
   const oldTable = document.getElementById("bookTable"); //находим предыдущую
@@ -205,6 +206,11 @@ function displayStudents(students) {
   });
 
   students.forEach((student, index) => {
+    if (student.role !== "user") {
+      //  Отображаем роль, только если она не "user"
+      const roleCell = row.insertCell();
+      roleCell.textContent = student.role;
+    }
     const row = studentsTable.insertRow();
 
     const photoCell = row.insertCell(); // ячейка для фото
@@ -232,6 +238,7 @@ function displayStudents(students) {
     openHistoryButton.style.padding = "12px 20px";
     openHistoryButton.style.borderRadius = "10px";
     openHistoryButton.style.width = "137px";
+
     // здесь будет обработчик открытия истории, пока пустой
 
     actionsCell.appendChild(openHistoryButton);
@@ -400,7 +407,7 @@ function getRandomItem(array) {
   return array[Math.floor(Math.random() * array.length)];
 }
 
-function getRandomFIO() {
+function getRandomFIO(id) {
   const lastNames = [
     "Иванов",
     "Петров",
@@ -443,13 +450,14 @@ function getRandomFIO() {
   const lastName = getRandomItem(lastNames);
   const firstName = getRandomItem(firstNames);
   const middleName = getRandomItem(middleNames);
-
-  return `${lastName} ${firstName} ${middleName} role:"user"`;
-  localStorage.setItem(STUDENTS_KEY, JSON.stringify(students));
+  return {
+    fio: `${lastName} ${firstName} ${middleName}`,
+    id: id //  Возвращаем id вместе с ФИО
+  };
 }
 function updateControlsMargin(hasData) {
   const controls = document.getElementById("controls");
-  controls.style.marginTop = hasData ? "40px" : "400px";
+  controls.style.marginTop = hasData ? "100px" : "400px";
 }
 function updateCellColor(cell, value) {
   const numValue = parseInt(value, 10);
@@ -476,6 +484,7 @@ function fillStrorage() {
 
   // ЕСЛИ В localStorage НЕТ СТУДЕНТОВ, СОЗДАЕМ ИХ И СОХРАНЯЕМ
   if (students.length === 0) {
+
     const groups = [
       "ИБМ-101",
       "ИБМ-102",
@@ -488,13 +497,14 @@ function fillStrorage() {
     console.log("Путь к изображению (admin0.js):", photoPlaceholder);
 
     for (let i = 1; i <= 50; i++) {
-      const fullName = getRandomFIO();
+      const studentData = getRandomFIO(i+100);
       const group = getRandomItem(groups);
       students.push({
         Фото: photoPlaceholder,
-        ФИО: fullName,
-        Группа: group,
+        ФИО: studentData.fio,
+        Группа: getRandomItem(groups),
         role: "user",
+        id: studentData.id
       });
     }
     localStorage.setItem(STUDENTS_KEY, JSON.stringify(students)); // Сохраняем студентов в localStorage

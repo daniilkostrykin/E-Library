@@ -1,5 +1,7 @@
 // personalCabinet.js
 const BOOKS_KEY = "books";
+const STUDENTS_KEY = "students"; //  Ключ для студентов
+const TAKEN_BOOKS_KEY = "takenBooks"; //  Ключ для взятых книг
 
 function goToLibrary() {
   window.location.href = "../library/library.html";
@@ -20,7 +22,7 @@ function displayUserInfo(account) {
 
     document.getElementById("user-photo").src = "../assets/dima.jpg";
 
-    const userBooks = loadUserBooks(account.email);
+    const userBooks = loadUserBooks(account.id);
 
     displayUserBooks(userBooks);
   }
@@ -39,12 +41,11 @@ function getLoggedInAccount() {
   return accounts.find((account) => account.email === loggedInEmail);
 }
 
-function loadUserBooks(userEmail) {
-  const takenBooks = JSON.parse(localStorage.getItem("takenBooks")) || [];
+function loadUserBooks(userId) {
+  const takenBooks = JSON.parse(localStorage.getItem(TAKEN_BOOKS_KEY)) || [];
 
-  localStorage.setItem("takenBooks", JSON.stringify(takenBooks));
-
-  const userBookData = takenBooks.find((item) => item.userEmail === userEmail);
+  // Находим задолженности по userId
+  const userBookData = takenBooks.find((item) => item.userId === userId);
 
   return userBookData ? userBookData.books : [];
 }
@@ -127,7 +128,9 @@ function displayUserBooks(books) {
   let debtCount = books.length;
 
   document.getElementById("user-debt").textContent = debtCount;
-
+  if (books.length === 0) {
+    document.getElementById("user-debt").textContent = "Задолженностей нет"; //  Выводим сообщение
+  }
   if (debtCount > 0) {
     document.getElementById("user-debt").style.color = "#41a0ff";
   } else {
@@ -140,7 +143,22 @@ function displayUserBooks(books) {
 function searchBookSetup() {
   //Инициализация функции
 
-  document.getElementById("find").addEventListener("click", searchBook);
+  const account = getLoggedInAccount();
+  const findButton = document.getElementById("find");
+
+  if (account && (account.role === "admin" || account.role === "librarian")) {
+    findButton.style.display = "block"; // Показываем кнопку поиска для админа/библиотекаря
+    document.getElementById("searchForm").style.display = "flex";
+    document.getElementById("booksTable").style.display = "table";
+
+    findButton.addEventListener("click", searchBook);
+  } else {
+    // Для обычного пользователя поиск скрыт
+    document.getElementById("searchForm").style.display = "none";
+    document.getElementById("booksTable").style.display = "none";
+
+    findButton.removeEventListener("click", searchBook);
+  }
 }
 
 function searchBook(event) {
@@ -221,36 +239,14 @@ function searchBook(event) {
 // Функция для добавления книги к списку взятых
 
 function takeBook(book) {
-  const account = getLoggedInAccount(); // Получаем данные текущего пользователя
+  const studentId = localStorage.getItem("currentStudentId"); //  Получаем id студента
+  if (!studentId) return; //  Если нет ID, значит, это личный кабинет обычного пользователя
 
-  let takenFor; // Переменная для хранения email,  за кого берем книгу
-
-  if (!account || account.role != "admin") {
-    // Если пользователь не залогинен или не админ
-    takenFor = prompt(
-      "Введите email пользователя, за которого берете книгу",
-      ""
-    )
-      .trim()
-      .toLowerCase();
-    if (!takenFor) {
-      return alert("Email не введён!");
-    }
-
-    if (!validateEmail(takenFor)) {
-      return alert("Email не корректный");
-    } //валидация email
-  } else if (account.role === "admin") {
-    takenFor = account.email; //Авторизированный админ может взять себе
-  }
-
-  let takenBooks = JSON.parse(localStorage.getItem("takenBooks")) || []; // Загружаем данные
-
-  let userBooks = takenBooks.find((item) => item.userEmail === takenFor);
+  let takenBooks = JSON.parse(localStorage.getItem(TAKEN_BOOKS_KEY)) || [];
+  let userBooks = takenBooks.find((item) => item.userId === studentId);
 
   if (!userBooks) {
-    userBooks = { userEmail: takenFor, books: [] }; // Создаем, если не найден
-
+    userBooks = { userId: studentId, books: [] };
     takenBooks.push(userBooks);
   }
 
@@ -267,10 +263,19 @@ function takeBook(book) {
   });
 
   saveTakenBooksToLocalStorage(takenBooks); // Добавлено
-  alert(`Книга "${book["Название"]}" успешно взята пользователем ${takenFor}.`); // Оповещаем
+  alert(`Книга "${book["Название"]}" успешно выдана.`); // Оповещаем
   // Обновляем  список взятых книг, если  пользователь  находится в  личном  кабинете
-  if (account && takenFor === account.email) {
-    displayUserBooks(userBooks.books);
+
+  displayUserBooks(userBooks.books);
+  decreaseBookQuantity(book);
+}
+function decreaseBookQuantity(book) {
+  const books = JSON.parse(localStorage.getItem(BOOKS_KEY)) || [];
+  const bookToUpdate = books.find((b) => b.Название === book.Название);
+
+  if (bookToUpdate && bookToUpdate.Количество > 0) {
+    bookToUpdate.Количество--;
+    localStorage.setItem(BOOKS_KEY, JSON.stringify(books));
   }
 }
 
@@ -278,13 +283,8 @@ function validateEmail(email) {
   // Регулярное выражение для  проверки email
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
-function saveTakenBooksToLocalStorage(newEntry) {
-  const takenBooks = JSON.parse(localStorage.getItem("takenBooks")) || [];
-  const updatedBooks = takenBooks.filter(
-    (entry) => entry.userEmail !== newEntry.userEmail
-  );
-  updatedBooks.push(newEntry);
-  localStorage.setItem("takenBooks", JSON.stringify(updatedBooks));
+function saveTakenBooksToLocalStorage(takenBooks) {
+  localStorage.setItem(TAKEN_BOOKS_KEY, JSON.stringify(takenBooks));
 }
 
 function logout() {
@@ -298,28 +298,58 @@ function getURLParams() {
     fio: decodeURIComponent(params.get("fio")),
 
     group: decodeURIComponent(params.get("group")),
+    id: decodeURIComponent(params.get("id")), //  Получаем id
   };
 }
 
 document.addEventListener("DOMContentLoaded", () => {
   const urlParams = getURLParams(); // Получаем параметры из URL *ПЕРЕД* вызовом displayUserInfo
+  const loggedInAccount = getLoggedInAccount();
 
   // Если параметры есть:
   if (urlParams.fio && urlParams.group) {
-    displayStudentInfo(urlParams);
-    // Иначе отображаем данные пользователя из localStorage
-  } else {
-    const account = getLoggedInAccount();
+    const studentId = parseInt(urlParams.id, 10); // Преобразуем id в число
 
-    displayUserInfo(account);
+    const students = JSON.parse(localStorage.getItem(STUDENTS_KEY)) || [];
+
+    // Ищем студента по id, а не по индексу
+    const student = students.find((s) => s.id === studentId);
+
+    if (student) {
+      document.querySelector(".book-list").style.display = "block"; //  Делаем видимым
+      displayStudentInfo(urlParams, studentId); // Передаем studentId
+      // ... (остальной код)
+    } else {
+      alert("Студент не найден!");
+    }
+  } else if (loggedInAccount) {
+    // Если залогинился обычный пользователь
+    displayUserInfo(loggedInAccount);
+    searchBookSetup();
+    document.querySelector(".book-list").style.display = "block";
+    document.getElementById("goToLibrary").style.display = "block";
+    document.getElementById("logout").style.display = "block";
+  } else if (!loggedInAccount && !urlParams.fio) {
+    //  Если  нет  ни URL-параметров, ни залогиненного пользователя, перенаправляем на  главную
+    window.location.href = "../index.html";
   }
-  searchBookSetup();
 });
 
-function displayStudentInfo(studentData) {
+function displayStudentInfo(studentData, studentId) {
   // Отобразить информацию студента, скрыв данные пользователя
   document.getElementById("user-name").textContent = studentData.fio;
 
   document.getElementById("user-group").textContent = studentData.group;
   document.getElementById("user-photo").src = studentData.photo;
+  // Отображаем задолженности из localStorage, используя studentId
+  const userBooks = loadUserBooks(studentId); // Здесь используем studentId
+  displayUserBooks(userBooks);
+  localStorage.setItem("currentStudentId", studentId);
+
+  const account = getLoggedInAccount();
+  if (account && (account.role === "admin" || account.role === "librarian")) {
+    searchBookSetup(); //  Вызываем searchBookSetup, чтобы отобразить поиск и таблицу с книгами
+
+    //  Дополнительно: можете добавить здесь логику для кнопки "Сдать книгу", если нужно
+  }
 }
