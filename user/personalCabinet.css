@@ -10,6 +10,7 @@ body {
   background-size: cover;
   background-repeat: no-repeat;
   font-size: 16px;
+  overflow-y: auto; /*  Добавляем  вертикальную прокрутку  */
 }
 
 .container {
@@ -57,6 +58,7 @@ h2 {
   align-items: flex-start;
   margin-top: 18px;
   margin-bottom: 10px; /* Уменьшаем нижний отступ */
+  margin-top: 30px;
 }
 .user-info img {
   width: 100px; /* Фиксированная ширина */
@@ -96,7 +98,7 @@ hr {
   border: none;
   border-top: 1px solid #eee;
   margin: 10px 0;
-  display: none;
+  display: block;
 }
 
 .buttons button,
@@ -114,14 +116,7 @@ hr {
   transition: all 0.3s;
 }
 
-.book-list .book-item {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  padding-top: 15px;
-}
-
-.book-name {
+.book-title {
   padding-right: 40px;
 }
 
@@ -149,50 +144,68 @@ h3 {
   margin-bottom: 10px; /* Уменьшил нижний отступ */
   margin-top: 0px; /* Уменьшил верхний отступ */
 }
-
+/* Стили для списка книг */
 .book-list {
-  margin-top: 0; /* Убираем лишний отступ сверху */
-  padding: 0; /* Убираем лишние внутренние отступы */
+  width: 80%;
+  margin: 0 auto; /* Центрирование списка */
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  background-color: #f9f9f9;
 }
-/*  Стили для заголовков */
+
+/* Заголовок таблицы */
 .book-header {
-  display: flex;
-  justify-content: space-between; /*  Равномерное распределение*/
+  display: grid;
+  grid-template-columns: 3fr 2fr 2fr;
+  text-align: center;
   font-weight: bold;
-  margin-bottom: 10px; /* Отступ под  заголовками*/
+  padding: 10px;
+  background-color: #41a0ff;
+  color: white;
+  font-size: 18px;
 }
 
-.book-title {
-  width: 35%; /* Ширина колонки с названием*/
-}
-.book-author-title {
-  width: 35%; /* Ширина колонки с автором*/
-}
-.book-date-title {
-  width: 30%; /* Ширина колонки  с датой*/
-}
-
+/* Элементы книги */
 .book-item {
-  display: flex;
-
-  justify-content: space-between;
-  padding: 5px 0; /* Отступ между строками */
+  display: grid;
+  grid-template-columns: 3fr 2fr 2fr;
+  text-align: center;
+  padding: 10px;
+  border-top: 1px solid #ddd;
+  font-size: 16px;
 }
 
-.book-name {
-  width: 35%;
+.book-item:nth-child(odd) {
+  background-color: #f2f2f2;
 }
 
-.book-author {
-  width: 35%;
-}
-
+/* Общие стили для текста */
+.book-title,
+.book-author-title,
+.book-date-title,
+.book-name,
+.book-author,
 .book-date {
-  width: 30%;
+  display: block;
+  text-align: center;
 }
 
-.date {
-  margin-right: 0;
+/* Сообщение об отсутствии книг */
+.no-books-message {
+  text-align: center;
+  font-size: 18px;
+  color: #555;
+  margin: 20px 0;
+}
+
+/* Задолженности */
+#user-debt {
+  text-align: center;
+  margin: 10px 0;
+  font-size: 18px;
+  font-weight: bold;
 }
 
 #search-outline {
@@ -234,6 +247,13 @@ button:focus {
   border-collapse: collapse; /*  Объединение границ ячеек*/
 
   margin-top: 20px;
+  transition: opacity 0.5s ease, visibility 0.5s ease;
+
+}
+
+#booksTable.hidden {
+  opacity: 0;
+  visibility: hidden;
 }
 #booksTable th,
 #booksTable td {

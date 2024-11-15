@@ -99,20 +99,21 @@ function displayBooks(books, highlightBook = null) {
       }
     });
   });
-  function updateBookTable(bookTitle) {
-    const books = JSON.parse(localStorage.getItem(BOOKS_KEY));
-    if (!books) return;
-
-    //  Находим  индекс  книги, которую  нужно  подсветить
-    //    const bookIndex = books.findIndex(book => book.Название === bookTitle);
-
-    displayBooks(books, bookTitle); //  Вызываем  displayBooks  с  параметром подсветки
-  }
   const controls = document.getElementById("controls");
   adminPanel.insertBefore(table, controls);
   updateControlsMargin(true);
   updateCellColor(cell, value);
 }
+function updateBookTable() {
+  const updatedBooks = JSON.parse(localStorage.getItem(BOOKS_KEY)) || [];
+  displayBooks(updatedBooks);
+}
+window.addEventListener("message", (event) => {
+  console.log("Message from:", event.origin, event.data);
+  if (event.data.type === "updateBookQuantity") {
+    updateBookTable(); //  Обновляем таблицу
+  }
+});
 
 function searchBook() {
   clearPreviousResults(); // Удаляем предыдущие результаты
@@ -223,7 +224,7 @@ function displayStudents(students) {
     headerCell.textContent = headerText;
   });
 
-  students.forEach((student, index) => {
+  students.forEach((student) => {
     const row = studentsTable.insertRow();
 
     const photoCell = row.insertCell(); // ячейка для фото
@@ -485,10 +486,11 @@ function goToPersonalCabinet(student) {
   const fio = student.ФИО;
   const group = student.Группа;
   const id = student.id; // Получаем id из объекта student
+  const studentId = typeof id === "string" ? parseInt(id, 10) : id;
 
   window.location.href = `../user/personalCabinet.html?fio=${encodeURIComponent(
     fio
-  )}&group=${encodeURIComponent(group)}&id=${encodeURIComponent(id)}`;
+  )}&group=${encodeURIComponent(group)}&id=${encodeURIComponent(studentId)}`;
 }
 function fillStrorage() {
   // 2. Загружаем студентов из localStorage или создаем новых, если их нет
