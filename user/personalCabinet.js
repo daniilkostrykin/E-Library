@@ -7,9 +7,15 @@ function goToLibrary() {
 }
 /*
 document.addEventListener("DOMContentLoaded", () => {
+  console.log("DOM загружен");
   const account = getLoggedInAccount();
 
-  displayUserInfo(account);
+  if (!account) {
+    alert("Вы не авторизованы!");
+    window.location.href = "../index.html";
+    return;
+  }
+
 
   searchBookSetup(); // Инициализация поиска
 });*/
@@ -30,21 +36,18 @@ function displayUserInfo(user) {
     // Обработка случая, когда пользователь не найден (например, после выхода)
     // Возможно, редирект на страницу входа или отображение сообщения об ошибке
     console.warn("displayUserInfo вызван с пустым объектом user.");
+
   }
-}
+});
 
 function getLoggedInAccount() {
-  // Получаем email из localStorage (если есть, значит, залогинен)
-
   const loggedInEmail = localStorage.getItem("loggedInEmail");
-
   if (!loggedInEmail) return null;
-  // const account = JSON.parse(localStorage.getItem(loggedInEmail));
 
   const accounts = JSON.parse(localStorage.getItem("accounts")) || [];
-
   return accounts.find((account) => account.email === loggedInEmail);
 }
+
 
 function loadUserBooks(userId) {
   const takenBooks = JSON.parse(localStorage.getItem(TAKEN_BOOKS_KEY)) || [];
@@ -71,6 +74,7 @@ function displayUserBooks(books) {
     bookList.appendChild(noBooksMessage);
     document.getElementById("user-debt").textContent = "0";
     document.getElementById("user-debt").style.color = "#41a0ff";
+
     return;
   }
 
@@ -82,6 +86,8 @@ function displayUserBooks(books) {
   nameHeader.classList.add("book-title");
   nameHeader.textContent = "Название";
 
+
+
   const authorHeader = document.createElement("span");
   authorHeader.classList.add("book-author-title");
   authorHeader.textContent = "Автор";
@@ -92,6 +98,7 @@ function displayUserBooks(books) {
 
   header.appendChild(nameHeader);
   header.appendChild(authorHeader);
+
   header.appendChild(dateHeader);
 
   bookList.appendChild(header);
@@ -117,8 +124,10 @@ function displayUserBooks(books) {
     bookItem.appendChild(bookAuthor);
     bookItem.appendChild(bookDate);
 
+
     bookList.appendChild(bookItem);
   });
+
 
   // Обновляем задолженности
   let debtCount = books.length;
@@ -150,19 +159,17 @@ function searchBookSetup() {
 function searchBook(event) {
   event.preventDefault(); // Отменяем перезагрузку страницы
   document.getElementById("booksTable").style.display = "none";
+
   const searchInput = document
     .getElementById("searchInput")
     .value.trim()
     .toLowerCase();
-
-  const booksTable = document.getElementById("booksTable");
-  const resultContainer = document.getElementById("result");
-  const booksTableBody = document.getElementById("booksTableBody");
-
-  booksTableBody.innerHTML = "";
+  if (searchInput === "") {
+    displayBooks(originalBooks); // Отображаем все книги, если строка поиска пустая
+    return;
+  }
 
   const books = JSON.parse(localStorage.getItem("books")) || [];
-
   const filteredBooks = books.filter((book) => {
     return (
       book["Название"].toLowerCase().includes(searchInput) ||
@@ -171,58 +178,134 @@ function searchBook(event) {
     );
   });
 
+  const booksTable = document.getElementById("booksTable");
+  const booksTableBody = document.getElementById("booksTableBody");
+
+  booksTableBody.innerHTML = ""; // очищаем
+
   if (filteredBooks.length === 0) {
-    resultContainer.innerHTML = `<p>Книги не найдены</p>`;
-    booksTable.style.display = "none";
+    document.getElementById("result").innerHTML = "<p>Книги не найдены</p>";
+    booksTable.style.display = "none"; // Скрываем таблицу
   } else {
-    resultContainer.innerHTML = ``;
+    document.getElementById("result").innerHTML = "";
     booksTable.style.display = "table";
 
     filteredBooks.forEach((book) => {
       const row = document.createElement("tr");
-
-      // Название
-      const nameCell = row.insertCell();
-      nameCell.textContent = book["Название"];
-
-      // Автор
-      const authorCell = row.insertCell();
-      authorCell.textContent = book["Автор"];
-
-      // Количество
-      const quantityCell = row.insertCell();
-      quantityCell.textContent = book["Количество"];
-
-      // Кнопка "Взять книгу"
-      const actionCell = row.insertCell();
-      actionCell.style.display = "flex";
-      actionCell.style.justifyContent = "center";
-      actionCell.style.alignItems = "center";
-
       const takeButton = document.createElement("button");
-      takeButton.classList.add("action-button");
-      takeButton.textContent = "Взять книгу";
-      takeButton.style.backgroundColor = "rgb(41, 128, 185)";
-      takeButton.style.color = "white";
-      takeButton.style.border = "none";
-      takeButton.style.padding = "8px 16px";
-      takeButton.style.borderRadius = "10px";
-      takeButton.style.fontFamily = "Montserrat, sans-serif";
+      takeButton.textContent = "Выдать";
 
-      // Добавляем кнопку в ячейку
-      actionCell.appendChild(takeButton);
+      // Изменено: передаем email студента в giveBook
+      takeButton.addEventListener("click", () => giveBook(book, studentEmail));
 
-      // Обработчик события для кнопки
-      takeButton.addEventListener("click", () => takeBook(book));
-
-      actionCell.appendChild(takeButton);
-
+      row.appendChild(takeButton);
       booksTableBody.appendChild(row);
     });
   }
 }
+function giveBook(book, email) {
+  const account = getLoggedInAccount();
+  let takenFor;
 
-// Функция для добавления книги к списку взятых
+  // Функция для добавления книги к списку взятых
+
+  function takeBook(book) {
+    let studentId = localStorage.getItem("currentStudentId"); // Получаем id студента
+    console.log("studentId в takeBook:", studentId, typeof studentId);
+    studentId = parseInt(studentId, 10);
+
+    if (!studentId) return; // Если нет ID, значит, это личный кабинет обычного пользователя
+    // Получаем список книг из LocalStorage
+    const books = JSON.parse(localStorage.getItem(BOOKS_KEY)) || [];
+    // Находим книгу по названию
+    const bookToTake = books.find((b) => b.Название === book["Название"]);
+    // Проверяем, есть ли книга и есть ли доступное количество
+    if (!bookToTake) {
+      return alert("Эта книга в данный момент отсутствует.");
+    }
+    if (bookToTake.Количество === 0) {
+      return alert("Книга закончилась и сейчас нет в наличии.");
+    }
+    let takenBooks = JSON.parse(localStorage.getItem(TAKEN_BOOKS_KEY)) || [];
+    let userBooks = takenBooks.find((item) => item.userId === studentId);
+    console.log("takenBooks  в loadUserBooks:", takenBooks); //  Проверьте  структуру takenBooks
+    if (!userBooks) {
+      userBooks = { userId: studentId, books: [] };
+      takenBooks.push(userBooks);
+    }
+    if (userBooks.books.some((b) => b.name === book["Название"])) {
+      return alert("Вы уже взяли эту книгу!");
+    }
+    const dueDate = new Date();
+    dueDate.setDate(dueDate.getDate() + 14);
+    userBooks.books.push({
+      name: book["Название"],
+      author: book["Автор"],
+      dueDate: dueDate.toISOString().split("T")[0],
+    });
+    // Обновляем данные о взятых книгах в LocalStorage
+    saveTakenBooksToLocalStorage(takenBooks);
+    // Уменьшаем количество книги в библиотеке
+    decreaseBookQuantity(bookToTake, studentId);
+
+    updateStudentsDebtData(accounts); // Обновляем данные задолженностей
+
+    // Удаляем строку с выданной книгой из таблицы
+    removeBookRow(book);
+    // Проверяем, есть ли еще книги в таблице
+    const booksTableBody = document.getElementById("booksTableBody");
+    if (booksTableBody.children.length === 0) {
+      const booksTable = document.getElementById("booksTable");
+      booksTable.style.display = "none"; // Скрываем таблицу, если книг больше нет
+    }
+    // Обновляем интерфейс пользователя (книги, которые были взяты)
+    displayUserBooks(userBooks.books);
+  }
+
+  function saveTakenBooksToLocalStorage(takenBooks) {
+    localStorage.setItem("takenBooks", JSON.stringify(takenBooks));
+  }
+
+  function goToLibrary() {
+    window.location.href = "../library/library.html";
+  }
+  function logout() {
+    localStorage.removeItem("loggedInEmail");
+    window.location.href = "../index.html";
+  }
+  function getURLParams() {
+    const params = new URLSearchParams(window.location.search);
+
+    return {
+      fio: params.get("fio") ? decodeURIComponent(params.get("fio")) : null,
+      group: params.get("group")
+        ? decodeURIComponent(params.get("group"))
+        : null,
+      id: params.get("id") ? decodeURIComponent(params.get("id")) : null, // Добавлено приведение к числу при необходимости
+    };
+  }
+
+  function increaseBookQuantity(book) {
+    const books = JSON.parse(localStorage.getItem(BOOKS_KEY)) || [];
+    const bookToUpdate = books.find((b) => b.Название === book.name);
+
+    if (bookToUpdate) {
+      bookToUpdate.Количество++;
+      localStorage.setItem(BOOKS_KEY, JSON.stringify(books));
+    }
+  }
+  document.addEventListener("DOMContentLoaded", () => {
+    console.log("Страница загружена. Инициализация...");
+
+    const urlParams = getURLParams(); // Получаем параметры из URL
+    console.log("URL Params:", urlParams);
+
+    let account, studentId;
+
+    if (urlParams.id) {
+      studentId = parseInt(urlParams.id, 10);
+
+      console.log("Student ID (parsed):", studentId);
 
 function takeBook(book) {
   let studentId = localStorage.getItem("currentStudentId"); // Получаем id студента
@@ -396,12 +479,11 @@ function saveTakenBooksToLocalStorage(takenBooks) {
   localStorage.setItem(TAKEN_BOOKS_KEY, JSON.stringify(takenBooks));
 }
 
-function logout() {
-  localStorage.removeItem("loggedInEmail");
-  window.location.href = "../index.html";
-}
-function getURLParams() {
-  const params = new URLSearchParams(window.location.search);
+
+      document.getElementById("logout").style.display = "block";
+    } else {
+      console.error("Не удалось  загрузить  данные аккаунта.");
+
 
   return {
     fio: params.get("fio") ? decodeURIComponent(params.get("fio")) : null,
@@ -519,5 +601,6 @@ function displayStudentInfo(studentData, studentId) {
     searchBookSetup(); //  Вызываем searchBookSetup, чтобы отобразить поиск и таблицу с книгами
 
     //  Дополнительно: можете добавить здесь логику для кнопки "Сдать книгу", если нужно
+
   }
 }

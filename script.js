@@ -57,12 +57,14 @@ function createAccount(event) {
     return; // Останавливаем выполнение функции, чтобы не создавать обычный аккаунт
   }
 
+
   // Создаем обычный аккаунт:
   const newAccount = { name, group, email, password, role };
   accounts.push(newAccount);
   localStorage.setItem(ACCOUNTS_KEY, JSON.stringify(accounts));
 
   updateStudentsInLocalStorage(newAccount);
+
 
   alert("Аккаунт успешно создан!");
   regForm.reset();
@@ -106,6 +108,13 @@ function updateStudentsInLocalStorage(newStudentData) {
       localStorage.setItem(ACCOUNTS_KEY, JSON.stringify(accounts));
     }
   }
+}
+function generateNextAccountId(accounts) {
+  if (accounts.length === 0) {
+    return 1; 
+  }
+  const highestId = Math.max(...accounts.map(account => account.id));
+  return highestId + 1;
 }
 
 // Авторизация
@@ -200,6 +209,7 @@ function checkRole() {
   }
 
   if (account.role === "admin") {
+
     window.location.href = "admin/admin0.html";
   } else if (account.role === "librarian") {
     window.location.href = "librarian/librarian.html";
@@ -209,6 +219,7 @@ function checkRole() {
     )}&group=${encodeURIComponent(account.group)}&id=${encodeURIComponent(
       account.id
     )}`;
+
   }
 }
 
@@ -227,3 +238,4 @@ regSubmitButton.addEventListener("click", createAccount);
 document.addEventListener("DOMContentLoaded", () => {
   checkRole();
 });*/
+

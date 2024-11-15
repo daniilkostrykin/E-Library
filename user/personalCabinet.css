@@ -215,6 +215,7 @@ h3 {
 #searchInput:focus {
   outline: none;
 }
+
 input {
   outline: none; /* Убирает черную рамку */
   border: none; /* Убирает обводку */
@@ -224,6 +225,8 @@ input {
   align-items: center;
   justify-content: center;
   font-family: "Montserrat", sans-serif !important; /* Принудительное использование шрифта */
+=======
+
 }
 input:focus {
   outline: none; /* Убирает рамку при фокусе */
@@ -239,6 +242,7 @@ button {
   justify-content: center;
   font-family: "Montserrat", sans-serif;
 }
+
 button:focus {
   outline: none; /* Убирает рамку при фокусе */
 }

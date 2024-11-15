@@ -260,6 +260,7 @@ function displayStudents(students) {
     openHistoryButton.addEventListener("click", () => {
       //            const fio = student.ФИО;
       // const group = student.Группа;
+
       goToPersonalCabinet(student); 
     });
     //      actionsCell.appendChild(openHistoryButton);
@@ -481,6 +482,7 @@ function updateCellColor(cell, value) {
     cell.style.color = "red";
   }
 }
+
 // librarian.js (или admin0.js)
 function goToPersonalCabinet(student) {
   const studentId = student.id; //  Именно id

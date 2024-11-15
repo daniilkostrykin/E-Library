@@ -157,7 +157,7 @@ function searchStudent() {
 
   const query = document
     .getElementById("searchInput1")
-    .value.toLowerCase()
+    .value
     .trim();
 
   // Добавлено:  если запрос пустой, отображаем ВСЕХ студентов.
@@ -232,8 +232,12 @@ function displayStudents(students) {
     openHistoryButton.style.padding = "12px 20px";
     openHistoryButton.style.borderRadius = "10px";
     openHistoryButton.style.width = "137px";
-    // здесь будет обработчик открытия истории, пока пустой
-
+    // Добавляем обработчик для кнопки "Открыть"
+    openHistoryButton.addEventListener("click", () => {
+      // Переход на страницу личного кабинета с параметром (например, ФИО или ID студента)
+      const studentId = student.ID; // Пример ID студента
+      window.location.href = `studentProfile.html?studentId=${studentId}`;
+    });
     actionsCell.appendChild(openHistoryButton);
     actionsCell.style.textAlign = "center";
   });
@@ -519,10 +523,29 @@ function fillStrorage() {
   localStorage.setItem(BOOKS_KEY, JSON.stringify(initial_books)); // <--- Add this line !!!
 }
 document.addEventListener("DOMContentLoaded", () => {
-  fillStrorage();
+  const storedStudents = JSON.parse(localStorage.getItem(STUDENTS_KEY)) || [];
+
+  if (!storedStudents.length) {
+    fillStrorage();
+  }
+  students.forEach((student, index) => {
+    // ....
+
+    openHistoryButton.addEventListener("click", () => {
+      goToPersonalCabinet(student, index);
+    });
+  });
+
   const books = JSON.parse(localStorage.getItem(BOOKS_KEY)) || [];
   originalBooks = JSON.parse(JSON.stringify(books));
   handleSearchFormSubmit("searchForm", "searchInput"); // Для  книг
   handleSearchFormSubmit("searchStudentForm", "searchInput1"); // Для  студентов
   document.getElementById("edit-book").addEventListener("click", edit);
 });
+function goToPersonalCabinet(student) {
+  const studentEmail = student.email; // Store student's email before redirection
+
+  window.location.href = `../user/personalCabinet.html?email=${encodeURIComponent(
+    studentEmail
+  )}`;
+}

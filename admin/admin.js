@@ -240,7 +240,7 @@ document.addEventListener("DOMContentLoaded", () => {
   originalBooks = JSON.parse(JSON.stringify(books));
   document.getElementById("save-changes").disabled = true;
   document.getElementById("cancel").disabled = true;
-  displayBooks(books);
+  displayBooks(originalBooks);
 
   document.getElementById("searchForm").addEventListener("submit", (event) => {
     event.preventDefault();
