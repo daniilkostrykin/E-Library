@@ -397,9 +397,29 @@ function saveTakenBooksToLocalStorage(takenBooks) {
 }
 
 function logout() {
-  localStorage.removeItem("loggedInEmail");
-  window.location.href = "../index.html";
+  const account = getLoggedInAccount();
+  // Если есть аккаунт и это библиотекарь или админ, перенаправляем на страницу library
+  if (account && (account.role === "admin" || account.role === "librarian")) {
+    if (account.role === "admin") {
+      window.location.href = "../admin/admin0.html";
+    } else if (account.role === "librarian") {
+      window.location.href = "../librarian/librarian.html";
+    }
+
+    console.log("Logged out and returned to librarian/admin page.");
+  } else {
+    //  Иначе -  это обычный  студент
+
+    localStorage.removeItem("loggedInEmail"); // Удаляем информацию  о  залогиненном пользователе
+
+    localStorage.removeItem("currentStudentId");
+
+    window.location.href = "../index.html"; //  Перенаправляем  на  страницу  авторизации
+
+    console.log("Logged  out as student  and redirected to index.html");
+  }
 }
+
 function getURLParams() {
   const params = new URLSearchParams(window.location.search);
 

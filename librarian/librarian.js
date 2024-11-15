@@ -252,6 +252,7 @@ function displayStudents(students) {
     openHistoryButton.style.padding = "12px 20px";
     openHistoryButton.style.borderRadius = "10px";
     openHistoryButton.style.width = "137px";
+    openHistoryButton.style.cursor = "pointer";
 
     // здесь будет обработчик открытия истории, пока пустой
 
