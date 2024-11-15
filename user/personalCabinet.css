@@ -100,13 +100,12 @@ hr {
 }
 
 .buttons button,
-.container .book-list button,
-#find {
+.container .book-list button {
   /* Стили для кнопок */
   background-color: #41a0ff;
   color: white;
   border: none;
-  border-radius: 5px;
+  border-radius: 10px;
   padding: 10px 20px;
   margin-top: 15px;
   margin-right: 20px;
@@ -195,27 +194,31 @@ h3 {
 .date {
   margin-right: 0;
 }
-#searchInput {
-  border-radius: 10px;
-  font-size: 16px !important;
-  height: 34px;
-  border: none;
-  font-family: "Montserrat", sans-serif;
-}
-#searchInput:focus {
-  outline: none;
-}
-#searchForm {
-  margin-bottom: 10px;
-  margin-top: 200px;
-}
 
 #search-outline {
   margin-top: 23px;
 }
-button {
+
+#searchInput:focus {
+  outline: none;
+}
+input {
   outline: none; /* Убирает черную рамку */
   border: none; /* Убирает обводку */
+  background: transparent; /* Убирает фон (если нужно) */
+  color: inherit; /* Наследует цвет текста */
+  font-size: 16px;
+  align-items: center;
+  justify-content: center;
+  font-family: "Montserrat", sans-serif !important; /* Принудительное использование шрифта */
+}
+input:focus {
+  outline: none; /* Убирает рамку при фокусе */
+}
+
+button {
+  outline: none;
+  border: none;
   background: transparent; /* Убирает фон (если нужно) */
   color: inherit; /* Наследует цвет текста */
   font-size: 16px;
@@ -239,4 +242,51 @@ button:focus {
   text-align: left;
   text-align: center; /* Центрирование  текста по горизонтали */
   vertical-align: middle; /* Центрирование  текста  по вертикали  */
+}
+/* Стили для формы поиска */
+#searchForm {
+  display: flex; /* Горизонтальное расположение */
+  align-items: center; /* Центрирование по вертикали */
+  justify-content: left; /* Центрирование по горизонтали */
+  gap: 10px; /* Расстояние между кнопкой и инпутом */
+  margin-top: 30px; /* Отступ сверху */
+}
+
+/* Поле ввода */
+#searchInput {
+  border: 2px solid #41a0ff; /* Синяя обводка */
+  border-radius: 10px; /* Закругленные углы */
+  height: 40px; /* Увеличенная высота для удобства */
+  font-size: 16px; /* Удобный размер текста */
+  padding: 0 15px; /* Отступ внутри поля */
+  width: 150px; /* Фиксированная ширина */
+  transition: border-color 0.3s, box-shadow 0.3s; /* Анимация при фокусе */
+}
+
+#searchInput:focus {
+  outline: none; /* Убирает рамку при фокусе */
+  border-color: #3788d8; /* Более темный синий цвет */
+  box-shadow: 0 0 5px rgba(56, 136, 216, 0.7); /* Светящийся эффект */
+}
+
+/* Кнопка поиска */
+#find {
+  background-color: #41a0ff; /* Синий фон */
+  color: white; /* Белый текст */
+  border: none; /* Убираем обводку */
+  border-radius: 10px; /* Закругленные углы */
+  padding: 10px 20px; /* Внутренние отступы */
+  font-size: 16px; /* Удобный размер текста */
+  cursor: pointer; /* Указатель в виде руки */
+  transition: background-color 0.3s, transform 0.2s; /* Анимация при наведении */
+}
+
+#find:hover {
+  background-color: #3788d8; /* Более темный синий */
+  transform: scale(1.05); /* Небольшое увеличение */
+}
+
+#find:active {
+  background-color: #2b6bb3; /* Темный синий при нажатии */
+  transform: scale(1); /* Уменьшение эффекта */
 }

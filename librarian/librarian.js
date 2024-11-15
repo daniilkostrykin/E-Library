@@ -8,7 +8,7 @@ function logout() {
   window.location.href = "../index.html";
 }
 
-function displayBooks(books) {
+function displayBooks(books, highlightBook = null) {
   //Удаляем предыдущую таблицу книг, если она существует
   const oldTable = document.getElementById("bookTable"); //находим предыдущую
   if (oldTable) {
@@ -88,8 +88,26 @@ function displayBooks(books) {
         cell.textContent = value;
       }
     });
+    if (highlightBook && book.Название === highlightBook) {
+      row.classList.add("highlighted-row"); //  Добавляем класс для подсветки
+    }
+    //  Слушаем сообщения  из других  окон
+    window.addEventListener("message", (event) => {
+      if (event.data.type === "updateBookQuantity") {
+        const updatedBooks = JSON.parse(localStorage.getItem(BOOKS_KEY)) || []; //  Получаем  актуальные данные
+        displayBooks(updatedBooks, event.data.bookTitle); // Перерисовываем таблицу  с подсветкой  измененной строки
+      }
+    });
   });
+  function updateBookTable(bookTitle) {
+    const books = JSON.parse(localStorage.getItem(BOOKS_KEY));
+    if (!books) return;
 
+    //  Находим  индекс  книги, которую  нужно  подсветить
+    //    const bookIndex = books.findIndex(book => book.Название === bookTitle);
+
+    displayBooks(books, bookTitle); //  Вызываем  displayBooks  с  параметром подсветки
+  }
   const controls = document.getElementById("controls");
   adminPanel.insertBefore(table, controls);
   updateControlsMargin(true);

@@ -223,6 +223,7 @@ function getLoggedInAccount() {
 }
 const regSubmitButton = document.getElementById("reg-submit");
 regSubmitButton.addEventListener("click", createAccount);
+/*автовход 
 document.addEventListener("DOMContentLoaded", () => {
   checkRole();
-});
+});*/

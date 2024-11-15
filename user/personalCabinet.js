@@ -6,25 +6,31 @@ const TAKEN_BOOKS_KEY = "takenBooks"; //  Ключ для взятых книг
 function goToLibrary() {
   window.location.href = "../library/library.html";
 }
-
+/*
 document.addEventListener("DOMContentLoaded", () => {
   const account = getLoggedInAccount();
 
   displayUserInfo(account);
 
   searchBookSetup(); // Инициализация поиска
-});
+});*/
+function displayUserInfo(user) {
+  console.log("user", user);
+  if (user) {
+    document.getElementById("user-name").textContent = user.ФИО || user.name; // Используем ФИО, если есть, иначе name
+    document.getElementById("user-group").textContent =
+      user.Группа || user.group; // Используем Группа, если есть, иначе group
 
-function displayUserInfo(account) {
-  if (account) {
-    document.getElementById("user-name").textContent = account.name;
-    document.getElementById("user-group").textContent = account.group;
+    const userPhoto =
+      user.Фото || (user.photo ? user.photo : "/assets/dima.jpg");
+    document.getElementById("user-photo").src = userPhoto;
 
-    document.getElementById("user-photo").src = "../assets/dima.jpg";
-
-    const userBooks = loadUserBooks(account.id);
-
+    const userBooks = loadUserBooks(user.id); // везде используем id
     displayUserBooks(userBooks);
+  } else {
+    // Обработка случая, когда пользователь не найден (например, после выхода)
+    // Возможно, редирект на страницу входа или отображение сообщения об ошибке
+    console.warn("displayUserInfo вызван с пустым объектом user.");
   }
 }
 
@@ -250,24 +256,22 @@ function takeBook(book) {
     takenBooks.push(userBooks);
   }
 
-  let isAlreadyTaken = userBooks.books.find((b) => b.name === book["Название"]);
-
-  if (isAlreadyTaken) return alert("Вы уже взяли эту книгу!");
+  if (userBooks.books.some((b) => b.name === book["Название"])) {
+    return alert("Вы уже взяли эту книгу!");
+  }
+  const dueDate = new Date();
+  dueDate.setDate(dueDate.getDate() + 14);
 
   userBooks.books.push({
     name: book["Название"],
-
     author: book["Автор"],
-
-    dueDate: "01.02.2024", //  Или  другая  логика для установки  срока
+    dueDate: dueDate.toISOString().split("T")[0],
   });
 
-  saveTakenBooksToLocalStorage(takenBooks); // Добавлено
-  alert(`Книга "${book["Название"]}" успешно выдана.`); // Оповещаем
-  // Обновляем  список взятых книг, если  пользователь  находится в  личном  кабинете
-
-  displayUserBooks(userBooks.books);
+  saveTakenBooksToLocalStorage(takenBooks);
   decreaseBookQuantity(book);
+  alert(`Книга "${book["Название"]}" успешно выдана.`);
+  displayUserBooks(userBooks.books);
 }
 function decreaseBookQuantity(book) {
   const books = JSON.parse(localStorage.getItem(BOOKS_KEY)) || [];
@@ -278,7 +282,30 @@ function decreaseBookQuantity(book) {
     localStorage.setItem(BOOKS_KEY, JSON.stringify(books));
   }
 }
+function returnBook(book) {
+  const studentId = localStorage.getItem("currentStudentId");
+  if (!studentId) return;
 
+  let takenBooks = JSON.parse(localStorage.getItem(TAKEN_BOOKS_KEY)) || [];
+  let userBooks = takenBooks.find((item) => item.userId === studentId);
+
+  if (!userBooks) return;
+
+  userBooks.books = userBooks.books.filter((b) => b.name !== book.name);
+
+  saveTakenBooksToLocalStorage(takenBooks);
+  increaseBookQuantity(book);
+  alert(`Книга "${book.name}" успешно возвращена.`);
+  displayUserBooks(userBooks.books);
+}
+function updateLibrarianBookDisplay(bookTitle) {
+  //  Новая функция
+  //  Отправляем  сообщение  в  окно  библиотекаря  об  изменении
+  if (window.opener) {
+    //  Проверяем, есть ли  открывающее  окно
+    window.opener.postMessage({ type: "updateBookQuantity", bookTitle }, "*"); // Отправка названия книги как есть
+  }
+}
 function validateEmail(email) {
   // Регулярное выражение для  проверки email
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -295,76 +322,80 @@ function getURLParams() {
   const params = new URLSearchParams(window.location.search);
 
   return {
-    fio: decodeURIComponent(params.get("fio")),
-
-    group: decodeURIComponent(params.get("group")),
-    id: decodeURIComponent(params.get("id")), //  Получаем id
+    fio: params.get("fio") ? decodeURIComponent(params.get("fio")) : null,
+    group: params.get("group") ? decodeURIComponent(params.get("group")) : null,
+    id: params.get("id") ? decodeURIComponent(params.get("id")) : null, // Добавлено приведение к числу при необходимости
   };
 }
 
+function increaseBookQuantity(book) {
+  const books = JSON.parse(localStorage.getItem(BOOKS_KEY)) || [];
+  const bookToUpdate = books.find((b) => b.Название === book.name);
+
+  if (bookToUpdate) {
+    bookToUpdate.Количество++;
+    localStorage.setItem(BOOKS_KEY, JSON.stringify(books));
+  }
+}
 document.addEventListener("DOMContentLoaded", () => {
-  const urlParams = getURLParams();
-  const loggedInAccount = getLoggedInAccount();
+  console.log("Страница загружена. Инициализация...");
+
+  const urlParams = getURLParams(); // Получаем параметры из URL
+  console.log("URL Params:", urlParams);
+
+  let account;
 
   if (urlParams.id) {
+    // Если есть id в параметрах URL, ищем студента с этим id
     const studentId = parseInt(urlParams.id, 10);
-    // Дополнительные проверки и вывод в консоль
-    console.log("URL Params:", urlParams);
     console.log("Student ID (parsed):", studentId);
-    console.log("Students Key:", STUDENTS_KEY);
-    const studentsData = localStorage.getItem(STUDENTS_KEY); // Получаем данные из localStorage
-    console.log("Raw students data from localStorage:", studentsData); // Выводим "сырые" данные
 
-    let students = [];
+    let students = localStorage.getItem(STUDENTS_KEY);
+    console.log("Raw students data from localStorage:", students);
 
-    if (studentsData) {
+    if (students) {
       try {
-        students = JSON.parse(studentsData);
+        students = JSON.parse(students);
       } catch (error) {
         console.error("Error parsing students data:", error);
+        alert("Ошибка загрузки данных студентов. Данные повреждены.");
+        return;
+      }
 
-        alert(
-          "Ошибка загрузки данных студентов из localStorage.  Данные повреждены."
-        );
+      console.log("Students array:", students);
 
+      account = students.find((student) => student.id === studentId);
+      if (!account) {
+        console.warn("Студент с указанным ID не найден.");
+        alert("Студент с указанным ID не найден.");
         return;
       }
     } else {
-      console.warn(
-        "No students found in LocalStorage using key ",
-        STUDENTS_KEY
-      ); // Предупреждение
+      console.warn("No students found in LocalStorage using key", STUDENTS_KEY);
+      alert("Данные студентов отсутствуют в LocalStorage.");
+      return;
     }
-
-    console.log("Students array:", students); //  Выводим массив студентов
-
-    const student = students.find((s) => s.id === studentId);
-
-    if (student) {
-      displayStudentInfo(urlParams, studentId);
-    } else {
-      console.error("Student not found.  Student ID:", studentId); //  Ошибка  в  консоль
-
-      alert("Студент не найден! Проверьте правильность id.");
-    }
+  } else {
+    // Если id нет, загружаем текущий вошедший аккаунт
+    account = getLoggedInAccount();
   }
 
-  if (loggedInAccount) {
-    displayUserInfo(loggedInAccount);
+  if (account) {
+    console.log("Account found:", account);
+    displayUserInfo(account);
     searchBookSetup();
 
+    // Отображение интерфейса для книг
     document.querySelector(".book-list").style.display = "block";
-
     document.getElementById("goToLibrary").style.display = "block";
-
     document.getElementById("logout").style.display = "block";
-  } else if (
-    !loggedInAccount &&
-    !urlParams.fio &&
-    !urlParams.group &&
-    !urlParams.id
-  ) {
-    window.location.href = "../index.html";
+  } else {
+    console.error("Не удалось загрузить данные аккаунта.");
+    alert("Не удалось загрузить данные аккаунта.");
+    if (!urlParams.fio && !urlParams.group && !urlParams.id) {
+      console.warn("Редирект на главную страницу.");
+      window.location.href = "../index.html";
+    }
   }
 });
 

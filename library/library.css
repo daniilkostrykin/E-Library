@@ -46,7 +46,6 @@ body {
   margin-top: 400px;
   width: 100%;
   gap: 20px;
-  
 }
 #controls button,
 #controls input[type="submit"],
@@ -108,11 +107,19 @@ input[type="text"] {
   border-radius: 0 10px 10px 0;
   border-left: 1px solid #ddd;
 }
+.highlighted-row {
+  background-color: yellow; /*  Или  любой другой  цвет */
+  transition: background-color 0.3s ease; /*  Плавное изменение цвета  */
+}
 
+.highlighted-row.fade-out {
+  /*  Класс  для  анимации  исчезновения  */
+  background-color: transparent;
+}
 #exit {
   background-color: #c61d1de7;
   margin-left: auto; /* "Выталкивает" кнопку в правый край */
-  margin-right: 20px; 
+  margin-right: 20px;
   width: 92px;
 }
 
