@@ -89,10 +89,14 @@ function displayUserBooks(books) {
   const dateHeader = document.createElement("span");
   dateHeader.classList.add("book-date-title");
   dateHeader.textContent = "Срок сдачи";
+  const returnHeader = document.createElement("span");
+  returnHeader.classList.add("book-return-title");
+  returnHeader.textContent = "Сдача книги";
 
   header.appendChild(nameHeader);
   header.appendChild(authorHeader);
   header.appendChild(dateHeader);
+  header.appendChild(returnHeader);
 
   bookList.appendChild(header);
 
@@ -113,9 +117,45 @@ function displayUserBooks(books) {
     bookDate.classList.add("book-date");
     bookDate.textContent = book.dueDate;
 
+    // Создаем кнопку "Вернуть книгу"
+    const returnButton = document.createElement("button");
+    returnButton.classList.add("book-return");
+    returnButton.textContent = "Вернуть книгу";
+
+    // Стили для кнопки
+
+    returnButton.style.backgroundColor = " #41a0ff"; // Зеленый
+    returnButton.style.border = "none";
+    returnButton.style.color = "white";
+    returnButton.style.padding = "8px 16px"; //  Увеличил padding для  кнопки
+    returnButton.style.textAlign = "center";
+    returnButton.style.textDecoration = "none";
+    returnButton.style.display = "inline-block";
+    returnButton.style.fontSize = "16px"; // Увеличил  размер  шрифта
+    returnButton.style.margin = "0 2px"; // Добавил margin
+    returnButton.style.cursor = "pointer"; //  Указатель  мыши  при  наведении
+
+    returnButton.addEventListener("click", () => {
+      if (confirm(`Вы уверены, что хотите вернуть книгу "${book.name}"?`)) {
+        returnBook(book);
+        displayUserBooks(
+          loadUserBooks(parseInt(localStorage.getItem("currentStudentId"), 10))
+        ); // закомментируйте, если хотите перезапускать updateBookTable
+      }
+    });
+
+    // Создаем контейнер для кнопки, чтобы она была справа
+
+    const returnButtonContainer = document.createElement("div");
+
+    returnButtonContainer.style.textAlign = "right"; // Выравнивание  по  правому  краю
+
+    returnButtonContainer.appendChild(returnButton);
+
     bookItem.appendChild(bookName);
     bookItem.appendChild(bookAuthor);
     bookItem.appendChild(bookDate);
+    bookItem.appendChild(returnButtonContainer); //  Добавляем контейнер  с кнопкой
 
     bookList.appendChild(bookItem);
   });
@@ -365,21 +405,50 @@ function decreaseBookQuantity(book, studentId) {
 }
 
 function returnBook(book) {
-  const studentId = localStorage.getItem("currentStudentId");
+  const studentId = parseInt(localStorage.getItem("currentStudentId"), 10);
+
   if (!studentId) return;
 
   let takenBooks = JSON.parse(localStorage.getItem(TAKEN_BOOKS_KEY)) || [];
+
   let userBooks = takenBooks.find((item) => item.userId === studentId);
 
   if (!userBooks) return;
 
-  userBooks.books = userBooks.books.filter((b) => b.name !== book.name);
+  userBooks.books = userBooks.books.filter((b) => b.name !== book.name); // Удаляем книгу из задолженностей
 
   saveTakenBooksToLocalStorage(takenBooks);
   increaseBookQuantity(book);
-  alert(`Книга "${book.name}" успешно возвращена.`);
-  displayUserBooks(userBooks.books);
+
+
+
+  alert(`Книга  "${book.name}"  успешно возвращена.`);
+  displayUserBooks(userBooks.books); // Обновляем  отображение задолженностей
 }
+
+function increaseBookQuantity(book) {
+  const books = JSON.parse(localStorage.getItem(BOOKS_KEY)) || [];
+
+  const bookToUpdate = books.find((b) => b.Название === book.name);
+
+  if (bookToUpdate) {
+    bookToUpdate.Количество++;
+
+    localStorage.setItem(BOOKS_KEY, JSON.stringify(books));
+
+    // Вызываем функцию  для  обновления  таблицы  книг  у библиотекаря/админа
+
+    const librarianWindow = window.opener;
+
+    if (librarianWindow) {
+      librarianWindow.postMessage(
+        { type: "updateBookQuantity", bookTitle: book.name },
+        "*"
+      );
+    }
+  }
+}
+
 function updateLibrarianBookDisplay(bookTitle) {
   //  Новая функция
   //  Отправляем  сообщение  в  окно  библиотекаря  об  изменении
