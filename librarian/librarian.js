@@ -239,7 +239,8 @@ function displayStudents(students) {
     openHistoryButton.addEventListener("click", () => {
       //            const fio = student.ФИО;
       // const group = student.Группа;
-      goToPersonalCabinet(student, index); //Передаем index
+
+      goToPersonalCabinet(student); 
     });
     //      actionsCell.appendChild(openHistoryButton);
 
@@ -459,16 +460,15 @@ function updateCellColor(cell, value) {
     cell.style.color = "red";
   }
 }
-function goToPersonalCabinet(student, index) {
-  // !!!! ДОБАВЛЕН  index
-  const fio = student.ФИО;
 
-  const group = student.Группа;
-
+// librarian.js (или admin0.js)
+function goToPersonalCabinet(student) {
+  const studentId = student.id; //  Именно id
   window.location.href = `../user/personalCabinet.html?fio=${encodeURIComponent(
-    fio
-  )}&group=${encodeURIComponent(group)}&id=${encodeURIComponent(index)}`;
-  // Правильный  путь  и  использование  id
+    student.ФИО
+  )}&group=${encodeURIComponent(student.Группа)}&id=${encodeURIComponent(
+    studentId
+  )}`;
 }
 function fillStrorage() {
   // 2. Загружаем студентов из localStorage или создаем новых, если их нет
