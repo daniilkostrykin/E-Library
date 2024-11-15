@@ -260,7 +260,7 @@ function displayStudents(students) {
     openHistoryButton.addEventListener("click", () => {
       //            const fio = student.ФИО;
       // const group = student.Группа;
-      goToPersonalCabinet(student); //Передаем index
+      goToPersonalCabinet(student); 
     });
     //      actionsCell.appendChild(openHistoryButton);
 
@@ -481,16 +481,14 @@ function updateCellColor(cell, value) {
     cell.style.color = "red";
   }
 }
+// librarian.js (или admin0.js)
 function goToPersonalCabinet(student) {
-  //  index здесь не нужен
-  const fio = student.ФИО;
-  const group = student.Группа;
-  const id = student.id; // Получаем id из объекта student
-  const studentId = typeof id === "string" ? parseInt(id, 10) : id;
-
+  const studentId = student.id; //  Именно id
   window.location.href = `../user/personalCabinet.html?fio=${encodeURIComponent(
-    fio
-  )}&group=${encodeURIComponent(group)}&id=${encodeURIComponent(studentId)}`;
+    student.ФИО
+  )}&group=${encodeURIComponent(student.Группа)}&id=${encodeURIComponent(
+    studentId
+  )}`;
 }
 function fillStrorage() {
   // 2. Загружаем студентов из localStorage или создаем новых, если их нет

@@ -2,7 +2,6 @@
 const BOOKS_KEY = "books";
 const STUDENTS_KEY = "students"; //  Ключ для студентов
 const TAKEN_BOOKS_KEY = "takenBooks"; //  Ключ для взятых книг
-
 function goToLibrary() {
   window.location.href = "../library/library.html";
 }
@@ -228,53 +227,39 @@ function searchBook(event) {
 function takeBook(book) {
   let studentId = localStorage.getItem("currentStudentId"); // Получаем id студента
   console.log("studentId в takeBook:", studentId, typeof studentId);
-
-  if (typeof studentId === "string") {
-    studentId = parseInt(studentId, 10);
-  }
+  studentId = parseInt(studentId, 10);
 
   if (!studentId) return; // Если нет ID, значит, это личный кабинет обычного пользователя
-
   // Получаем список книг из LocalStorage
   const books = JSON.parse(localStorage.getItem(BOOKS_KEY)) || [];
-
   // Находим книгу по названию
   const bookToTake = books.find((b) => b.Название === book["Название"]);
-
   // Проверяем, есть ли книга и есть ли доступное количество
   if (!bookToTake) {
     return alert("Эта книга в данный момент отсутствует.");
   }
-
   if (bookToTake.Количество === 0) {
     return alert("Книга закончилась и сейчас нет в наличии.");
   }
-
   let takenBooks = JSON.parse(localStorage.getItem(TAKEN_BOOKS_KEY)) || [];
   let userBooks = takenBooks.find((item) => item.userId === studentId);
   console.log("takenBooks  в loadUserBooks:", takenBooks); //  Проверьте  структуру takenBooks
-
   if (!userBooks) {
     userBooks = { userId: studentId, books: [] };
     takenBooks.push(userBooks);
   }
-
   if (userBooks.books.some((b) => b.name === book["Название"])) {
     return alert("Вы уже взяли эту книгу!");
   }
-
   const dueDate = new Date();
   dueDate.setDate(dueDate.getDate() + 14);
-
   userBooks.books.push({
     name: book["Название"],
     author: book["Автор"],
     dueDate: dueDate.toISOString().split("T")[0],
   });
-
   // Обновляем данные о взятых книгах в LocalStorage
   saveTakenBooksToLocalStorage(takenBooks);
-
   // Уменьшаем количество книги в библиотеке
   decreaseBookQuantity(bookToTake, studentId);
 
@@ -282,14 +267,12 @@ function takeBook(book) {
 
   // Удаляем строку с выданной книгой из таблицы
   removeBookRow(book);
-
   // Проверяем, есть ли еще книги в таблице
   const booksTableBody = document.getElementById("booksTableBody");
   if (booksTableBody.children.length === 0) {
     const booksTable = document.getElementById("booksTable");
     booksTable.style.display = "none"; // Скрываем таблицу, если книг больше нет
   }
-
   // Обновляем интерфейс пользователя (книги, которые были взяты)
   displayUserBooks(userBooks.books);
 }
@@ -442,11 +425,11 @@ document.addEventListener("DOMContentLoaded", () => {
   const urlParams = getURLParams(); // Получаем параметры из URL
   console.log("URL Params:", urlParams);
 
-  let account;
+  let account, studentId;
 
   if (urlParams.id) {
-    // Если есть id в параметрах URL, ищем студента с этим id
-    const studentId = parseInt(urlParams.id, 10);
+    studentId = parseInt(urlParams.id, 10);
+
     console.log("Student ID (parsed):", studentId);
 
     let students = localStorage.getItem(STUDENTS_KEY);
@@ -455,44 +438,60 @@ document.addEventListener("DOMContentLoaded", () => {
     if (students) {
       try {
         students = JSON.parse(students);
+
+        console.log("Students  array:", students);
+
+        account = students.find((student) => student.id === studentId);
+
+        if (account) {
+          displayStudentInfo(account, studentId); //  studentId  передаем  как аргумент
+        } else {
+          console.warn("Студент с указанным ID  не найден.");
+          alert("Студент с  указанным ID не  найден.");
+
+          return; //  Прерываем выполнение, если  студент не найден
+        }
       } catch (error) {
-        console.error("Error parsing students data:", error);
-        alert("Ошибка загрузки данных студентов. Данные повреждены.");
-        return;
-      }
+        console.error("Error  parsing students  data:", error);
+        alert("Ошибка  загрузки данных студентов. Данные  повреждены.");
 
-      console.log("Students array:", students);
-
-      account = students.find((student) => student.id === studentId);
-      if (!account) {
-        console.warn("Студент с указанным ID не найден.");
-        alert("Студент с указанным ID не найден.");
         return;
       }
     } else {
-      console.warn("No students found in LocalStorage using key", STUDENTS_KEY);
-      alert("Данные студентов отсутствуют в LocalStorage.");
+      console.warn(
+        "No  students found  in LocalStorage  using key",
+        STUDENTS_KEY
+      );
+      alert("Данные студентов отсутствуют  в LocalStorage.");
       return;
     }
   } else {
-    // Если id нет, загружаем текущий вошедший аккаунт
+    // Если id  нет,  загружаем  текущий вошедший  аккаунт
+
     account = getLoggedInAccount();
+
+    // console.log("Загружен текущий аккаунт:", account)
   }
 
   if (account) {
-    console.log("Account found:", account);
-    displayUserInfo(account);
-    searchBookSetup();
+    console.log("Account  found:", account);
 
-    // Отображение интерфейса для книг
-    document.querySelector(".book-list").style.display = "block";
+    displayUserInfo(account); //  Отображаем данные  пользователя
+
+    searchBookSetup(); // Инициализация  поиска
+
+    document.querySelector(".book-list").style.display = "block"; // Отображаем  список  книг
+
     document.getElementById("goToLibrary").style.display = "block";
+
     document.getElementById("logout").style.display = "block";
   } else {
-    console.error("Не удалось загрузить данные аккаунта.");
-    alert("Не удалось загрузить данные аккаунта.");
+    console.error("Не удалось  загрузить  данные аккаунта.");
+
+    alert("Не  удалось загрузить данные аккаунта.");
+
     if (!urlParams.fio && !urlParams.group && !urlParams.id) {
-      console.warn("Редирект на главную страницу.");
+      console.warn("Редирект  на главную страницу.");
       window.location.href = "../index.html";
     }
   }
@@ -507,7 +506,13 @@ function displayStudentInfo(studentData, studentId) {
   // Отображаем задолженности из localStorage, используя studentId
   const userBooks = loadUserBooks(studentId); // Здесь используем studentId
   displayUserBooks(userBooks);
-  localStorage.setItem("currentStudentId",  String(studentId));
+  console.log(
+    "Setting currentStudentId in displayStudentInfo. studentId, type:",
+    studentId,
+    typeof studentId
+  );
+
+  localStorage.setItem("currentStudentId", String(studentId));
 
   const account = getLoggedInAccount();
   if (account && (account.role === "admin" || account.role === "librarian")) {
