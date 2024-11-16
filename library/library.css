@@ -116,8 +116,8 @@ input[type="text"] {
   /*  Класс  для  анимации  исчезновения  */
   background-color: transparent;
 }
-#exit {
-  background-color: #c61d1de7;
+#back {
+  background-color: #7256f0e7;
   margin-left: auto; /* "Выталкивает" кнопку в правый край */
   margin-right: 20px;
   width: 92px;
