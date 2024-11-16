@@ -5,7 +5,7 @@ let students = [];
 let isNotFoundMessageShown = false; // Флаг для отслеживания показа сообщения
 
 function logout() {
-  window.location.href = "../index.html"; // Перенаправляем  на  личный кабинет (обрати внимание на  путь)
+  window.history.back();
 }
 function displayBooks(books) {
   //Удаляем предыдущую таблицу книг, если она существует
