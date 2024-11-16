@@ -1,4 +1,5 @@
 // script.js
+
 const ACCOUNTS_KEY = "accounts";
 const STUDENTS_KEY = "students";
 const signUpButton = document.getElementById("signUp");
@@ -19,6 +20,7 @@ signInOverlayButton.addEventListener("click", () => {
   container.classList.remove("right-panel-active");
 });
 
+
 //Регистрация нового пользователя
 function createAccount(event) {
   event.preventDefault();
@@ -34,7 +36,7 @@ function createAccount(event) {
   const accounts = JSON.parse(localStorage.getItem(ACCOUNTS_KEY)) || [];
 
   if (accounts.some((account) => account.email === email)) {
-    alert("Аккаунт с таким email уже существует!");
+    showToast("Аккаунт с таким email уже существует!");
     return;
   }
   let role = "user";
@@ -50,7 +52,7 @@ function createAccount(event) {
     localStorage.setItem("loggedInEmail", email); // Логиним админа
     checkRole(); // Перенаправляем в админ панель
 
-    alert("Вход успешен!");
+    showToast("Вход успешен!");
     regForm.reset();
     container.classList.remove("right-panel-active");
 
@@ -64,7 +66,7 @@ function createAccount(event) {
 
   updateStudentsInLocalStorage(newAccount);
 
-  alert("Аккаунт успешно создан!");
+  showToast("Аккаунт успешно создан!");
   regForm.reset();
   container.classList.remove("right-panel-active");
 }
@@ -117,7 +119,7 @@ function login(event) {
   const password = loginForm.elements["password"].value.trim();
 
   if (!email || !password) {
-    alert("Введите email и пароль!");
+    showToast("Введите email и пароль!");
     return;
   }
 
@@ -135,12 +137,13 @@ function login(event) {
 
   if (account) {
     localStorage.setItem("loggedInEmail", account.email);
-    alert("Вход успешен!");
-    checkRole();
+    showToast("Вы успешно вошли!");
 
-    return;
+    setTimeout(() => {
+      checkRole();
+    }, 4000);
   } else {
-    alert("Неверный email или пароль!");
+    showToast("Неверный email или пароль!");
   }
 }
 function validateRegistration(name, group, email, password, confirmPassword) {
@@ -148,13 +151,13 @@ function validateRegistration(name, group, email, password, confirmPassword) {
   const nameParts = name.trim().split(/\s+/); // Разделяем ФИО на части по пробелам
 
   if (nameParts.length < 2) {
-    alert("ФИО должно содержать минимум две части (имя и фамилию)!");
+    showToast("ФИО должно содержать минимум две части (имя и фамилию)!");
     return false;
   }
 
   for (const part of nameParts) {
     if (part.length < 2 || part.length > 50) {
-      alert(
+      showToast(
         "Каждая часть ФИО (имя, фамилия, отчество) должна содержать от 2 до 50 символов!"
       );
       return false;
@@ -165,14 +168,14 @@ function validateRegistration(name, group, email, password, confirmPassword) {
   const groupRegex = /^[А-Я]{3}-\d{3}$/;
 
   if (!groupRegex.test(group)) {
-    alert("Введите корректную группу");
+    showToast("Введите корректную группу");
     return false;
   }
   //валидация почты
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
   if (!emailRegex.test(email)) {
-    alert("Введите корректный email");
+    showToast("Введите корректный email");
     return false;
   }
 
@@ -180,13 +183,13 @@ function validateRegistration(name, group, email, password, confirmPassword) {
 
   const passwordRegex = /^(?=.*[A-Za-z])[A-Za-z\d@$!%*?&]{8,}$/;
   if (!passwordRegex.test(password)) {
-    alert("Пароль должен содержать минимум 8 символов");
+    showToast("Пароль должен содержать минимум 8 символов");
 
     return false;
   }
 
   if (password !== confirmPassword) {
-    alert("Пароли не совпадают!");
+    showToast("Пароли не совпадают!");
     return false;
   }
 
@@ -227,3 +230,22 @@ regSubmitButton.addEventListener("click", createAccount);
 document.addEventListener("DOMContentLoaded", () => {
   checkRole();
 });*/
+function showToast(message) {
+  const container = document.getElementById("toast-container");
+  const toast = document.createElement("div");
+  toast.className = "toast";
+  toast.textContent = message;
+
+  container.appendChild(toast);
+  setTimeout(() => {
+    toast.classList.add("show");
+  }, 10);
+  //  Скрываем toast  через 3 секунды
+  setTimeout(() => {
+    toast.classList.remove("show"); // Сначала делаем прозрачным
+    setTimeout(() => {
+      // А потом удаляем
+      container.removeChild(toast);
+    }, 300);
+  }, 3000);
+}
