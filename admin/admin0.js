@@ -146,6 +146,7 @@ function searchBook() {
 
     updateControlsMargin(false); // Так как таблица не отображается
   }
+  
 }
 
 function searchStudent() {
@@ -162,6 +163,7 @@ function searchStudent() {
     updateControlsMargin(true); // Устанавливаем маленький отступ
     return; // Завершаем функцию
   }
+  students = JSON.parse(localStorage.getItem(STUDENTS_KEY)) || []; // !!!
 
   // Если есть запрос, выполняем фильтрацию
   const filteredStudents = students.filter((student) => {
@@ -183,6 +185,7 @@ function searchStudent() {
     updateControlsMargin(false); // Так как таблица не отображается
   }
 }
+
 
 function displayStudents(students) {
   if (students.length === 0) {
