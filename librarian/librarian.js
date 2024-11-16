@@ -497,7 +497,7 @@ function goToPersonalCabinet(student) {
     studentId
   )}`;
 }
-function fillStrorage() {
+function fillStorage() {
   // 2. Загружаем студентов из localStorage или создаем новых, если их нет
   students = JSON.parse(localStorage.getItem(STUDENTS_KEY)) || [];
 
@@ -571,7 +571,7 @@ function fillStrorage() {
   originalBooks = JSON.parse(localStorage.getItem(BOOKS_KEY));
 }
 document.addEventListener("DOMContentLoaded", () => {
-  fillStrorage();
+  fillStorage();
   let books = JSON.parse(localStorage.getItem(BOOKS_KEY)) || [];
   originalBooks = JSON.parse(JSON.stringify(books));
   handleSearchFormSubmit("searchForm", "searchInput"); // Для  книг

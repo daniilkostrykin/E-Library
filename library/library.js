@@ -83,7 +83,8 @@ function displayBooks(books) {
         // Установить цвет текста в зависимости от значения
         updateCellColor(cell, value);
       } else if (key === "Местоположение") {
-        if (value) { // Если местоположение указано
+        if (value) {
+          // Если местоположение указано
           cell.textContent = value;
         } else {
           cell.textContent = "Неизвестно"; // Или любой другой текст-заполнитель
@@ -475,7 +476,7 @@ function goToPersonalCabinet(student, index) {
   )}&group=${encodeURIComponent(group)}&id=${encodeURIComponent(index)}`;
   // Правильный  путь  и  использование  id
 }
-function fillStrorage() {
+function fillStorage() {
   // 2. Загружаем студентов из localStorage или создаем новых, если их нет
   students = JSON.parse(localStorage.getItem(STUDENTS_KEY)) || [];
 
@@ -548,6 +549,6 @@ function fillStrorage() {
   originalBooks = JSON.parse(localStorage.getItem(BOOKS_KEY));
 }
 document.addEventListener("DOMContentLoaded", () => {
-  fillStrorage();
+  fillStorage();
   handleSearchFormSubmit("searchForm", "searchInput"); // Для  книг
 });
