@@ -335,28 +335,19 @@ function clearPreviousResults() {
 
 function handleSearchFormSubmit(formId, inputId) {
   const form = document.getElementById(formId);
-  const submitButton = form.querySelector(".find"); // Получаем кнопку "Найти" заранее
 
   form.addEventListener("submit", (event) => {
-    event.preventDefault();
-
-    const input = document.getElementById(inputId);
-
-    if (input.value.trim() !== "") {
-      submitButton.style.display = "none";
+      event.preventDefault();
+      const input = document.getElementById(inputId);
 
       if (input.value.trim() !== "") {
-        submitButton.style.display = "none"; // Скрываем кнопку "Найти"
-
-        if (formId === "searchForm") {
-          searchBook();
-        } else {
-          searchStudent();
-        }
-        submitButton.style.display = "";
+          if (formId === "searchForm") {
+              searchBook();
+          } else {
+              searchStudent();
+          }
       }
-    }
-  }); // конец обработчика submit
+  });
 }
 function getRandomItem(array) {
   return array[Math.floor(Math.random() * array.length)];
@@ -510,5 +501,4 @@ document.addEventListener("DOMContentLoaded", () => {
   originalBooks = JSON.parse(JSON.stringify(books));
   handleSearchFormSubmit("searchForm", "searchInput"); // Для  книг
   handleSearchFormSubmit("searchStudentForm", "searchInput1"); // Для  студентов
-  displayBooks(books);
 });
