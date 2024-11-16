@@ -103,23 +103,19 @@ function displayBooks(books) {
 
 function searchBook() {
   clearPreviousResults(); // Удаляем предыдущие результаты
-  const studentsTable = document.getElementById("studentsTable");
-  if (studentsTable) {
-    studentsTable.remove();
-  }
-
   const books = JSON.parse(localStorage.getItem(BOOKS_KEY)) || [];
   const query = document
     .getElementById("searchInput")
     .value.trim()
     .toLowerCase();
 
-  const bookTable = document.getElementById("bookTable");
-
-  // Если поле ввода пустое
+  // Если поле ввода пустое, отображаем все книги
   if (!query) {
-    return;
+    displayBooks(books);
+    updateControlsMargin(true); // Устанавливаем маленький отступ
+    return; // Завершаем функцию
   }
+
   // Поиск книг
   const filteredBooks = books.filter(
     (book) =>
@@ -137,61 +133,43 @@ function searchBook() {
       "searchForm"
     ); // Передаем formId
 
-    updateControlsMargin(false); // Так как  таблица не отображается
-
-    isNotFoundMessageShown = true;
+    updateControlsMargin(false); // Так как таблица не отображается
   }
 }
 
 function searchStudent() {
   clearPreviousResults(); // Удаляем предыдущие результаты
-  const oldTable = document.getElementById("studentsTable");
-  if (oldTable) {
-    oldTable.remove();
-  } // Проверяем, есть ли студенты
-  if (!students || students.length === 0) {
-    updateControlsMargin(false);
-  }
-  // Очищаем таблицу книг, если она существует
-  const bookTable = document.getElementById("bookTable");
-  if (bookTable) {
-    bookTable.remove();
-  }
-  if (!students || students.length === 0) {
-    updateControlsMargin(false);
-  }
-
+  const students = JSON.parse(localStorage.getItem(STUDENTS_KEY)) || [];
   const query = document
     .getElementById("searchInput1")
     .value.toLowerCase()
     .trim();
 
-  // Добавлено:  если запрос пустой, отображаем ВСЕХ студентов.
+  // Если запрос пустой, отображаем всех студентов
   if (!query) {
-    //  displayStudents(students); // students - это глобальный массив.  Убедитесь что данные студентов добавлены в localStorage в DOMContentLoaded
-    updateControlsMargin(false);
-    return;
+    displayStudents(students);
+    updateControlsMargin(true); // Устанавливаем маленький отступ
+    return; // Завершаем функцию
   }
 
-  //  если есть запрос
+  // Если есть запрос, выполняем фильтрацию
   const filteredStudents = students.filter((student) => {
-    //  students - это глобальный массив
-
     return (
       student.ФИО.toLowerCase().includes(query) ||
       student.Группа.toLowerCase().includes(query)
     );
   });
 
+  // Если найдены студенты
   if (filteredStudents.length) {
     displayStudents(filteredStudents);
-
     updateControlsMargin(true);
   } else {
     displayMessage(
       `Студента с ФИО или группой "${query}" не найден в системе`,
       "searchStudentForm"
     ); // Передаем formId
+    updateControlsMargin(false); // Так как таблица не отображается
   }
 }
 function displayStudents(students) {
@@ -320,29 +298,17 @@ function clearPreviousResults() {
 
 function handleSearchFormSubmit(formId, inputId) {
   const form = document.getElementById(formId);
-  const submitButton = form.querySelector(".find"); // Получаем кнопку "Найти" заранее
 
   form.addEventListener("submit", (event) => {
     event.preventDefault();
-
-    
     const input = document.getElementById(inputId);
 
-    if (input.value.trim() !== "") {
-      submitButton.style.display = "none";
-
-      if (input.value.trim() !== "") {
-        submitButton.style.display = "none"; // Скрываем кнопку "Найти"
-
-        if (formId === "searchForm") {
-          searchBook();
-        } else {
-          searchStudent();
-        }
-        submitButton.style.display = "";
-      }
+    if (formId === "searchForm") {
+      searchBook();
+    } else {
+      searchStudent();
     }
-  }); // конец обработчика submit
+  });
 }
 function getRandomItem(array) {
   return array[Math.floor(Math.random() * array.length)];
