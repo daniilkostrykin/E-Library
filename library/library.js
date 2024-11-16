@@ -4,7 +4,7 @@ const BOOKS_KEY = "books";
 let students = [];
 let isNotFoundMessageShown = false; // Флаг для отслеживания показа сообщения
 
-function logout() {
+function back() {
   window.history.back();
 }
 function displayBooks(books) {

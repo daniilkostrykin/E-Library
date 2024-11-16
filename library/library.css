@@ -56,16 +56,14 @@ body {
 }
 
 #controls input[type="submit"]:hover {
-  background-color: #5cff7a;
+  background: linear-gradient(
+    45deg,
+    #5cff7a,
+    #98f5a9
+  ); /* Градиент от основного к более светлому */
 }
 #controls input[type="submit"]:active {
   background-color: #1ff346;
-}
-#controls > button:hover {
-  background-color: #f91111;
-}
-#controls > button:active {
-  background-color: #f91111d8;
 }
 #controls button,
 #controls input[type="submit"],
@@ -116,12 +114,40 @@ input[type="text"] {
   /*  Класс  для  анимации  исчезновения  */
   background-color: transparent;
 }
-#exit {
-  background-color: #c61d1de7;
+#back {
+  background-color: #7256f0e7;
   margin-left: auto; /* "Выталкивает" кнопку в правый край */
   margin-right: 20px;
   width: 92px;
 }
+#back:hover {
+  background-color: #f91111;
+}
+#back:active {
+  background-color: #f91111d8;
+}
+#back {
+  background-color: #7256f0e7;
+  margin-left: auto; /* "Выталкивает" кнопку в правый край */
+  margin-right: 20px;
+  width: 92px;
+  transition: background-color 0.3s, transform 0.2s; /* Плавный переход */
+}
+
+#back:hover {
+  background: linear-gradient(
+    45deg,
+    #7256f0,
+    #9884fa
+  ); /* Градиент от основного к более светлому */
+  transform: scale(1.05); /* Легкое увеличение */
+}
+
+#back:active {
+  background-color: #5943c7; /* Темный вариант основного цвета */
+  transform: scale(0.95); /* Легкое уменьшение */
+}
+
 /* Общие стили для всех кнопок */
 button,
 #controls button,
@@ -143,7 +169,6 @@ button:active,
 .cancel-button:active {
   transform: translateY(2px); /* Опускаем при нажатии */
 }
-
 
 #search-outline,
 #search-outline1 {
