@@ -12,6 +12,7 @@ body {
 }
 
 #adminPanel {
+  position: relative;
   width: 1080px;
   max-width: 90%;
   background-color: white;
@@ -54,6 +55,28 @@ body {
   font-family: "Montserrat", sans-serif;
   cursor: pointer;
 }
+#exit {
+  position: absolute; /* Позволяет разместить кнопку в любом месте */
+  top: 41px; /* Отступ сверху */
+  right: 33px; /* Отступ справа */
+  background-color: #c61d1de7;
+  padding: 10px 20px;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-family: "Montserrat", sans-serif;
+  font-size: 16px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+#exit:hover {
+  background-color: #a31414; /* Темнее при наведении */
+}
+
+#exit:active {
+  background-color: #7f1010; /* Еще темнее при клике */
+}
 
 #controls input[type="submit"]:hover {
   background-color: #5cff7a;
@@ -61,11 +84,14 @@ body {
 #controls input[type="submit"]:active {
   background-color: #1ff346;
 }
-#controls > button:hover {
-  background-color: #2b21e8;
+#edit-book:hover {
+  background-color: #8c88e0; /* Более темный оттенок при наведении */
+  transform: translateY(-2px); /* Небольшой эффект поднятия */
 }
-#controls > button:active {
-  background-color: #221ac3;
+
+#edit-book:active {
+  background-color: #736cbf; /* Еще темнее при клике */
+  transform: translateY(2px); /* Легкое "нажатие" */
 }
 #controls button,
 #controls input[type="submit"],
@@ -74,6 +100,27 @@ body {
   padding: 12px 20px;
   border-radius: 10px;
   border: none;
+}
+/* Общие стили для всех кнопок */
+button,
+#controls button,
+#controls input[type="submit"],
+.cancel-button {
+  transition: transform 0.2s ease, background-color 0.3s ease;
+}
+
+button:hover,
+#controls button:hover,
+#controls input[type="submit"]:hover,
+.cancel-button:hover {
+  transform: translateY(-2px); /* Поднимаем при наведении */
+}
+
+button:active,
+#controls button:active,
+#controls input[type="submit"]:active,
+.cancel-button:active {
+  transform: translateY(2px); /* Опускаем при нажатии */
 }
 
 input[type="text"] {

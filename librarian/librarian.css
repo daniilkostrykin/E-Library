@@ -26,6 +26,27 @@ body {
   margin-top: 20px;
   box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
 }
+/* Общие стили для всех кнопок */
+button,
+#controls button,
+#controls input[type="submit"],
+.cancel-button {
+  transition: transform 0.2s ease, background-color 0.3s ease;
+}
+
+button:hover,
+#controls button:hover,
+#controls input[type="submit"]:hover,
+.cancel-button:hover {
+  transform: translateY(-2px); /* Поднимаем при наведении */
+}
+
+button:active,
+#controls button:active,
+#controls input[type="submit"]:active,
+.cancel-button:active {
+  transform: translateY(2px); /* Опускаем при нажатии */
+}
 
 #adminPanel th,
 #adminPanel td {

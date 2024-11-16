@@ -28,6 +28,27 @@ body {
   flex-direction: column; /* Изменено для вертикального расположения */
   justify-content: space-between; /* Равномерное распределение элементов */
 }
+/* Общие стили для всех кнопок */
+button,
+#controls button,
+#controls input[type="submit"],
+.cancel-button {
+  transition: transform 0.2s ease, background-color 0.3s ease;
+}
+
+button:hover,
+#controls button:hover,
+#controls input[type="submit"]:hover,
+.cancel-button:hover {
+  transform: translateY(-2px); /* Поднимаем при наведении */
+}
+
+button:active,
+#controls button:active,
+#controls input[type="submit"]:active,
+.cancel-button:active {
+  transform: translateY(2px); /* Опускаем при нажатии */
+}
 
 .form-container {
   background: rgba(45, 52, 54, 1);
