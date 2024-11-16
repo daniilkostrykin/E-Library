@@ -325,6 +325,7 @@ function handleSearchFormSubmit(formId, inputId) {
   form.addEventListener("submit", (event) => {
     event.preventDefault();
 
+    
     const input = document.getElementById(inputId);
 
     if (input.value.trim() !== "") {
