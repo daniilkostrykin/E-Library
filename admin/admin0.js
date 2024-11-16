@@ -94,26 +94,39 @@ function displayBooks(books) {
   updateControlsMargin(true);
   updateCellColor(cell, value);
 }
+window.addEventListener("message", (event) => {
+  if (event.data && event.data.type === "updateBookList") {
+    //  Обрабатываем сообщение  от admin.js
+
+    displayBooks(event.data.books); //  Обновляем список  книг
+  }
+});
+function updateBookTable() {
+  const updatedBooks = JSON.parse(localStorage.getItem(BOOKS_KEY)) || [];
+  displayBooks(updatedBooks);
+}
+window.addEventListener("message", (event) => {
+  console.log("Message from:", event.origin, event.data);
+  if (event.data.type === "updateBookQuantity") {
+    updateBookTable(); //  Обновляем таблицу
+  }
+});
 
 function searchBook() {
   clearPreviousResults(); // Удаляем предыдущие результаты
-  const studentsTable = document.getElementById("studentsTable");
-  if (studentsTable) {
-    studentsTable.remove();
-  }
-
   const books = JSON.parse(localStorage.getItem(BOOKS_KEY)) || [];
   const query = document
     .getElementById("searchInput")
     .value.trim()
     .toLowerCase();
 
-  const bookTable = document.getElementById("bookTable");
-
-  // Если поле ввода пустое
+  // Если поле ввода пустое, отображаем все книги
   if (!query) {
-    return;
+    displayBooks(books);
+    updateControlsMargin(true); // Устанавливаем маленький отступ
+    return; // Завершаем функцию
   }
+
   // Поиск книг
   const filteredBooks = books.filter(
     (book) =>
@@ -131,63 +144,46 @@ function searchBook() {
       "searchForm"
     ); // Передаем formId
 
-    updateControlsMargin(false); // Так как  таблица не отображается
-
-    isNotFoundMessageShown = true;
+    updateControlsMargin(false); // Так как таблица не отображается
   }
 }
 
 function searchStudent() {
   clearPreviousResults(); // Удаляем предыдущие результаты
-  const oldTable = document.getElementById("studentsTable");
-  if (oldTable) {
-    oldTable.remove();
-  } // Проверяем, есть ли студенты
-  if (!students || students.length === 0) {
-    updateControlsMargin(false);
-  }
-  // Очищаем таблицу книг, если она существует
-  const bookTable = document.getElementById("bookTable");
-  if (bookTable) {
-    bookTable.remove();
-  }
-  if (!students || students.length === 0) {
-    updateControlsMargin(false);
-  }
-
+  const students = JSON.parse(localStorage.getItem(STUDENTS_KEY)) || [];
   const query = document
     .getElementById("searchInput1")
     .value.toLowerCase()
     .trim();
 
-  // Добавлено:  если запрос пустой, отображаем ВСЕХ студентов.
+  // Если запрос пустой, отображаем всех студентов
   if (!query) {
-    //  displayStudents(students); // students - это глобальный массив.  Убедитесь что данные студентов добавлены в localStorage в DOMContentLoaded
-    updateControlsMargin(false);
-    return;
+    displayStudents(students);
+    updateControlsMargin(true); // Устанавливаем маленький отступ
+    return; // Завершаем функцию
   }
 
-  //  если есть запрос
+  // Если есть запрос, выполняем фильтрацию
   const filteredStudents = students.filter((student) => {
-    //  students - это глобальный массив
-
     return (
       student.ФИО.toLowerCase().includes(query) ||
       student.Группа.toLowerCase().includes(query)
     );
   });
 
+  // Если найдены студенты
   if (filteredStudents.length) {
     displayStudents(filteredStudents);
-
     updateControlsMargin(true);
   } else {
     displayMessage(
       `Студента с ФИО или группой "${query}" не найден в системе`,
       "searchStudentForm"
     ); // Передаем formId
+    updateControlsMargin(false); // Так как таблица не отображается
   }
 }
+
 function displayStudents(students) {
   if (students.length === 0) {
     return;
@@ -232,10 +228,20 @@ function displayStudents(students) {
     openHistoryButton.style.padding = "12px 20px";
     openHistoryButton.style.borderRadius = "10px";
     openHistoryButton.style.width = "137px";
+    openHistoryButton.style.cursor = "pointer";
+
     // здесь будет обработчик открытия истории, пока пустой
 
     actionsCell.appendChild(openHistoryButton);
     actionsCell.style.textAlign = "center";
+    openHistoryButton.addEventListener("click", () => {
+      //            const fio = student.ФИО;
+      // const group = student.Группа;
+      goToPersonalCabinet(student);
+    });
+    //      actionsCell.appendChild(openHistoryButton);
+
+    // ....
   });
 
   //Удаляем предыдущую таблицу студентов, если она существует
@@ -305,34 +311,23 @@ function clearPreviousResults() {
 
 function handleSearchFormSubmit(formId, inputId) {
   const form = document.getElementById(formId);
-  const submitButton = form.querySelector(".find"); // Получаем кнопку "Найти" заранее
 
   form.addEventListener("submit", (event) => {
     event.preventDefault();
-
     const input = document.getElementById(inputId);
 
-    if (input.value.trim() !== "") {
-      submitButton.style.display = "none";
-
-      if (input.value.trim() !== "") {
-        submitButton.style.display = "none"; // Скрываем кнопку "Найти"
-
-        if (formId === "searchForm") {
-          searchBook();
-        } else {
-          searchStudent();
-        }
-        submitButton.style.display = "";
-      }
+    if (formId === "searchForm") {
+      searchBook();
+    } else {
+      searchStudent();
     }
-  }); // конец обработчика submit
+  });
 }
 function getRandomItem(array) {
   return array[Math.floor(Math.random() * array.length)];
 }
 
-function getRandomFIO() {
+function getRandomFIO(id) {
   const lastNames = [
     "Иванов",
     "Петров",
@@ -376,7 +371,10 @@ function getRandomFIO() {
   const firstName = getRandomItem(firstNames);
   const middleName = getRandomItem(middleNames);
 
-  return `${lastName} ${firstName} ${middleName}`;
+  return {
+    fio: `${lastName} ${firstName} ${middleName}`,
+    id: id, //  Возвращаем id вместе с ФИО
+  };
 }
 function updateControlsMargin(hasData) {
   const controls = document.getElementById("controls");
@@ -390,7 +388,15 @@ function updateCellColor(cell, value) {
     cell.style.color = "red";
   }
 }
-function fillStrorage() {
+function goToPersonalCabinet(student) {
+  const studentId = student.id; //  Именно id
+  window.location.href = `../user/personalCabinet.html?fio=${encodeURIComponent(
+    student.ФИО
+  )}&group=${encodeURIComponent(student.Группа)}&id=${encodeURIComponent(
+    studentId
+  )}`;
+}
+function fillStorage() {
   // 2. Загружаем студентов из localStorage или создаем новых, если их нет
   students = JSON.parse(localStorage.getItem(STUDENTS_KEY)) || [];
 
@@ -462,7 +468,7 @@ function fillStrorage() {
   originalBooks = JSON.parse(localStorage.getItem(BOOKS_KEY));
 }
 document.addEventListener("DOMContentLoaded", () => {
-  fillStrorage();
+  fillStorage();
   const books = JSON.parse(localStorage.getItem(BOOKS_KEY)) || [];
   originalBooks = JSON.parse(JSON.stringify(books));
   handleSearchFormSubmit("searchForm", "searchInput"); // Для  книг

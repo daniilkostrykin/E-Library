@@ -161,3 +161,6 @@ a {
 #search-outline {
   margin-top: 23px;
 }
+a:visited {
+  color: inherit; /*  Наследовать цвет от родительского элемента */
+}

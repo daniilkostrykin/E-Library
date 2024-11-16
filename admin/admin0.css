@@ -153,3 +153,6 @@ input[type="text"] {
   visibility: visible;
   opacity: 1;
 }
+a:visited {
+  color: inherit; /*  Наследовать цвет от родительского элемента */
+}

@@ -323,3 +323,6 @@ button:focus {
   background-color: #2b6bb3; /* Темный синий при нажатии */
   transform: scale(1); /* Уменьшение эффекта */
 }
+a:visited {
+  color: inherit; /*  Наследовать цвет от родительского элемента */
+}
