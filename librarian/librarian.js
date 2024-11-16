@@ -165,13 +165,12 @@ function searchBook() {
 
 function searchStudent() {
   clearPreviousResults(); // Удаляем предыдущие результаты
-   // Проверяем, есть ли студенты
-   // Очищаем таблицу книг, если она существует
+  // Проверяем, есть ли студенты
+  // Очищаем таблицу книг, если она существует
   const bookTable = document.getElementById("bookTable");
   if (bookTable) {
     bookTable.remove();
   }
- 
 
   const query = document
     .getElementById("searchInput1")
@@ -197,16 +196,16 @@ function searchStudent() {
   if (filteredStudents.length) {
     displayStudents(filteredStudents);
     updateControlsMargin(true); // Есть таблица - маленький отступ
-
   } else {
     displayMessage(
       `Студента с ФИО или группой "${query}" не найден в системе`,
       "searchStudentForm"
     ); // Передаем formId
-  
-  updateControlsMargin(false); // Так как  таблица не отображается
 
-  isNotFoundMessageShown = true;}
+    updateControlsMargin(false); // Так как  таблица не отображается
+
+    isNotFoundMessageShown = true;
+  }
 }
 function displayStudents(students) {
   if (students.length === 0) {
@@ -334,65 +333,9 @@ function clearPreviousResults() {
   isNotFoundMessageShown = false;
 }
 
-function createCancelButton(formId, inputId, submitButton) {
-  const cancelButton = document.createElement("button");
-  cancelButton.textContent = "Отмена";
-  cancelButton.style.backgroundColor = "gray";
-  cancelButton.style.color = "white";
-  cancelButton.style.padding = "12px 20px";
-  cancelButton.style.borderRadius = "10px";
-  cancelButton.style.border = "none";
-  cancelButton.classList.add("cancel-button"); // Добавляем класс для удобства поиска
-
-  cancelButton.addEventListener("click", (event) => {
-    event.preventDefault();
-    clearPreviousResults();
-
-    // 1. Очищаем текущую форму
-    document.getElementById(inputId).value = "";
-
-    // 2. Удаляем таблицу, связанную с текущей формой
-    const tableId = formId === "searchForm" ? "bookTable" : "studentsTable";
-    const oldTable = document.getElementById(tableId);
-    if (oldTable) {
-      oldTable.remove();
-      updateControlsMargin(false);
-    }
-
-    // 3. Восстанавливаем кнопку "Найти" текущей формы
-    submitButton.style.display = "";
-
-    // 4. Удаляем кнопку "Отмена" текущей формы
-    cancelButton.remove();
-
-    // 5. Очищаем другую форму и убираем её кнопку "Отмена"
-    const otherFormId =
-      formId === "searchForm" ? "searchStudentForm" : "searchForm";
-    const otherInput = document
-      .getElementById(otherFormId)
-      .querySelector("input[type='text']");
-    const otherCancelButton = document
-      .getElementById(otherFormId)
-      .querySelector(".cancel-button");
-    const otherSubmitButton = document
-      .getElementById(otherFormId)
-      .querySelector(".find");
-
-    if (otherInput) {
-      otherInput.value = "";
-    }
-    if (otherCancelButton) {
-      otherCancelButton.remove();
-      if (otherSubmitButton) {
-        otherSubmitButton.style.display = "";
-      }
-    }
-  });
-
-  return cancelButton;
-}
 function handleSearchFormSubmit(formId, inputId) {
   const form = document.getElementById(formId);
+  const submitButton = form.querySelector(".find"); // Получаем кнопку "Найти" заранее
 
   form.addEventListener("submit", (event) => {
     event.preventDefault();
@@ -400,20 +343,17 @@ function handleSearchFormSubmit(formId, inputId) {
     const input = document.getElementById(inputId);
 
     if (input.value.trim() !== "") {
-      const submitButton = form.elements[form.elements.length - 1];
-
       submitButton.style.display = "none";
 
-      const cancelButton = createCancelButton(formId, inputId, submitButton); // Передаем submitButton
+      if (input.value.trim() !== "") {
+        submitButton.style.display = "none"; // Скрываем кнопку "Найти"
 
-      cancelButton.classList.add("cancel-button");
-
-      form.insertBefore(cancelButton, submitButton.nextSibling);
-
-      if (formId === "searchForm") {
-        searchBook();
-      } else {
-        searchStudent();
+        if (formId === "searchForm") {
+          searchBook();
+        } else {
+          searchStudent();
+        }
+        submitButton.style.display = "";
       }
     }
   }); // конец обработчика submit
