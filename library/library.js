@@ -5,7 +5,6 @@ let students = [];
 let isNotFoundMessageShown = false; // Флаг для отслеживания показа сообщения
 
 function logout() {
-
   window.location.href = "../index.html"; // Перенаправляем  на  личный кабинет (обрати внимание на  путь)
 }
 function displayBooks(books) {
@@ -76,14 +75,20 @@ function displayBooks(books) {
           // Добавляем контейнер в ячейку таблицы
           cell.appendChild(tooltipContainer);
         } else {
-          cell.textContent = "Нет";
+          cell.textContent = "Отсутствует";
+          cell.style.color = "gray"; // Серый цвет текста
         }
       } else if (key === "Количество") {
         cell.textContent = value;
         // Установить цвет текста в зависимости от значения
         updateCellColor(cell, value);
       } else if (key === "Местоположение") {
-        cell.textContent = value;
+        if (value) { // Если местоположение указано
+          cell.textContent = value;
+        } else {
+          cell.textContent = "Неизвестно"; // Или любой другой текст-заполнитель
+          cell.style.color = "gray"; // Серый цвет текста
+        }
       } else {
         cell.textContent = value;
       }
@@ -93,7 +98,6 @@ function displayBooks(books) {
   const controls = document.getElementById("controls");
   adminPanel.insertBefore(table, controls);
   updateControlsMargin(true);
-  updateCellColor(cell, value);
 }
 
 function searchBook() {
@@ -500,51 +504,50 @@ function fillStrorage() {
     }
     localStorage.setItem(STUDENTS_KEY, JSON.stringify(students)); // Сохраняем студентов в localStorage
   }
-
-  // УДАЛИТЬ, КАК ТОЛЬКО БУДУТ РЕАЛЬНЫЕ ДАННЫЕ:
-  let initial_books = [
-    {
-      Название: "Мастер и Маргарита",
-      Автор: "Михаил Булгаков",
-      Количество: 5,
-      "Электронная версия": "https://example.com/master_margarita",
-      Местоположение: "Главная библиотека, зал 1, полка 5",
-    },
-    {
-      Название: "Преступление и наказание",
-      Автор: "Фёдор Достоевский",
-      Количество: 3,
-      "Электронная версия": "https://example.com/prestuplenie_nakazanie",
-      Местоположение: "Главная библиотека, зал 2, полка 10",
-    },
-    {
-      Название: "Война и мир",
-      Автор: "Лев Толстой",
-      Количество: 7,
-      "Электронная версия": "https://example.com/voina_mir",
-      Местоположение: "Главная библиотека, зал 3, полка 15",
-    },
-    {
-      Название: "Евгений Онегин",
-      Автор: "Александр Пушкин",
-      Количество: 10,
-      "Электронная версия": "", //  Нет электронной версии
-      Местоположение: "Главная библиотека, зал 1, полка 20",
-    },
-    {
-      Название: "Мертвые души",
-      Автор: "Николай Гоголь",
-      Количество: 2,
-      "Электронная версия": "https://example.com/mertvye_dushi",
-      Местоположение: "Главная библиотека, зал 2, полка 25",
-    },
-  ];
-  localStorage.setItem(BOOKS_KEY, JSON.stringify(initial_books)); // <--- Add this line !!!
+  if (!localStorage.getItem(BOOKS_KEY)) {
+    // УДАЛИТЬ, КАК ТОЛЬКО БУДУТ РЕАЛЬНЫЕ ДАННЫЕ:
+    let initial_books = [
+      {
+        Название: "Мастер и Маргарита",
+        Автор: "Михаил Булгаков",
+        Количество: 5,
+        "Электронная версия": "https://example.com/master_margarita",
+        Местоположение: "Главная библиотека, зал 1, полка 5",
+      },
+      {
+        Название: "Преступление и наказание",
+        Автор: "Фёдор Достоевский",
+        Количество: 3,
+        "Электронная версия": "https://example.com/prestuplenie_nakazanie",
+        Местоположение: "Главная библиотека, зал 2, полка 10",
+      },
+      {
+        Название: "Война и мир",
+        Автор: "Лев Толстой",
+        Количество: 7,
+        "Электронная версия": "https://example.com/voina_mir",
+        Местоположение: "Главная библиотека, зал 3, полка 15",
+      },
+      {
+        Название: "Евгений Онегин",
+        Автор: "Александр Пушкин",
+        Количество: 10,
+        "Электронная версия": "", //  Нет электронной версии
+        Местоположение: "Главная библиотека, зал 1, полка 20",
+      },
+      {
+        Название: "Мертвые души",
+        Автор: "Николай Гоголь",
+        Количество: 2,
+        "Электронная версия": "https://example.com/mertvye_dushi",
+        Местоположение: "Главная библиотека, зал 2, полка 25",
+      },
+    ];
+    localStorage.setItem(BOOKS_KEY, JSON.stringify(initial_books)); // <--- Add this line !!!
+  }
+  originalBooks = JSON.parse(localStorage.getItem(BOOKS_KEY));
 }
 document.addEventListener("DOMContentLoaded", () => {
   fillStrorage();
-  const books = JSON.parse(localStorage.getItem(BOOKS_KEY)) || [];
-  originalBooks = JSON.parse(JSON.stringify(books));
   handleSearchFormSubmit("searchForm", "searchInput"); // Для  книг
-  handleSearchFormSubmit("searchStudentForm", "searchInput1"); // Для  студентов
 });

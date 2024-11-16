@@ -1,6 +1,5 @@
 //admin.js
 const BOOKS_KEY = "books";
-let originalBooks = []; // Глобальная переменная для хранения оригинальных данных
 
 function logout() {
   window.location.href = "admin0.html";
@@ -68,6 +67,19 @@ function displayBooks(books) {
             cell.textContent = 0; // Устанавливаем 0 по умолчанию
           }
           updateCellColor(cell, cell.textContent);
+          document.getElementById("save-changes").disabled = false;
+          document.getElementById("cancel").disabled = false;
+        });
+      } else if (key === "Местоположение") {
+        if (value) {
+          // Если значение не пустое
+          cell.textContent = value;
+        } else {
+          cell.textContent = "Неизвестно"; // Или любой другой текст-заполнитель
+          cell.style.color = "gray"; // Серый цвет текста
+        }
+        cell.contentEditable = true; // Остается редактируемым
+        cell.addEventListener("input", () => {
           document.getElementById("save-changes").disabled = false;
           document.getElementById("cancel").disabled = false;
         });
@@ -140,6 +152,7 @@ function saveEditBook() {
 
   localStorage.setItem(BOOKS_KEY, JSON.stringify(newBooks));
   originalBooks = JSON.parse(JSON.stringify(newBooks));
+  originalBooks = [...newBooks]; // Обновляем originalBooks
   displayBooks(newBooks);
   document.getElementById("save-changes").disabled = true;
   document.getElementById("cancel").disabled = true;
@@ -175,39 +188,68 @@ function addBook() {
     if (!isNaN(quantity) && quantity >= 0) break; // Если введено число >= 0, выходим из цикла
     alert("Количество должно быть положительным числом или 0!");
   }
-
-  // Ввод ссылки на электронную версию
-  while (true) {
-    onlineVersion = prompt("Введите ссылку на электронную версию:").trim();
-    if (onlineVersion) break; // Если ссылка введена, выходим из цикла
-    alert("Ссылка на электронную версию обязательна!");
+  // Ввод ссылки на электронную версию (необязательно)
+  onlineVersion = prompt(
+    "Введите ссылку на электронную версию (необязательно):"
+  ).trim();
+  if (onlineVersion === null) {
+    // Если нажата "Отмена" -> null
+    onlineVersion = ""; // сохраняем пустую строку
   }
-
-  // Ввод местоположения книги
-  while (true) {
-    location = prompt("Введите местоположение книги:").trim();
-    if (location) break; // Если местоположение введено, выходим из цикла
-    alert("Местоположение книги обязательно!");
+  // Ввод местоположения книги (необязательно)
+  location = prompt("Введите местоположение книги (необязательно):").trim();
+  if (location === null) {
+    // Если нажата "Отмена" -> null
+    location = ""; // сохраняем пустую строку
   }
-
   // Создаем объект новой книги
   const newBook = {
     Название: title,
     Автор: author,
     Количество: quantity,
-    "Электронная версия": onlineVersion,
-    Местоположение: location,
+    "Электронная версия": onlineVersion, // Записываем значение, даже если оно пустая строка
+    Местоположение: location, // Записываем значение, даже если оно пустая строка
   };
-
+  if (onlineVersion) {
+    newBook["Электронная версия"] = onlineVersion;
+  }
+  if (location) {
+    newBook.Местоположение = location;
+  }
   // Получаем книги из localStorage, добавляем новую и сохраняем обратно
   let books = JSON.parse(localStorage.getItem(BOOKS_KEY)) || [];
-  books.push(newBook);
-  localStorage.setItem(BOOKS_KEY, JSON.stringify(books));
-  originalBooks = JSON.parse(localStorage.getItem(BOOKS_KEY)); // <-- Обновить originalBooks
-  displayBooks(originalBooks); // <-- Перерисовать таблицу с новыми данными
+  const existingBook = books.find((book) => book.Название === newBook.Название);
+  if (existingBook) {
+    alert(`Книга с названием "${newBook.Название}" уже существует.`);
 
+    let newQuantity;
+
+    while (true) {
+      const quantityInput = prompt(
+        `Введите новое количество для  книги  "${newBook.Название}" (текущее  количество:  ${existingBook.Количество}):`
+      );
+
+      if (quantityInput === null) {
+        return; // Выходим из  функции addBook, если нажата отмена
+      }
+
+      newQuantity = parseInt(quantityInput);
+
+      if (!isNaN(newQuantity) && newQuantity >= 0) {
+        existingBook.Количество = newQuantity;
+        break;
+      }
+
+      alert("Некорректное значение количества.");
+    }
+  } else {
+    books.push(newBook); // If no existing book is found, only then add a new one
+  }
+  saveBooksToLocalStorage(books); // <-- сохраняем книги в localStorage
+  originalBooks = JSON.parse(JSON.stringify(books));
+  displayBooks(originalBooks); // <-- Перерисовать таблицу с новыми данными
   console.log("Добавленная книга:", newBook);
-  console.log("Обновленный массив книг:", books);
+  console.log("Обновленный  массив  книг:", books);
 }
 // Функция для сохранения массива книг в localStorage
 function saveBooksToLocalStorage(books) {
@@ -236,11 +278,10 @@ function searchBook() {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  const books = JSON.parse(localStorage.getItem(BOOKS_KEY)) || [];
-  originalBooks = JSON.parse(JSON.stringify(books));
+  originalBooks = JSON.parse(localStorage.getItem(BOOKS_KEY)) || []; //
   document.getElementById("save-changes").disabled = true;
   document.getElementById("cancel").disabled = true;
-  displayBooks(books);
+  displayBooks(originalBooks);
 
   document.getElementById("searchForm").addEventListener("submit", (event) => {
     event.preventDefault();
