@@ -165,21 +165,13 @@ function searchBook() {
 
 function searchStudent() {
   clearPreviousResults(); // Удаляем предыдущие результаты
-  const oldTable = document.getElementById("studentsTable");
-  if (oldTable) {
-    oldTable.remove();
-  } // Проверяем, есть ли студенты
-  if (!students || students.length === 0) {
-    updateControlsMargin(false);
-  }
-  // Очищаем таблицу книг, если она существует
+   // Проверяем, есть ли студенты
+   // Очищаем таблицу книг, если она существует
   const bookTable = document.getElementById("bookTable");
   if (bookTable) {
     bookTable.remove();
   }
-  if (!students || students.length === 0) {
-    updateControlsMargin(false);
-  }
+ 
 
   const query = document
     .getElementById("searchInput1")
@@ -189,14 +181,13 @@ function searchStudent() {
   // Добавлено:  если запрос пустой, отображаем ВСЕХ студентов.
   if (!query) {
     //  displayStudents(students); // students - это глобальный массив.  Убедитесь что данные студентов добавлены в localStorage в DOMContentLoaded
-    updateControlsMargin(false);
     return;
   }
-
+  students = JSON.parse(localStorage.getItem(STUDENTS_KEY)) || []; // !!!
   //  если есть запрос
   const filteredStudents = students.filter((student) => {
     //  students - это глобальный массив
-
+    updateControlsMargin(true);
     return (
       student.ФИО.toLowerCase().includes(query) ||
       student.Группа.toLowerCase().includes(query)
@@ -205,14 +196,17 @@ function searchStudent() {
 
   if (filteredStudents.length) {
     displayStudents(filteredStudents);
+    updateControlsMargin(true); // Есть таблица - маленький отступ
 
-    updateControlsMargin(true);
   } else {
     displayMessage(
       `Студента с ФИО или группой "${query}" не найден в системе`,
       "searchStudentForm"
     ); // Передаем formId
-  }
+  
+  updateControlsMargin(false); // Так как  таблица не отображается
+
+  isNotFoundMessageShown = true;}
 }
 function displayStudents(students) {
   if (students.length === 0) {
@@ -478,7 +472,7 @@ function getRandomFIO(id) {
 }
 function updateControlsMargin(hasData) {
   const controls = document.getElementById("controls");
-  controls.style.marginTop = hasData ? "20px" : "400px";
+  controls.style.marginTop = hasData ? "40px" : "400px";
 }
 function updateCellColor(cell, value) {
   const numValue = parseInt(value, 10);
