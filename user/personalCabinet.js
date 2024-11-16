@@ -60,6 +60,10 @@ function loadUserBooks(userId) {
 }
 
 function displayUserBooks(books) {
+  const loggedInAccount = getLoggedInAccount();
+  const isLibrarian =
+    loggedInAccount &&
+    (loggedInAccount.role === "librarian" || loggedInAccount.role === "admin");
   const bookList = document.querySelector(".book-list");
   bookList.innerHTML = ""; // Очищаем список
 
@@ -77,6 +81,7 @@ function displayUserBooks(books) {
   // Заголовок таблицы
   const header = document.createElement("div");
   header.classList.add("book-header");
+  if (!isLibrarian) header.classList.add("no-return");
 
   const nameHeader = document.createElement("span");
   nameHeader.classList.add("book-title");
@@ -89,14 +94,18 @@ function displayUserBooks(books) {
   const dateHeader = document.createElement("span");
   dateHeader.classList.add("book-date-title");
   dateHeader.textContent = "Срок сдачи";
-  const returnHeader = document.createElement("span");
-  returnHeader.classList.add("book-return-title");
-  returnHeader.textContent = "Сдача книги";
 
   header.appendChild(nameHeader);
   header.appendChild(authorHeader);
   header.appendChild(dateHeader);
-  header.appendChild(returnHeader);
+
+  if (isLibrarian) {
+    //  Если библиотекарь, добавляем заголовок "Сдача"
+    const returnHeader = document.createElement("span");
+    returnHeader.classList.add("book-return-title");
+    returnHeader.textContent = "Сдача";
+    header.appendChild(returnHeader);
+  }
 
   bookList.appendChild(header);
 
@@ -104,6 +113,7 @@ function displayUserBooks(books) {
   books.forEach((book) => {
     const bookItem = document.createElement("div");
     bookItem.classList.add("book-item");
+    if (!isLibrarian) bookItem.classList.add("no-return");
 
     const bookName = document.createElement("span");
     bookName.classList.add("book-name");
@@ -116,47 +126,48 @@ function displayUserBooks(books) {
     const bookDate = document.createElement("span");
     bookDate.classList.add("book-date");
     bookDate.textContent = book.dueDate;
-
-    // Создаем кнопку "Вернуть книгу"
-    const returnButton = document.createElement("button");
-    returnButton.classList.add("book-return");
-    returnButton.textContent = "Вернуть книгу";
-
-    // Стили для кнопки
-
-    returnButton.style.backgroundColor = " #41a0ff"; // Зеленый
-    returnButton.style.border = "none";
-    returnButton.style.color = "white";
-    returnButton.style.padding = "8px 16px"; //  Увеличил padding для  кнопки
-    returnButton.style.textAlign = "center";
-    returnButton.style.textDecoration = "none";
-    returnButton.style.display = "inline-block";
-    returnButton.style.fontSize = "16px"; // Увеличил  размер  шрифта
-    returnButton.style.margin = "0 2px"; // Добавил margin
-    returnButton.style.cursor = "pointer"; //  Указатель  мыши  при  наведении
-
-    returnButton.addEventListener("click", () => {
-      if (confirm(`Вы уверены, что хотите вернуть книгу "${book.name}"?`)) {
-        returnBook(book);
-        displayUserBooks(
-          loadUserBooks(parseInt(localStorage.getItem("currentStudentId"), 10))
-        ); // закомментируйте, если хотите перезапускать updateBookTable
-      }
-    });
-
-    // Создаем контейнер для кнопки, чтобы она была справа
-
     const returnButtonContainer = document.createElement("div");
+    if (isLibrarian) {
+      // Создаем кнопку "Вернуть книгу"
+      const returnButton = document.createElement("button");
+      returnButton.classList.add("book-return");
+      returnButton.textContent = "Вернуть книгу";
 
-    returnButtonContainer.style.textAlign = "right"; // Выравнивание  по  правому  краю
+      // Стили для кнопки
 
-    returnButtonContainer.appendChild(returnButton);
+      returnButton.style.backgroundColor = " #41a0ff"; // Зеленый
+      returnButton.style.border = "none";
+      returnButton.style.color = "white";
+      returnButton.style.padding = "8px 16px"; //  Увеличил padding для  кнопки
+      returnButton.style.textAlign = "center";
+      returnButton.style.textDecoration = "none";
+      returnButton.style.display = "inline-block";
+      returnButton.style.fontSize = "16px"; // Увеличил  размер  шрифта
+      returnButton.style.margin = "0 2px"; // Добавил margin
+      returnButton.style.cursor = "pointer"; //  Указатель  мыши  при  наведении
 
+      returnButton.addEventListener("click", () => {
+        if (confirm(`Вы уверены, что хотите вернуть книгу "${book.name}"?`)) {
+          returnBook(book);
+          updateLibrarianBookDisplay(book.name); //  Вызываем  функцию  для  обновления  таблицы  книг
+          displayUserBooks(
+            loadUserBooks(
+              parseInt(localStorage.getItem("currentStudentId"), 10)
+            )
+          ); // закомментируйте, если хотите перезапускать updateBookTable
+        }
+      });
+ 
+      returnButtonContainer.style.textAlign = "right"; // Выравнивание  по  правому  краю
+
+      returnButtonContainer.appendChild(returnButton);
+    }
     bookItem.appendChild(bookName);
     bookItem.appendChild(bookAuthor);
     bookItem.appendChild(bookDate);
-    bookItem.appendChild(returnButtonContainer); //  Добавляем контейнер  с кнопкой
-
+    if (isLibrarian) {
+      bookItem.appendChild(returnButtonContainer); //  Добавляем контейнер  с кнопкой
+    }
     bookList.appendChild(bookItem);
   });
 
@@ -419,8 +430,6 @@ function returnBook(book) {
 
   saveTakenBooksToLocalStorage(takenBooks);
   increaseBookQuantity(book);
-
-
 
   alert(`Книга  "${book.name}"  успешно возвращена.`);
   displayUserBooks(userBooks.books); // Обновляем  отображение задолженностей

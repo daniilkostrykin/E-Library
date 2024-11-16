@@ -181,6 +181,11 @@ h3 {
   font-size: 16px;
 }
 
+.book-header.no-return,
+.book-item.no-return {
+  grid-template-columns: 3fr 2fr 2fr; /* Убираем столбец "Сдача" */
+}
+
 .book-return:hover {
   background-color: #45a049; /* Более темный оттенок при наведении */
 }
