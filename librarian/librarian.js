@@ -76,14 +76,21 @@ function displayBooks(books, highlightBook = null) {
           // Добавляем контейнер в ячейку таблицы
           cell.appendChild(tooltipContainer);
         } else {
-          cell.textContent = "Нет";
+          cell.textContent = "Отсутствует";
+          cell.style.color = "gray"; // Серый цвет текста
         }
       } else if (key === "Количество") {
         cell.textContent = value;
         // Установить цвет текста в зависимости от значения
         updateCellColor(cell, value);
       } else if (key === "Местоположение") {
-        cell.textContent = value;
+        if (value) {
+          // Если значение не пустое
+          cell.textContent = value;
+        } else {
+          cell.textContent = "Неизвестно"; // Или любой другой текст-заполнитель
+          cell.style.color = "gray"; // Серый цвет текста
+        }
       } else {
         cell.textContent = value;
       }
@@ -330,7 +337,7 @@ function handleSearchFormSubmit(formId, inputId) {
     } else {
       searchStudent();
     }
- });
+  });
 }
 function getRandomItem(array) {
   return array[Math.floor(Math.random() * array.length)];

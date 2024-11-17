@@ -7,6 +7,9 @@ let isNotFoundMessageShown = false; // Флаг для отслеживания 
 function edit() {
   window.location.href = "admin.html";
 }
+function exit() {
+  window.location.href = "../index.html";
+}
 function displayBooks(books) {
   //Удаляем предыдущую таблицу книг, если она существует
   const oldTable = document.getElementById("bookTable"); //находим предыдущую
@@ -75,14 +78,22 @@ function displayBooks(books) {
           // Добавляем контейнер в ячейку таблицы
           cell.appendChild(tooltipContainer);
         } else {
-          cell.textContent = "Нет";
+          cell.textContent = "Отсутствует";
+          cell.style.color = "gray"; // Серый цвет текста
+
         }
       } else if (key === "Количество") {
         cell.textContent = value;
         // Установить цвет текста в зависимости от значения
         updateCellColor(cell, value);
       } else if (key === "Местоположение") {
-        cell.textContent = value;
+        if (value) {
+          // Если значение не пустое
+          cell.textContent = value;
+        } else {
+          cell.textContent = "Неизвестно"; // Или любой другой текст-заполнитель
+          cell.style.color = "gray"; // Серый цвет текста
+        }
       } else {
         cell.textContent = value;
       }
@@ -146,7 +157,6 @@ function searchBook() {
 
     updateControlsMargin(false); // Так как таблица не отображается
   }
-  
 }
 
 function searchStudent() {
@@ -163,7 +173,6 @@ function searchStudent() {
     updateControlsMargin(true); // Устанавливаем маленький отступ
     return; // Завершаем функцию
   }
-  students = JSON.parse(localStorage.getItem(STUDENTS_KEY)) || []; // !!!
 
   // Если есть запрос, выполняем фильтрацию
   const filteredStudents = students.filter((student) => {
@@ -185,7 +194,6 @@ function searchStudent() {
     updateControlsMargin(false); // Так как таблица не отображается
   }
 }
-
 
 function displayStudents(students) {
   if (students.length === 0) {

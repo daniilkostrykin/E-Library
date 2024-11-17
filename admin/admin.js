@@ -171,14 +171,14 @@ function addBook() {
   while (true) {
     title = prompt("Введите название книги:").trim();
     if (title) break; // Если название введено, выходим из цикла
-    alert("Название книги обязательно!");
+    showToast("Название книги обязательно!");
   }
 
   // Ввод автора книги
   while (true) {
     author = prompt("Введите автора книги:").trim();
     if (author) break; // Если автор введен, выходим из цикла
-    alert("Автор книги обязателен!");
+    showToast("Автор книги обязателен!");
   }
 
   // Ввод количества книг
@@ -186,7 +186,7 @@ function addBook() {
     const input = prompt("Введите количество книг:");
     quantity = parseInt(input);
     if (!isNaN(quantity) && quantity >= 0) break; // Если введено число >= 0, выходим из цикла
-    alert("Количество должно быть положительным числом или 0!");
+    showToast("Количество должно быть положительным числом или 0!");
   }
   // Ввод ссылки на электронную версию (необязательно)
   onlineVersion = prompt(
@@ -220,7 +220,7 @@ function addBook() {
   let books = JSON.parse(localStorage.getItem(BOOKS_KEY)) || [];
   const existingBook = books.find((book) => book.Название === newBook.Название);
   if (existingBook) {
-    alert(`Книга с названием "${newBook.Название}" уже существует.`);
+    showToast(`Книга с названием "${newBook.Название}" уже существует.`);
 
     let newQuantity;
 
@@ -240,7 +240,7 @@ function addBook() {
         break;
       }
 
-      alert("Некорректное значение количества.");
+      showToast("Некорректное значение количества.");
     }
   } else {
     books.push(newBook); // If no existing book is found, only then add a new one
@@ -272,7 +272,7 @@ function searchBook() {
     if (filteredBooks.length) {
       displayBooks(filteredBooks);
     } else {
-      alert("Совпадений не найдено!");
+      showToast("Совпадений не найдено!");
     }
   }
 }
