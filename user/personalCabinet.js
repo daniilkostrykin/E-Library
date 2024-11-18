@@ -157,7 +157,7 @@ function displayUserBooks(books) {
           ); // закомментируйте, если хотите перезапускать updateBookTable
         }
       });
- 
+
       returnButtonContainer.style.textAlign = "right"; // Выравнивание  по  правому  краю
 
       returnButtonContainer.appendChild(returnButton);
@@ -287,10 +287,10 @@ function takeBook(book) {
   const bookToTake = books.find((b) => b.Название === book["Название"]);
   // Проверяем, есть ли книга и есть ли доступное количество
   if (!bookToTake) {
-    return alert("Эта книга в данный момент отсутствует.");
+    return showToast("Эта книга в данный момент отсутствует.");
   }
   if (bookToTake.Количество === 0) {
-    return alert("Книга закончилась и сейчас нет в наличии.");
+    return showToast("Книга закончилась и сейчас нет в наличии.");
   }
   let takenBooks = JSON.parse(localStorage.getItem(TAKEN_BOOKS_KEY)) || [];
   let userBooks = takenBooks.find((item) => item.userId === studentId);
@@ -300,7 +300,7 @@ function takeBook(book) {
     takenBooks.push(userBooks);
   }
   if (userBooks.books.some((b) => b.name === book["Название"])) {
-    return alert("Вы уже взяли эту книгу!");
+    return showToast("Вы уже взяли эту книгу!");
   }
   const dueDate = new Date();
   dueDate.setDate(dueDate.getDate() + 14);
@@ -314,7 +314,7 @@ function takeBook(book) {
   // Уменьшаем количество книги в библиотеке
   decreaseBookQuantity(bookToTake, studentId);
 
-  alert(`Книга "${book["Название"]}" успешно выдана.`);
+  showToast(`Книга "${book["Название"]}" успешно выдана.`);
 
   // Удаляем строку с выданной книгой из таблицы
   removeBookRow(book);
@@ -431,7 +431,7 @@ function returnBook(book) {
   saveTakenBooksToLocalStorage(takenBooks);
   increaseBookQuantity(book);
 
-  alert(`Книга  "${book.name}"  успешно возвращена.`);
+  showToast(`Книга  "${book.name}"  успешно возвращена.`);
   displayUserBooks(userBooks.books); // Обновляем  отображение задолженностей
 }
 
@@ -545,13 +545,13 @@ document.addEventListener("DOMContentLoaded", () => {
           displayStudentInfo(account, studentId); //  studentId  передаем  как аргумент
         } else {
           console.warn("Студент с указанным ID  не найден.");
-          alert("Студент с  указанным ID не  найден.");
+          showToast("Студент с  указанным ID не  найден.");
 
           return; //  Прерываем выполнение, если  студент не найден
         }
       } catch (error) {
         console.error("Error  parsing students  data:", error);
-        alert("Ошибка  загрузки данных студентов. Данные  повреждены.");
+        showToast("Ошибка  загрузки данных студентов. Данные  повреждены.");
 
         return;
       }
@@ -560,7 +560,7 @@ document.addEventListener("DOMContentLoaded", () => {
         "No  students found  in LocalStorage  using key",
         STUDENTS_KEY
       );
-      alert("Данные студентов отсутствуют  в LocalStorage.");
+      showToast("Данные студентов отсутствуют  в LocalStorage.");
       return;
     }
   } else {
@@ -586,7 +586,7 @@ document.addEventListener("DOMContentLoaded", () => {
   } else {
     console.error("Не удалось  загрузить  данные аккаунта.");
 
-    alert("Не  удалось загрузить данные аккаунта.");
+    showToast("Не  удалось загрузить данные аккаунта.");
 
     if (!urlParams.fio && !urlParams.group && !urlParams.id) {
       console.warn("Редирект  на главную страницу.");
