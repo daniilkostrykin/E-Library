@@ -19,7 +19,7 @@ document.addEventListener("DOMContentLoaded", () => {
     .addEventListener("click", saveEditBook);
   document.getElementById("cancel").addEventListener("click", cancelEditBook);
   document.getElementById("back-button").addEventListener("click", back);
-  const addBookForm = document.getElementById('addBookForm'); // Предполагаемый id вашей формы
+  const addBookForm = document.getElementById("addBookForm"); // Предполагаемый id вашей формы
 
   addBookForm.addEventListener("submit", (event) => {
     event.preventDefault(); // Prevent form from submitting normally
@@ -29,49 +29,61 @@ document.addEventListener("DOMContentLoaded", () => {
     const quantity = parseInt(document.getElementById("quantity").value, 10);
     const onlineVersion = document.getElementById("onlineVersion").value;
     const location = document.getElementById("location").value;
-    if (!title) {
-      showToast("Введите название книги.");
-      return; // Останавливаем выполнение, если есть ошибка
+    const success = processAddBook(title, author, quantity, onlineVersion, location);
+    if (success) {
+      closeModal();
     }
-
-    if (!author) {
-      showToast("Введите автора книги.");
-      return;
-    }
-
-    if (!quantity) {
-      showToast("Введите количество книг.");
-      return;
-    }
-
-    // Проверка quantity на числовое значение и >=0
-    const quantityNum = parseInt(quantity, 10);
-    if (isNaN(quantityNum) || quantityNum < 0) {
-      showToast("Количество должно быть неотрицательным числом.");
-      return;
-    }
-    if (onlineVersion && !isValidURL(onlineVersion)) {
-      showToast("Электронная версия должна иметь корректный URL.");
-      return;
-    }
-    const newBook = {
-      Название: title,
-      Автор: author,
-      Количество: quantity,
-      "Электронная версия": onlineVersion,
-      Местоположение: location,
-    };
-
-    let books = JSON.parse(localStorage.getItem(BOOKS_KEY)) || [];
-    books.push(newBook);
-    localStorage.setItem(BOOKS_KEY, JSON.stringify(books));
-    originalBooks = JSON.parse(localStorage.getItem(BOOKS_KEY));
-    displayBooks(originalBooks);
-
-    closeModal();
   });
-  document.getElementById("addBookBtn").addEventListener("click", addBook); // Call openModal instead of the old addBook function
 });
+function processAddBook(title, author, quantity, onlineVersion, location) {
+  // Проверка обязательных полей
+  if (!title) {
+    showToast("Введите название книги.");
+    return false;
+  }
+  if (!author) {
+    showToast("Введите автора книги.");
+    return false;
+  }
+  if (!quantity) {
+    showToast("Введите количество книг.");
+    return false;
+  }
+
+  // Проверка количества на корректность
+  const quantityNum = parseInt(quantity, 10);
+  if (isNaN(quantityNum) || quantityNum < 0) {
+    showToast("Количество должно быть неотрицательным числом.");
+    return false;
+  }
+
+  // Проверка URL для электронной версии
+  if (onlineVersion && !isValidURL(onlineVersion)) {
+    showToast("Электронная версия должна иметь корректный URL.");
+    return false;
+  }
+
+  // Создание объекта книги
+  const newBook = {
+    Название: title,
+    Автор: author,
+    Количество: quantityNum,
+    "Электронная версия": onlineVersion,
+    Местоположение: location,
+  };
+
+  // Добавление книги в localStorage
+  const books = JSON.parse(localStorage.getItem(BOOKS_KEY)) || [];
+  books.push(newBook);
+  localStorage.setItem(BOOKS_KEY, JSON.stringify(books));
+
+  // Обновление отображения
+  originalBooks = JSON.parse(localStorage.getItem(BOOKS_KEY));
+  displayBooks(originalBooks);
+
+  return true;
+}
+
 function showError(inputField, message) {
   const errorSpan = document.getElementById(inputField.id + "Error");
   errorSpan.textContent = message;
