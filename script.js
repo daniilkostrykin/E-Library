@@ -147,54 +147,58 @@ function login(event) {
   }
 }
 function validateRegistration(name, group, email, password, confirmPassword) {
-  //валидация имени
+  // Валидация имени
   const nameParts = name.trim().split(/\s+/); // Разделяем ФИО на части по пробелам
 
   if (nameParts.length < 2) {
-    showToast("ФИО должно содержать минимум две части (имя и фамилию)!");
+    showToast("Пожалуйста, укажите полное имя и фамилию.");
     return false;
   }
 
   for (const part of nameParts) {
     if (part.length < 2 || part.length > 50) {
       showToast(
-        "Каждая часть ФИО (имя, фамилия, отчество) должна содержать от 2 до 50 символов!"
+        "Каждое слово в имени и фамилии должно быть длиной от 2 до 50 символов. Проверьте ввод."
       );
       return false;
     }
   }
 
-  //валидация группы
+  // Валидация группы
   const groupRegex = /^[А-Я]{3}-\d{3}$/;
 
   if (!groupRegex.test(group)) {
-    showToast("Введите корректную группу");
+    showToast(
+      "Пожалуйста, укажите группу в формате XXX-123 (например, УВП-212)."
+    );
     return false;
   }
-  //валидация почты
+
+  // Валидация почты
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
   if (!emailRegex.test(email)) {
-    showToast("Введите корректный email");
+    showToast("Проверьте правильность написания email. Пример: example@mail.com");
     return false;
   }
 
-  //Валидация пароля
-
+  // Валидация пароля
   const passwordRegex = /^(?=.*[A-Za-z])[A-Za-z\d@$!%*?&]{8,}$/;
   if (!passwordRegex.test(password)) {
-    showToast("Пароль должен содержать минимум 8 символов");
-
+    showToast(
+      "Пароль должен быть не короче 8 символов и содержать хотя бы одну букву."
+    );
     return false;
   }
 
   if (password !== confirmPassword) {
-    showToast("Пароли не совпадают!");
+    showToast("Пароли не совпадают. Убедитесь, что ввели их одинаково.");
     return false;
   }
 
   return true;
 }
+
 function checkRole() {
   const account = getLoggedInAccount();
 

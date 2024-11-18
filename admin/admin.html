@@ -40,6 +40,16 @@
         <button id="cancel">Отмена</button>
         <button onclick="back()" id="back-button">Назад</button>
       </div>
+      <div id="deleteBookModal" class="modal">
+        <div class="modal-content1">
+          <h2>Удалить книгу</h2>
+          <p id="deleteBookMessage">Вы уверены, что хотите удалить эту книгу?</p>
+          <div class="modal-actions">
+            <button id="confirmDeleteBtn" class="save-btn">Удалить</button>
+            <button class="cancel-btn" onclick="closeDeleteModal()">Отмена</button>
+          </div>
+        </div>
+      </div>      
       <div id="addBookModal" class="modal">
         <div class="modal-content">
           <span class="close-btn" onclick="closeModal()">×</span>
