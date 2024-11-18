@@ -54,6 +54,7 @@ document.addEventListener("DOMContentLoaded", () => {
       showToast("Электронная версия должна иметь корректный URL.");
       return;
     }
+
     const newBook = {
       Название: title,
       Автор: author,
@@ -95,7 +96,7 @@ function isValidURL(url) {
   }
 }
 function back() {
-  window.location.href = "admin0.html";
+ window.location.href = "admin0.html";
 }
 
 function displayBooks(books) {
