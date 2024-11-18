@@ -1,6 +1,88 @@
 //admin.js
 const BOOKS_KEY = "books";
 
+document.addEventListener("DOMContentLoaded", () => {
+  originalBooks = JSON.parse(localStorage.getItem(BOOKS_KEY)) || []; //
+  document.getElementById("save-changes").disabled = true;
+  document.getElementById("cancel").disabled = true;
+  displayBooks(originalBooks);
+
+  document.getElementById("searchForm").addEventListener("submit", (event) => {
+    event.preventDefault();
+    searchBook();
+  });
+
+  document.getElementById("addBookBtn").addEventListener("click", addBook);
+  document
+    .getElementById("save-changes")
+    .addEventListener("click", saveEditBook);
+  document.getElementById("cancel").addEventListener("click", cancelEditBook);
+  document.getElementById("exit-button").addEventListener("click", logout);
+
+  const addBookForm = document.getElementById("addBookForm");
+
+  addBookForm.addEventListener("submit", (event) => {
+    event.preventDefault(); // Prevent form from submitting normally
+
+    const title = document.getElementById("title").value;
+    const author = document.getElementById("author").value;
+    const quantity = parseInt(document.getElementById("quantity").value, 10);
+    const onlineVersion = document.getElementById("onlineVersion").value;
+    const location = document.getElementById("location").value;
+    if (!title) {
+      showToast("Введите название книги.");
+      return; // Останавливаем выполнение, если есть ошибка
+    }
+
+    if (!author) {
+      showToast("Введите автора книги.");
+      return;
+    }
+
+    if (!quantity) {
+      showToast("Введите количество книг.");
+      return;
+    }
+
+    // Проверка quantity на числовое значение и >=0
+    const quantityNum = parseInt(quantity, 10);
+    if (isNaN(quantityNum) || quantityNum < 0) {
+      showToast("Количество должно быть неотрицательным числом.");
+      return;
+    }
+
+    const newBook = {
+      Название: title,
+      Автор: author,
+      Количество: quantity,
+      "Электронная версия": onlineVersion,
+      Местоположение: location,
+    };
+
+    let books = JSON.parse(localStorage.getItem(BOOKS_KEY)) || [];
+    books.push(newBook);
+    localStorage.setItem(BOOKS_KEY, JSON.stringify(books));
+    originalBooks = JSON.parse(localStorage.getItem(BOOKS_KEY));
+    displayBooks(originalBooks);
+
+    closeModal();
+  });
+  document.getElementById("addBookBtn").addEventListener("click", addBook); // Call openModal instead of the old addBook function
+});
+function showError(inputField, message) {
+  const errorSpan = document.getElementById(inputField.id + "Error");
+  errorSpan.textContent = message;
+  errorSpan.style.display = "block"; // Показываем сообщение об ошибке
+  inputField.classList.add("error-input"); // Добавляем класс для стилизации поля с ошибкой (необязательно)
+}
+
+function clearError(inputField) {
+  const errorSpan = document.getElementById(inputField.id + "Error");
+  errorSpan.textContent = "";
+  errorSpan.style.display = "none"; // Скрываем сообщение об ошибке
+  inputField.classList.remove("error-input"); // Удаляем класс (необязательно)
+}
+
 function logout() {
   window.location.href = "admin0.html";
 }
@@ -163,7 +245,7 @@ function cancelEditBook() {
   document.getElementById("save-changes").disabled = true;
   document.getElementById("cancel").disabled = true;
 }
-
+/*
 function addBook() {
   let title, author, quantity, onlineVersion, location;
 
@@ -250,7 +332,7 @@ function addBook() {
   displayBooks(originalBooks); // <-- Перерисовать таблицу с новыми данными
   console.log("Добавленная книга:", newBook);
   console.log("Обновленный  массив  книг:", books);
-}
+}*/
 // Функция для сохранения массива книг в localStorage
 function saveBooksToLocalStorage(books) {
   localStorage.setItem(BOOKS_KEY, JSON.stringify(books)); // Сохраняем обновленный массив
@@ -276,22 +358,15 @@ function searchBook() {
     }
   }
 }
+function openModal() {
+  document.getElementById("addBookModal").style.display = "block";
+}
 
-document.addEventListener("DOMContentLoaded", () => {
-  originalBooks = JSON.parse(localStorage.getItem(BOOKS_KEY)) || []; //
-  document.getElementById("save-changes").disabled = true;
-  document.getElementById("cancel").disabled = true;
-  displayBooks(originalBooks);
+function closeModal() {
+  document.getElementById("addBookModal").style.display = "none";
+  document.getElementById("addBookForm").reset(); // Clear form inputs
+}
 
-  document.getElementById("searchForm").addEventListener("submit", (event) => {
-    event.preventDefault();
-    searchBook();
-  });
-
-  document.getElementById("addBookBtn").addEventListener("click", addBook);
-  document
-    .getElementById("save-changes")
-    .addEventListener("click", saveEditBook);
-  document.getElementById("cancel").addEventListener("click", cancelEditBook);
-  document.getElementById("exit-button").addEventListener("click", logout);
-});
+function addBook() {
+  openModal();
+}
