@@ -491,4 +491,5 @@ document.addEventListener("DOMContentLoaded", () => {
   originalBooks = JSON.parse(JSON.stringify(books));
   handleSearchFormSubmit("searchForm", "searchInput"); // Для  книг
   handleSearchFormSubmit("searchStudentForm", "searchInput1"); // Для  студентов
+  displayBooks(books);
 });

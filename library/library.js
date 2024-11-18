@@ -22,13 +22,7 @@ function displayBooks(books) {
 
   // Заголовок таблицы
   const headerRow = table.insertRow();
-  const headers = [
-    "Название",
-    "Автор",
-    "Количество",
-    "Электронная версия",
-    "Местоположение",
-  ];
+  const headers = ["Название", "Автор", "Количество", "Электронная версия"];
   headers.forEach((headerText) => {
     const header = headerRow.insertCell();
     header.textContent = headerText;
@@ -44,56 +38,49 @@ function displayBooks(books) {
   books.forEach((book) => {
     // добавляем данные только если они есть в localStorage
     const row = table.insertRow();
-    Object.entries(book).forEach(([key, value]) => {
-      const cell = row.insertCell();
+    Object.entries(book)
+      .filter(([key]) => key !== "Местоположение") // Фильтруем ключи
+      .forEach(([key, value]) => {
+        const cell = row.insertCell();
+        if (key === "Электронная версия") {
+          if (value) {
+            const linkElement = document.createElement("a");
+            linkElement.href = value;
+            linkElement.target = "_blank"; // Открыть в новой вкладке
 
-      if (key === "Электронная версия") {
-        if (value) {
-          const linkElement = document.createElement("a");
-          linkElement.href = value;
-          linkElement.target = "_blank"; // Открыть в новой вкладке
+            // Создаем элемент подсказки
+            const tooltipText = document.createElement("span");
+            tooltipText.classList.add("tooltiptext");
+            tooltipText.textContent = "Открыть ссылку в новой вкладке"; // Текст подсказки
 
-          // Создаем элемент подсказки
-          const tooltipText = document.createElement("span");
-          tooltipText.classList.add("tooltiptext");
-          tooltipText.textContent = "Открыть ссылку в новой вкладке"; // Текст подсказки
+            // Создаем иконку книги
+            const bookIcon = document.createElement("ion-icon");
+            bookIcon.name = "book"; // Устанавливаем имя иконки книги
+            bookIcon.style.fontSize = "24px";
 
-          // Создаем иконку книги
-          const bookIcon = document.createElement("ion-icon");
-          bookIcon.name = "book"; // Устанавливаем имя иконки книги
-          bookIcon.style.fontSize = "24px";
+            // Добавляем иконку в ссылку
+            linkElement.appendChild(bookIcon);
 
-          // Добавляем иконку в ссылку
-          linkElement.appendChild(bookIcon);
+            // Оборачиваем ссылку и подсказку в контейнер для стилизации
+            const tooltipContainer = document.createElement("div");
+            tooltipContainer.classList.add("tooltip-container");
+            tooltipContainer.appendChild(linkElement);
+            tooltipContainer.appendChild(tooltipText);
 
-          // Оборачиваем ссылку и подсказку в контейнер для стилизации
-          const tooltipContainer = document.createElement("div");
-          tooltipContainer.classList.add("tooltip-container");
-          tooltipContainer.appendChild(linkElement);
-          tooltipContainer.appendChild(tooltipText);
-
-          // Добавляем контейнер в ячейку таблицы
-          cell.appendChild(tooltipContainer);
-        } else {
-          cell.textContent = "Отсутствует";
-          cell.style.color = "gray"; // Серый цвет текста
-        }
-      } else if (key === "Количество") {
-        cell.textContent = value;
-        // Установить цвет текста в зависимости от значения
-        updateCellColor(cell, value);
-      } else if (key === "Местоположение") {
-        if (value) {
-          // Если местоположение указано
+            // Добавляем контейнер в ячейку таблицы
+            cell.appendChild(tooltipContainer);
+          } else {
+            cell.textContent = "Отсутствует";
+            cell.style.color = "gray"; // Серый цвет текста
+          }
+        } else if (key === "Количество") {
           cell.textContent = value;
+          // Установить цвет текста в зависимости от значения
+          updateCellColor(cell, value);
         } else {
-          cell.textContent = "Неизвестно"; // Или любой другой текст-заполнитель
-          cell.style.color = "gray"; // Серый цвет текста
+          cell.textContent = value;
         }
-      } else {
-        cell.textContent = value;
-      }
-    });
+      });
   });
 
   const controls = document.getElementById("controls");
@@ -457,6 +444,8 @@ function fillStorage() {
   originalBooks = JSON.parse(localStorage.getItem(BOOKS_KEY));
 }
 document.addEventListener("DOMContentLoaded", () => {
+  const books = JSON.parse(localStorage.getItem(BOOKS_KEY)) || [];
   fillStorage();
   handleSearchFormSubmit("searchForm", "searchInput"); // Для  книг
+  displayBooks(books);
 });

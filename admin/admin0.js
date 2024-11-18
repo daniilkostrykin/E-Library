@@ -485,4 +485,5 @@ document.addEventListener("DOMContentLoaded", () => {
   handleSearchFormSubmit("searchForm", "searchInput"); // Для  книг
   handleSearchFormSubmit("searchStudentForm", "searchInput1"); // Для  студентов
   document.getElementById("edit-book").addEventListener("click", edit);
+  displayBooks(books);
 });

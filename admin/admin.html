@@ -38,7 +38,38 @@
         <button id="save-changes">Сохранить</button>
 
         <button id="cancel">Отмена</button>
-        <button onclick="logout()" id="exit-button">Выйти</button>
+        <button onclick="back()" id="back-button">Назад</button>
+      </div>
+      <div id="addBookModal" class="modal">
+        <div class="modal-content">
+          <span class="close-btn" onclick="closeModal()">×</span>
+          <h2>Добавление книги</h2>
+          <form id="addBookForm">
+            <label for="title">Название:</label><br />
+            <input type="text" id="title" name="title" /><br /><br />
+            <label for="author">Автор:</label><br />
+            <input type="text" id="author" name="author" /><br /><br />
+
+            <label for="quantity">Количество:</label><br />
+            <input
+              type="number"
+              id="quantity"
+              name="quantity"
+              min="0"
+            /><br /><br />
+
+            <label for="onlineVersion">Электронная версия (URL):</label><br />
+            <input
+              id="onlineVersion"
+              name="onlineVersion"
+            /><br /><br />
+
+            <label for="location">Местоположение:</label><br />
+            <input type="text" id="location" name="location" /><br /><br />
+
+            <button type="submit">Добавить</button>
+          </form>
+        </div>
       </div>
     </div>
     <script
