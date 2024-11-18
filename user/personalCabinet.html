@@ -25,6 +25,20 @@
           src="../assets/img-placeholder.png"
           alt="Фото профиля"
         />
+        <div id="returnBookModal" class="modal">
+          <div class="modal-content1">
+            <h2>Возврат книги</h2>
+            <p id="returnBookMessage">
+              Вы уверены, что хотите вернуть эту книгу?
+            </p>
+            <div class="modal-actions">
+              <button id="confirmReturnBtn" class="save-btn">Вернуть</button>
+              <button id="cancelReturnBtn" class="cancel-btn" onclick="closeReturnModal()">
+                Отмена
+              </button>
+            </div>
+          </div>
+        </div>
         <div class="info-details">
           <p><span>ФИО:</span> <span id="user-name"></span></p>
           <p><span>Группа:</span> <span id="user-group"></span></p>
@@ -45,20 +59,19 @@
           <span class="book-return-title">Сдача книги</span>
         </div>
       </div>
+
       <table id="booksTable" style="display: none">
         <thead>
           <tr>
             <th>Название</th>
             <th>Автор</th>
-
             <th>Количество</th>
-
             <th id="takeBook">Взять книгу</th>
           </tr>
         </thead>
-
         <tbody id="booksTableBody"></tbody>
       </table>
+
       <div id="result"></div>
       <form id="searchForm">
         <ion-icon name="search-outline" id="search-outline"></ion-icon>
