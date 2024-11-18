@@ -137,7 +137,11 @@ a {
 }
 
 #back-button:hover {
-  background-color: rgb(54, 124, 206) !important; /* Немного темнее при наведении */
+  background-color: rgb(
+    54,
+    124,
+    206
+  ) !important; /* Немного темнее при наведении */
 }
 
 #back-button:active {
@@ -183,7 +187,8 @@ button:active,
 #controls input[type="submit"]:active,
 .cancel-button:active {
   transform: translateY(2px); /* Опускаем при нажатии */
-}.modal {
+}
+.modal {
   display: none;
   position: fixed;
   z-index: 10;
@@ -196,10 +201,9 @@ button:active,
   overflow-y: auto; /* Добавляем вертикальный скролл, если контент модального окна слишком большой */
 }
 
-
 .modal-content {
   position: relative;
-  margin: 5% auto;  /* Центрируем модальное окно */
+  margin: 5% auto; /* Центрируем модальное окно */
   padding: 20px;
   box-sizing: border-box; /*  чтобы padding не увеличивал общую ширину */
   width: 90%; /* Задаем ширину в процентах от родителя */
@@ -217,12 +221,11 @@ button:active,
   width: calc(100% - 32px); /* Вычитаем padding + border  */
   padding: 10px 15px;
   margin: 0px auto; /* Центрируем по горизонтали */
-  display: block;  /*  для центрирования по горизонтали */
+  display: block; /*  для центрирования по горизонтали */
   border: 1px solid #ccc;
   border-radius: 10px;
   font-size: 16px;
   box-sizing: border-box; /*  чтобы padding не увеличивал общую ширину */
-
 }
 
 .modal-content h2 {
@@ -285,5 +288,106 @@ button:active,
   position: absolute;
   color: red;
   font-size: 14px;
-   display: none; /* Изначально скрыто */
+  display: none; /* Изначально скрыто */
+}
+
+.modal-content1 {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+ padding: 20px;
+  box-sizing: border-box; /*  чтобы padding не увеличивал общую ширину */
+  width: 100%; /* Задаем ширину в процентах от родителя */
+  max-width: 600px;
+  background: linear-gradient(to bottom, #ffffff, #f1f1f1);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  border-radius: 10px;
+  animation: slideIn1 0.3s ease-out;
+  font-family: "Montserrat", sans-serif;
+}
+@keyframes slideIn1 {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.9); /* Начинаем с центра, но уменьшенного размера */
+  }
+  100% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1); /* Заканчиваем в центре, нормального размера */
+  }
+}
+/*  Убираем лишние margin и padding у input и button */
+.modal-content1 input,
+.modal-content1 button {
+  width: calc(100% - 32px); /* Вычитаем padding + border  */
+  padding: 10px 15px;
+  margin: 0px auto; /* Центрируем по горизонтали */
+  display: block; /*  для центрирования по горизонтали */
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  font-size: 16px;
+  box-sizing: border-box; /*  чтобы padding не увеличивал общую ширину */
+}
+
+.modal-content1 h2 {
+  font-size: 24px;
+  text-align: center;
+  color: #333;
+  margin-bottom: 40px;
+}
+
+.modal-content1 label {
+  font-weight: bold;
+  margin-bottom: 5px;
+  display: block;
+  color: #555;
+}
+
+.modal-content1 input:focus {
+  border-color: #5a8dee;
+  outline: none;
+  box-shadow: 0 0 5px rgba(90, 141, 238, 0.5);
+}
+
+.modal-content1 button {
+  background-color: #5a8dee;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.modal-content1 button:hover {
+  background-color: #497bce;
+}
+.modal-actions {
+  margin-top: 40px;
+  display: flex;
+  justify-content: space-between;
+  gap: 15px;
+}
+#deleteBookMessage {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%; /* Чтобы текст был по центру */
+  height: 100%; /* Заполнит родительский контейнер */
+  margin: 0; /* Убедимся, что нет внешних отступов */
+}
+.save-btn,
+.cancel-btn {
+  padding: 10px 15px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.save-btn {
+  background-color: #dc3545 !important;
+  color: white;
+}
+
+.cancel-btn {
+  background-color: #6c757d !important;
+  color: white;
 }
