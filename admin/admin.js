@@ -1,5 +1,6 @@
 //admin.js
 const BOOKS_KEY = "books";
+let addBookFormVisible = false; // Флаг для отслеживания видимости формы
 
 document.addEventListener("DOMContentLoaded", () => {
   originalBooks = JSON.parse(localStorage.getItem(BOOKS_KEY)) || []; //
@@ -17,9 +18,8 @@ document.addEventListener("DOMContentLoaded", () => {
     .getElementById("save-changes")
     .addEventListener("click", saveEditBook);
   document.getElementById("cancel").addEventListener("click", cancelEditBook);
-  document.getElementById("exit-button").addEventListener("click", logout);
-
-  const addBookForm = document.getElementById("addBookForm");
+  document.getElementById("back-button").addEventListener("click", back);
+  const addBookForm = document.getElementById('addBookForm'); // Предполагаемый id вашей формы
 
   addBookForm.addEventListener("submit", (event) => {
     event.preventDefault(); // Prevent form from submitting normally
@@ -54,7 +54,6 @@ document.addEventListener("DOMContentLoaded", () => {
       showToast("Электронная версия должна иметь корректный URL.");
       return;
     }
-
     const newBook = {
       Название: title,
       Автор: author,
@@ -96,7 +95,7 @@ function isValidURL(url) {
   }
 }
 function back() {
- window.location.href = "admin0.html";
+  window.location.href = "admin0.html";
 }
 
 function displayBooks(books) {
@@ -219,7 +218,7 @@ function displayBooks(books) {
 function updateCellColor(cell, value) {
   const numValue = parseInt(value, 10);
   if (numValue > 0) {
-    cell.style.color = "rgb(144, 238, 144)";  // Светлый пастельный зеленый
+    cell.style.color = "rgb(134, 243, 132)";
   } else if (numValue === 0) {
     cell.style.color = "red";
   }
@@ -382,3 +381,8 @@ function closeModal() {
 function addBook() {
   openModal();
 }
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape") {
+    closeModal();
+  }
+});
