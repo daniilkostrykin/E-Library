@@ -57,7 +57,7 @@ function displayBooks(books) {
             const bookIcon = document.createElement("ion-icon");
             bookIcon.name = "book"; // Устанавливаем имя иконки книги
             bookIcon.style.fontSize = "24px";
-
+            bookIcon.style.color = "#8000ff";
             // Добавляем иконку в ссылку
             linkElement.appendChild(bookIcon);
 
@@ -355,7 +355,7 @@ function updateControlsMargin(hasData) {
 function updateCellColor(cell, value) {
   const numValue = parseInt(value, 10);
   if (numValue > 0) {
-    cell.style.color = "rgb(134, 243, 132)";
+    cell.style.color = "rgb(144, 238, 144)";  // Светлый пастельный зеленый
   } else if (numValue === 0) {
     cell.style.color = "red";
   }
