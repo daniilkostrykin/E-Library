@@ -57,8 +57,8 @@ body {
 }
 #exit {
   position: absolute; /* Позволяет разместить кнопку в любом месте */
-  top: 41px; /* Отступ сверху */
-  right: 33px; /* Отступ справа */
+  top: 31px; /* Отступ сверху */
+  right: 20px; /* Отступ справа */
   background-color: #c61d1de7;
   padding: 10px 20px;
   color: white;

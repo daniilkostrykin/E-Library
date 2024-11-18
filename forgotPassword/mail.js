@@ -7,17 +7,19 @@ document
     const email = emailInput.value.trim(); // Убираем пробелы в начале и конце
 
     if (email === "") {
-      alert("Пожалуйста, введите адрес электронной почты.");
+      showToast("Пожалуйста, введите адрес электронной почты.");
       emailInput.focus();
     } else if (!isValidEmail(email)) {
-      alert("Пожалуйста, введите корректный адрес электронной почты.");
+      showToast("Пожалуйста, введите корректный адрес электронной почты.");
     } else if (checkAccountExists(email)) {
       window.location.href = "sendLetter.html";
     } else {
-      alert(
+      showToast(
         "Пользователь с таким email не найден. Пожалуйста, зарегистрируйтесь!"
       );
-      window.location.href = "../index.html";
+      setTimeout(() => {
+        window.location.href = "../index.html";
+      }, 3000);
     }
   });
 
