@@ -372,7 +372,7 @@ function goToPersonalCabinet(student, index) {
   // Правильный  путь  и  использование  id
 }
 function fillStorage() {
-  // 2. Загружаем студентов из localStorage или создаем новых, если их нет
+ /* // 2. Загружаем студентов из localStorage или создаем новых, если их нет
   students = JSON.parse(localStorage.getItem(STUDENTS_KEY)) || [];
 
   // ЕСЛИ В localStorage НЕТ СТУДЕНТОВ, СОЗДАЕМ ИХ И СОХРАНЯЕМ
@@ -399,7 +399,7 @@ function fillStorage() {
       });
     }
     localStorage.setItem(STUDENTS_KEY, JSON.stringify(students)); // Сохраняем студентов в localStorage
-  }
+  }*/
   if (!localStorage.getItem(BOOKS_KEY)) {
     // УДАЛИТЬ, КАК ТОЛЬКО БУДУТ РЕАЛЬНЫЕ ДАННЫЕ:
     let initial_books = [
