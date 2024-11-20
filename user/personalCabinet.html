@@ -19,6 +19,17 @@
         <button id="goToLibrary" onclick="goToLibrary()">В библиотеку</button>
         <button id="logout" onclick="logout()">Выйти</button>
       </div>
+      <div id="takeBookModal" class="modal">
+        <div class="modal-content">
+          <h2>Взять книгу</h2>
+          <p id="takeBookMessage">Вы уверены, что хотите взять эту книгу?</p>
+          <div class="modal-actions">
+            <button id="confirmTakeBtn" class="save-btn">Взять</button>
+            <button class="cancel-btn" onclick="closeTakeModal()">Отмена</button>
+          </div>
+        </div>
+      </div>
+      
       <div class="user-info">
         <img
           id="user-photo"
