@@ -65,7 +65,6 @@ function displayBooks(books, highlightBook = null) {
           bookIcon.style.fontSize = "24px";
           bookIcon.style.color = "#8000ff";
 
-
           // Добавляем иконку в ссылку
           linkElement.appendChild(bookIcon);
 
@@ -400,8 +399,7 @@ function updateControlsMargin(hasData) {
 function updateCellColor(cell, value) {
   const numValue = parseInt(value, 10);
   if (numValue > 0) {
-    cell.style.color = "rgb(144, 238, 144)";  // Светлый пастельный зеленый
-
+    cell.style.color = "rgb(102, 191, 102)"; // Светлый пастельный зеленый
   } else if (numValue === 0) {
     cell.style.color = "red";
   }

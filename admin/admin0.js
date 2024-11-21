@@ -67,7 +67,6 @@ function displayBooks(books) {
           bookIcon.style.fontSize = "24px";
           bookIcon.style.color = "#8000ff";
 
-
           // Добавляем иконку в ссылку
           linkElement.appendChild(bookIcon);
 
@@ -82,7 +81,6 @@ function displayBooks(books) {
         } else {
           cell.textContent = "Отсутствует";
           cell.style.color = "gray"; // Серый цвет текста
-
         }
       } else if (key === "Количество") {
         cell.textContent = value;
@@ -396,8 +394,7 @@ function updateControlsMargin(hasData) {
 function updateCellColor(cell, value) {
   const numValue = parseInt(value, 10);
   if (numValue > 0) {
-    cell.style.color = "rgb(144, 238, 144)";  // Светлый пастельный зеленый
-
+    cell.style.color = "rgb(102, 191, 102)"; // Светлый пастельный зеленый
   } else if (numValue === 0) {
     cell.style.color = "red";
   }
@@ -412,7 +409,7 @@ function goToPersonalCabinet(student) {
 }
 function fillStorage() {
   // 2. Загружаем студентов из localStorage или создаем новых, если их нет
- /* students = JSON.parse(localStorage.getItem(STUDENTS_KEY)) || [];
+  /* students = JSON.parse(localStorage.getItem(STUDENTS_KEY)) || [];
 
   // ЕСЛИ В localStorage НЕТ СТУДЕНТОВ, СОЗДАЕМ ИХ И СОХРАНЯЕМ
   if (students.length === 0) {

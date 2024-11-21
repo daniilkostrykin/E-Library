@@ -447,7 +447,7 @@ function searchBook() {
 
       const countCell = row.insertCell();
       countCell.textContent = book.Количество;
-      countCell.style.color = "rgb(144, 238, 144)";
+      countCell.style.color = "rgb(102, 191, 102)";
       // Кнопка "Взять книгу"
       const actionCell = row.insertCell();
       actionCell.style.display = "flex";
@@ -684,7 +684,7 @@ function updateBooksTable() {
 
     const quantityCell = row.insertCell();
     quantityCell.textContent = book["Количество"];
-    quantityCell.style.color = "rgb(144, 238, 144)";
+    quantityCell.style.color = "rgb(102, 191, 102)";
 
     const actionCell = row.insertCell();
     actionCell.style.display = "flex";
