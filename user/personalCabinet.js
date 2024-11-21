@@ -367,6 +367,7 @@ function confirmReturnBook() {
     showToast(`Книга "${bookToReturn.name}" успешно возвращена.`);
     closeReturnModal();
     bookToReturn = null;
+    updateBooksTable();
   } else {
     showToast("Ошибка: книга не выбрана.");
     closeReturnModal();
