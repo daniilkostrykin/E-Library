@@ -504,6 +504,7 @@ function confirmTakeBook() {
       // Закрываем модальное окно
       closeTakeModal();
       bookToTake = null; 
+      updateBooksTable();
 
   } else {
       showToast("Ошибка: книга не выбрана.");
