@@ -135,6 +135,27 @@ function loadUserBooks(userId) {
 
   return userBookData ? userBookData.books : [];
 }
+
+function returnBook(book) {
+  const studentId = parseInt(localStorage.getItem("currentStudentId"), 10);
+
+  if (!studentId) return;
+
+  let takenBooks = JSON.parse(localStorage.getItem(TAKEN_BOOKS_KEY)) || [];
+
+  let userBooks = takenBooks.find((item) => item.userId === studentId);
+
+  if (!userBooks) return;
+
+  userBooks.books = userBooks.books.filter((b) => b.name !== book.name); // Удаляем книгу из задолженностей
+
+  saveTakenBooksToLocalStorage(takenBooks);
+  increaseBookQuantity(book);
+
+  // alert(`Книга  "${book.name}"  успешно возвращена.`);
+  displayUserBooks(userBooks.books); // Обновляем  отображение задолженностей
+}
+
 function displayUserBooks(books) {
   const loggedInAccount = getLoggedInAccount();
   const isLibrarian =
@@ -223,15 +244,13 @@ function displayUserBooks(books) {
       returnButton.style.cursor = "pointer"; //  Указатель  мыши  при  наведении
 
       returnButton.addEventListener("click", () => {
-      //  if (confirm(`Вы уверены, что хотите вернуть книгу "${book.name}"?`)) {
-          returnBook(book);
-          updateLibrarianBookDisplay(book.name); //  Вызываем  функцию  для  обновления  таблицы  книг
-          displayUserBooks(
-            loadUserBooks(
-              parseInt(localStorage.getItem("currentStudentId"), 10)
-            )
-          ); // закомментируйте, если хотите перезапускать updateBookTable
-        
+        //  if (confirm(`Вы уверены, что хотите вернуть книгу "${book.name}"?`)) {
+        console.log("Клик на кнопку");
+        openReturnModal(book);
+        //   updateLibrarianBookDisplay(book.name); //  Вызываем  функцию  для  обновления  таблицы  книг
+        /*  displayUserBooks(
+          loadUserBooks(parseInt(localStorage.getItem("currentStudentId"), 10))
+        ); // закомментируйте, если хотите перезапускать updateBookTable*/
       });
 
       returnButtonContainer.style.textAlign = "right"; // Выравнивание  по  правому  краю
@@ -254,25 +273,110 @@ function displayUserBooks(books) {
   userDebtElement.style.color = debtCount > 0 ? "#ea242e" : "#41a0ff";
 }
 
-function returnBook(book) {
-  const studentId = parseInt(localStorage.getItem("currentStudentId"), 10);
+//Взятие книги
+let bookToReturn = null; // Переменная для хранения информации о книге
+let isReturnModalOpen = false; // Новая переменная
 
-  if (!studentId) return;
-
-  let takenBooks = JSON.parse(localStorage.getItem(TAKEN_BOOKS_KEY)) || [];
-
-  let userBooks = takenBooks.find((item) => item.userId === studentId);
-
-  if (!userBooks) return;
-
-  userBooks.books = userBooks.books.filter((b) => b.name !== book.name); // Удаляем книгу из задолженностей
-
-  saveTakenBooksToLocalStorage(takenBooks);
-  increaseBookQuantity(book);
-
- // alert(`Книга  "${book.name}"  успешно возвращена.`);
-  displayUserBooks(userBooks.books); // Обновляем  отображение задолженностей
+// Функция для открытия модального окна
+function openReturnModal(book) {
+  console.log("Открытие модального окна для книги:", book); // Для отладки
+  if (isReturnModalOpen) {
+    // Проверка, открыто ли уже модальное окно
+    showToast("Вы уже пытаетесь вернуть книгу.");
+    return;
+  }
+  bookToReturn = book;
+  document.getElementById(
+    "returnBookMessage"
+  ).textContent = `Вы уверены, что хотите вернуть книгу "${book.name}"?`;
+  document.getElementById("returnBookModal").style.display = "block";
+  isReturnModalOpen = true; // Устанавливаем флаг
 }
+
+// Функция для закрытия модального окна
+function closeReturnModal() {
+  document.getElementById("returnBookModal").style.display = "none";
+  isReturnModalOpen = false; // Устанавливаем флаг
+}
+
+// Функция для подтверждения взятия книги
+function confirmReturnBook() {
+  console.log("Клик на кнопку confirm");
+
+  if (bookToReturn) {
+    const studentId = parseInt(localStorage.getItem("currentStudentId"), 10);
+
+    if (!studentId) {
+      showToast("Ошибка: текущий студент не определен.");
+      closeReturnModal();
+      return;
+    }
+
+    // Загружаем список всех взятых книг
+    const takenBooks = JSON.parse(localStorage.getItem(TAKEN_BOOKS_KEY)) || [];
+    const userBooksData = takenBooks.find((item) => item.userId === studentId);
+
+    if (!userBooksData) {
+      showToast("У вас нет взятых книг.");
+      closeReturnModal();
+      return;
+    }
+
+    // Ищем книгу в списке пользователя
+    const bookIndex = userBooksData.books.findIndex(
+      (b) => b.name === bookToReturn.name
+    );
+
+    if (bookIndex === -1) {
+      showToast("У вас нет этой книги.");
+      closeReturnModal();
+      return;
+    }
+
+    // Удаляем книгу из списка пользователя
+    userBooksData.books.splice(bookIndex, 1);
+
+    // Если пользователь больше не имеет книг, удаляем его запись из takenBooks
+    if (userBooksData.books.length === 0) {
+      const userIndex = takenBooks.findIndex(
+        (item) => item.userId === studentId
+      );
+      takenBooks.splice(userIndex, 1);
+    }
+
+    // Сохраняем изменения в takenBooks
+    localStorage.setItem(TAKEN_BOOKS_KEY, JSON.stringify(takenBooks));
+
+    // Возвращаем книгу в библиотеку
+    const books = JSON.parse(localStorage.getItem(BOOKS_KEY)) || [];
+    const bookInLibrary = books.find(
+      (b) => b["Название"] === bookToReturn.name
+    );
+
+    if (bookInLibrary) {
+      bookInLibrary["Количество"]++;
+      localStorage.setItem(BOOKS_KEY, JSON.stringify(books));
+    }
+
+    // Обновляем отображение списка книг пользователя
+    const updatedUserBooks =
+      userBooksData && userBooksData.books ? userBooksData.books : [];
+    displayUserBooks(updatedUserBooks);
+
+    // Показываем сообщение об успешном возврате
+    showToast(`Книга "${bookToReturn.name}" успешно возвращена.`);
+    closeReturnModal();
+    bookToReturn = null;
+  } else {
+    showToast("Ошибка: книга не выбрана.");
+    closeReturnModal();
+  }
+}
+
+document
+  .getElementById("confirmReturnBtn")
+  .addEventListener("click", confirmReturnBook);
+
 /*
 let bookToReturn = null; // Переменная для хранения информации о книге, которую нужно вернуть
 
@@ -414,7 +518,8 @@ let isTakeModalOpen = false; // Новая переменная
 
 // Функция для открытия модального окна
 function openTakeModal(book) {
-  if (isTakeModalOpen) { // Проверка, открыто ли уже модальное окно
+  if (isTakeModalOpen) {
+    // Проверка, открыто ли уже модальное окно
     showToast("Вы уже пытаетесь взять книгу.");
     return;
   }
@@ -424,94 +529,90 @@ function openTakeModal(book) {
   ).textContent = `Вы уверены, что хотите взять книгу "${book.Название}"?`;
   document.getElementById("takeBookModal").style.display = "block";
   isTakeModalOpen = true; // Устанавливаем флаг
-
 }
 
 // Функция для закрытия модального окна
 function closeTakeModal() {
   document.getElementById("takeBookModal").style.display = "none";
   isTakeModalOpen = false; // Устанавливаем флаг
-
 }
 
 // Функция для подтверждения взятия книги
 function confirmTakeBook() {
   if (bookToTake) {
-      let studentId = localStorage.getItem("currentStudentId"); // Получаем ID студента
-      console.log("studentId в confirmTakeBook:", studentId, typeof studentId);
-      studentId = parseInt(studentId, 10);
+    let studentId = localStorage.getItem("currentStudentId"); // Получаем ID студента
+    console.log("studentId в confirmTakeBook:", studentId, typeof studentId);
+    studentId = parseInt(studentId, 10);
 
-      if (!studentId) {
-          showToast("Ошибка: текущий студент не определен.");
-          closeTakeModal();
-          return; // Завершаем выполнение, если студент не найден
-      }
-
-      const books = JSON.parse(localStorage.getItem(BOOKS_KEY)) || [];
-      const bookInLibrary = books.find((b) => b.Название === bookToTake.Название);
-
-      if (!bookInLibrary) {
-          showToast("Эта книга в данный момент отсутствует.");
-          closeTakeModal();
-          return; // Завершаем, если книги нет в библиотеке
-      }
-
-      if (bookInLibrary.Количество === 0) {
-          showToast("Книга закончилась и сейчас нет в наличии.");
-          closeTakeModal();
-          return; // Завершаем, если книга недоступна
-      }
-
-      let takenBooks = JSON.parse(localStorage.getItem(TAKEN_BOOKS_KEY)) || [];
-      let userBooks = takenBooks.find((item) => item.userId === studentId);
-
-      if (!userBooks) {
-          userBooks = { userId: studentId, books: [] };
-          takenBooks.push(userBooks);
-      }
-
-      if (userBooks.books.some((b) => b.name === bookToTake.Название)) {
-          showToast("Вы уже взяли эту книгу!");
-          closeTakeModal();
-          return; // Завершаем, если пользователь уже взял эту книгу
-      }
-
-      // Рассчитываем срок сдачи
-      const dueDate = new Date();
-      dueDate.setDate(dueDate.getDate() + 14);
-
-      // Добавляем книгу в список взятых книг пользователя
-      userBooks.books.push({
-          name: bookToTake.Название,
-          author: bookToTake.Автор,
-          dueDate: dueDate.toISOString().split("T")[0],
-      });
-
-      // Обновляем данные в LocalStorage
-      saveTakenBooksToLocalStorage(takenBooks);
-
-      // Уменьшаем количество доступных экземпляров книги
-      bookInLibrary.Количество--;
-      localStorage.setItem(BOOKS_KEY, JSON.stringify(books));
-
-      // Обновляем таблицы и пользовательский интерфейс
-      displayUserBooks(userBooks.books);
-      updateBooksTable(JSON.parse(localStorage.getItem(BOOKS_KEY)));
-
-      // Уведомление об успешной операции
-      showToast(`Книга "${bookToTake.Название}" успешно взята.`);
-
-      // Закрываем модальное окно
+    if (!studentId) {
+      showToast("Ошибка: текущий студент не определен.");
       closeTakeModal();
-      bookToTake = null; 
-      updateBooksTable();
+      return; // Завершаем выполнение, если студент не найден
+    }
 
+    const books = JSON.parse(localStorage.getItem(BOOKS_KEY)) || [];
+    const bookInLibrary = books.find((b) => b.Название === bookToTake.Название);
+
+    if (!bookInLibrary) {
+      showToast("Эта книга в данный момент отсутствует.");
+      closeTakeModal();
+      return; // Завершаем, если книги нет в библиотеке
+    }
+
+    if (bookInLibrary.Количество === 0) {
+      showToast("Книга закончилась и сейчас нет в наличии.");
+      closeTakeModal();
+      return; // Завершаем, если книга недоступна
+    }
+
+    let takenBooks = JSON.parse(localStorage.getItem(TAKEN_BOOKS_KEY)) || [];
+    let userBooks = takenBooks.find((item) => item.userId === studentId);
+
+    if (!userBooks) {
+      userBooks = { userId: studentId, books: [] };
+      takenBooks.push(userBooks);
+    }
+
+    if (userBooks.books.some((b) => b.name === bookToTake.Название)) {
+      showToast("Вы уже взяли эту книгу!");
+      closeTakeModal();
+      return; // Завершаем, если пользователь уже взял эту книгу
+    }
+
+    // Рассчитываем срок сдачи
+    const dueDate = new Date();
+    dueDate.setDate(dueDate.getDate() + 14);
+
+    // Добавляем книгу в список взятых книг пользователя
+    userBooks.books.push({
+      name: bookToTake.Название,
+      author: bookToTake.Автор,
+      dueDate: dueDate.toISOString().split("T")[0],
+    });
+
+    // Обновляем данные в LocalStorage
+    saveTakenBooksToLocalStorage(takenBooks);
+
+    // Уменьшаем количество доступных экземпляров книги
+    bookInLibrary.Количество--;
+    localStorage.setItem(BOOKS_KEY, JSON.stringify(books));
+
+    // Обновляем таблицы и пользовательский интерфейс
+    displayUserBooks(userBooks.books);
+    updateBooksTable(JSON.parse(localStorage.getItem(BOOKS_KEY)));
+
+    // Уведомление об успешной операции
+    showToast(`Книга "${bookToTake.Название}" успешно взята.`);
+
+    // Закрываем модальное окно
+    closeTakeModal();
+    bookToTake = null;
+    updateBooksTable();
   } else {
-      showToast("Ошибка: книга не выбрана.");
-      closeTakeModal();
+    showToast("Ошибка: книга не выбрана.");
+    closeTakeModal();
   }
 }
-
 
 function calculateDueDate(borrowDays = 14) {
   // Получаем текущую дату
@@ -747,7 +848,6 @@ function getURLParams() {
     id: params.get("id") ? decodeURIComponent(params.get("id")) : null, // Добавлено приведение к числу при необходимости
   };
 }
-
 
 function displayStudentInfo(studentData, studentId) {
   // Отобразить информацию студента, скрыв данные пользователя

@@ -45,7 +45,16 @@
           <span class="book-return-title">Сдача книги</span>
         </div>
       </div>
-
+      <div id="returnBookModal" class="modal">
+        <div class="modal-content1">
+          <h2>Вернуть книгу</h2>
+          <p id="returnBookMessage">Вы уверены, что хотите вернуть эту книгу?</p>
+          <div class="modal-actions">
+            <button id="confirmReturnBtn" class="save-btn">Вернуть</button>
+            <button class="cancel-btn" onclick="closeReturnModal()">Отмена</button>
+          </div>
+        </div>
+      </div>
       <table id="booksTable" style="display: none">
         <thead>
           <tr>
