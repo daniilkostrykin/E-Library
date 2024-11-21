@@ -13,6 +13,83 @@ document.addEventListener("DOMContentLoaded", () => {
 
   searchBookSetup(); // Инициализация поиска
 });*/
+document.addEventListener("DOMContentLoaded", () => {
+  console.log("Страница загружена. Инициализация...");
+
+  const urlParams = getURLParams(); // Получаем параметры из URL
+  console.log("URL Params:", urlParams);
+
+  let account, studentId;
+
+  if (urlParams.id) {
+    studentId = parseInt(urlParams.id, 10);
+
+    console.log("Student ID (parsed):", studentId);
+
+    let students = localStorage.getItem(STUDENTS_KEY);
+    console.log("Raw students data from localStorage:", students);
+
+    if (students) {
+      try {
+        students = JSON.parse(students);
+
+        console.log("Students  array:", students);
+
+        account = students.find((student) => student.id === studentId);
+
+        if (account) {
+          displayStudentInfo(account, studentId); //  studentId  передаем  как аргумент
+        } else {
+          console.warn("Студент с указанным ID  не найден.");
+          showToast("Студент с  указанным ID не  найден.");
+
+          return; //  Прерываем выполнение, если  студент не найден
+        }
+      } catch (error) {
+        console.error("Error  parsing students  data:", error);
+        showToast("Ошибка  загрузки данных студентов. Данные  повреждены.");
+
+        return;
+      }
+    } else {
+      console.warn(
+        "No  students found  in LocalStorage  using key",
+        STUDENTS_KEY
+      );
+      showToast("Данные студентов отсутствуют  в LocalStorage.");
+      return;
+    }
+  } else {
+    // Если id  нет,  загружаем  текущий вошедший  аккаунт
+
+    account = getLoggedInAccount();
+
+    // console.log("Загружен текущий аккаунт:", account)
+  }
+
+  if (account) {
+    console.log("Account  found:", account);
+
+    displayUserInfo(account); //  Отображаем данные  пользователя
+
+    searchBookSetup(); // Инициализация  поиска
+
+    document.querySelector(".book-list").style.display = "block"; // Отображаем  список  книг
+
+    document.getElementById("goToLibrary").style.display = "block";
+
+    document.getElementById("logout").style.display = "block";
+  } else {
+    console.error("Не удалось  загрузить  данные аккаунта.");
+
+    showToast("Не  удалось загрузить данные аккаунта.");
+
+    if (!urlParams.fio && !urlParams.group && !urlParams.id) {
+      console.warn("Редирект  на главную страницу.");
+      window.location.href = "../index.html";
+    }
+  }
+});
 function displayUserInfo(user) {
   console.log("user", user);
   if (user) {
@@ -196,7 +273,6 @@ function returnBook(book) {
   alert(`Книга  "${book.name}"  успешно возвращена.`);
   displayUserBooks(userBooks.books); // Обновляем  отображение задолженностей
 }
-
 /*
 let bookToReturn = null; // Переменная для хранения информации о книге, которую нужно вернуть
 
@@ -264,8 +340,8 @@ function searchBookSetup() {
 }
 
 function searchBook(event) {
-  event.preventDefault(); // Отменяем перезагрузку страницы
-  document.getElementById("booksTable").style.display = "none";
+  event.preventDefault();
+  document.getElementById("booksTable").style.display = "none"; // изначально  скрываем  таблицу
   const searchInput = document
     .getElementById("searchInput")
     .value.trim()
@@ -277,37 +353,35 @@ function searchBook(event) {
 
   booksTableBody.innerHTML = "";
 
-  const books = JSON.parse(localStorage.getItem("books")) || [];
+  const books = JSON.parse(localStorage.getItem(BOOKS_KEY)) || [];
 
-  const filteredBooks = books.filter((book) => {
-    return (
-      book["Название"].toLowerCase().includes(searchInput) ||
-      book["Автор"].toLowerCase().includes(searchInput) ||
-      String(book["Количество"]).includes(searchInput)
-    );
-  });
+  const filteredBooks = books.filter(
+    (book) =>
+      book.Название.toLowerCase().includes(searchInput) ||
+      book.Автор.toLowerCase().includes(searchInput) ||
+      String(book.Количество).includes(searchInput)
+  );
 
   if (filteredBooks.length === 0) {
-    resultContainer.innerHTML = `<p>Книги не найдены</p>`;
-    booksTable.style.display = "none";
+    resultContainer.innerHTML = "<p>Книги не найдены</p>";
+
+    booksTable.style.display = "none"; // Скрываем, если ничего  не  найдено
   } else {
-    resultContainer.innerHTML = ``;
+    resultContainer.innerHTML = ""; //  Очищаем  сообщение,  если  книги  найдены
     booksTable.style.display = "table";
-
+    //!!!  Здесь добавляем строки в таблицу  !!!
     filteredBooks.forEach((book) => {
-      const row = document.createElement("tr");
+      const row = booksTableBody.insertRow(); // Создаем строку
 
-      // Название
-      const nameCell = row.insertCell();
-      nameCell.textContent = book["Название"];
+      // Создаем  ячейки  и добавляем  их  в  строку
+      const titleCell = row.insertCell();
+      titleCell.textContent = book.Название;
 
-      // Автор
       const authorCell = row.insertCell();
-      authorCell.textContent = book["Автор"];
+      authorCell.textContent = book.Автор;
 
-      // Количество
-      const quantityCell = row.insertCell();
-      quantityCell.textContent = book["Количество"];
+      const countCell = row.insertCell();
+      countCell.textContent = book.Количество;
 
       // Кнопка "Взять книгу"
       const actionCell = row.insertCell();
@@ -316,7 +390,6 @@ function searchBook(event) {
       actionCell.style.alignItems = "center";
 
       const takeButton = document.createElement("button");
-      takeButton.classList.add("action-button");
       takeButton.textContent = "Взять книгу";
       takeButton.style.backgroundColor = "rgb(41, 128, 185)";
       takeButton.style.color = "white";
@@ -325,18 +398,129 @@ function searchBook(event) {
       takeButton.style.borderRadius = "10px";
       takeButton.style.fontFamily = "Montserrat, sans-serif";
 
-      // Добавляем кнопку в ячейку
-      actionCell.appendChild(takeButton);
+      takeButton.addEventListener("click", () => {
+        openTakeModal(book);
+      });
+      actionCell.appendChild(takeButton); // Добавляем  кнопку в ячейку
 
-      // Обработчик события для кнопки
-      takeButton.addEventListener("click", () => takeBook(book));
-
-      actionCell.appendChild(takeButton);
-
-      booksTableBody.appendChild(row);
+      //Другие  действия
     });
+
+    booksTable.style.display = "table"; // Отображаем таблицу  после заполнения
   }
 }
+let bookToTake = null; // Переменная для хранения информации о книге
+
+// Функция для открытия модального окна
+function openTakeModal(book) {
+  bookToTake = book;
+  document.getElementById(
+    "takeBookMessage"
+  ).textContent = `Вы уверены, что хотите взять книгу "${book.Название}"?`;
+  document.getElementById("takeBookModal").style.display = "block";
+}
+
+// Функция для закрытия модального окна
+function closeTakeModal() {
+  document.getElementById("takeBookModal").style.display = "none";
+  bookToTake = null; // Очищаем переменную
+}
+
+// Функция для подтверждения взятия книги
+function confirmTakeBook() {
+  if (bookToTake) {
+      let studentId = localStorage.getItem("currentStudentId"); // Получаем ID студента
+      console.log("studentId в confirmTakeBook:", studentId, typeof studentId);
+      studentId = parseInt(studentId, 10);
+
+      if (!studentId) {
+          showToast("Ошибка: текущий студент не определен.");
+          closeTakeModal();
+          return; // Завершаем выполнение, если студент не найден
+      }
+
+      const books = JSON.parse(localStorage.getItem(BOOKS_KEY)) || [];
+      const bookInLibrary = books.find((b) => b.Название === bookToTake.Название);
+
+      if (!bookInLibrary) {
+          showToast("Эта книга в данный момент отсутствует.");
+          closeTakeModal();
+          return; // Завершаем, если книги нет в библиотеке
+      }
+
+      if (bookInLibrary.Количество === 0) {
+          showToast("Книга закончилась и сейчас нет в наличии.");
+          closeTakeModal();
+          return; // Завершаем, если книга недоступна
+      }
+
+      let takenBooks = JSON.parse(localStorage.getItem(TAKEN_BOOKS_KEY)) || [];
+      let userBooks = takenBooks.find((item) => item.userId === studentId);
+
+      if (!userBooks) {
+          userBooks = { userId: studentId, books: [] };
+          takenBooks.push(userBooks);
+      }
+
+      if (userBooks.books.some((b) => b.name === bookToTake.Название)) {
+          showToast("Вы уже взяли эту книгу!");
+          closeTakeModal();
+          return; // Завершаем, если пользователь уже взял эту книгу
+      }
+
+      // Рассчитываем срок сдачи
+      const dueDate = new Date();
+      dueDate.setDate(dueDate.getDate() + 14);
+
+      // Добавляем книгу в список взятых книг пользователя
+      userBooks.books.push({
+          name: bookToTake.Название,
+          author: bookToTake.Автор,
+          dueDate: dueDate.toISOString().split("T")[0],
+      });
+
+      // Обновляем данные в LocalStorage
+      saveTakenBooksToLocalStorage(takenBooks);
+
+      // Уменьшаем количество доступных экземпляров книги
+      bookInLibrary.Количество--;
+      localStorage.setItem(BOOKS_KEY, JSON.stringify(books));
+
+      // Обновляем таблицы и пользовательский интерфейс
+      displayUserBooks(userBooks.books);
+      updateBooksTable(JSON.parse(localStorage.getItem(BOOKS_KEY)));
+
+      // Уведомление об успешной операции
+      showToast(`Книга "${bookToTake.Название}" успешно взята.`);
+
+      // Закрываем модальное окно
+      closeTakeModal();
+  } else {
+      showToast("Ошибка: книга не выбрана.");
+      closeTakeModal();
+  }
+}
+
+
+function calculateDueDate(borrowDays = 14) {
+  // Получаем текущую дату
+  const currentDate = new Date();
+
+  // Добавляем количество дней для возврата
+  currentDate.setDate(currentDate.getDate() + borrowDays);
+
+  // Форматируем дату в удобный вид (например, YYYY-MM-DD)
+  const year = currentDate.getFullYear();
+  const month = String(currentDate.getMonth() + 1).padStart(2, "0"); // Месяцы с 0, поэтому +1
+  const day = String(currentDate.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`; // Возвращаем дату в формате 'ГГГГ-ММ-ДД'
+}
+
+// Привязываем событие к кнопке подтверждения
+document
+  .getElementById("confirmTakeBtn")
+  .addEventListener("click", confirmTakeBook);
 
 // Функция для добавления книги к списку взятых
 
@@ -553,92 +737,6 @@ function getURLParams() {
   };
 }
 
-function increaseBookQuantity(book) {
-  const books = JSON.parse(localStorage.getItem(BOOKS_KEY)) || [];
-  const bookToUpdate = books.find((b) => b.Название === book.name);
-
-  if (bookToUpdate) {
-    bookToUpdate.Количество++;
-    localStorage.setItem(BOOKS_KEY, JSON.stringify(books));
-  }
-}
-document.addEventListener("DOMContentLoaded", () => {
-  console.log("Страница загружена. Инициализация...");
-
-  const urlParams = getURLParams(); // Получаем параметры из URL
-  console.log("URL Params:", urlParams);
-
-  let account, studentId;
-
-  if (urlParams.id) {
-    studentId = parseInt(urlParams.id, 10);
-
-    console.log("Student ID (parsed):", studentId);
-
-    let students = localStorage.getItem(STUDENTS_KEY);
-    console.log("Raw students data from localStorage:", students);
-
-    if (students) {
-      try {
-        students = JSON.parse(students);
-
-        console.log("Students  array:", students);
-
-        account = students.find((student) => student.id === studentId);
-
-        if (account) {
-          displayStudentInfo(account, studentId); //  studentId  передаем  как аргумент
-        } else {
-          console.warn("Студент с указанным ID  не найден.");
-          showToast("Студент с  указанным ID не  найден.");
-
-          return; //  Прерываем выполнение, если  студент не найден
-        }
-      } catch (error) {
-        console.error("Error  parsing students  data:", error);
-        showToast("Ошибка  загрузки данных студентов. Данные  повреждены.");
-
-        return;
-      }
-    } else {
-      console.warn(
-        "No  students found  in LocalStorage  using key",
-        STUDENTS_KEY
-      );
-      showToast("Данные студентов отсутствуют  в LocalStorage.");
-      return;
-    }
-  } else {
-    // Если id  нет,  загружаем  текущий вошедший  аккаунт
-
-    account = getLoggedInAccount();
-
-    // console.log("Загружен текущий аккаунт:", account)
-  }
-
-  if (account) {
-    console.log("Account  found:", account);
-
-    displayUserInfo(account); //  Отображаем данные  пользователя
-
-    searchBookSetup(); // Инициализация  поиска
-
-    document.querySelector(".book-list").style.display = "block"; // Отображаем  список  книг
-
-    document.getElementById("goToLibrary").style.display = "block";
-
-    document.getElementById("logout").style.display = "block";
-  } else {
-    console.error("Не удалось  загрузить  данные аккаунта.");
-
-    showToast("Не  удалось загрузить данные аккаунта.");
-
-    if (!urlParams.fio && !urlParams.group && !urlParams.id) {
-      console.warn("Редирект  на главную страницу.");
-      window.location.href = "../index.html";
-    }
-  }
-});
 
 function displayStudentInfo(studentData, studentId) {
   // Отобразить информацию студента, скрыв данные пользователя

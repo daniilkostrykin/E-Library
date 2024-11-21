@@ -19,24 +19,13 @@
         <button id="goToLibrary" onclick="goToLibrary()">В библиотеку</button>
         <button id="logout" onclick="logout()">Выйти</button>
       </div>
-      <div id="takeBookModal" class="modal">
-        <div class="modal-content">
-          <h2>Взять книгу</h2>
-          <p id="takeBookMessage">Вы уверены, что хотите взять эту книгу?</p>
-          <div class="modal-actions">
-            <button id="confirmTakeBtn" class="save-btn">Взять</button>
-            <button class="cancel-btn" onclick="closeTakeModal()">Отмена</button>
-          </div>
-        </div>
-      </div>
-      
       <div class="user-info">
         <img
           id="user-photo"
           src="../assets/img-placeholder.png"
           alt="Фото профиля"
         />
-              <div class="info-details">
+        <div class="info-details">
           <p><span>ФИО:</span> <span id="user-name"></span></p>
           <p><span>Группа:</span> <span id="user-group"></span></p>
           <p>
@@ -76,7 +65,16 @@
         <button type="button" id="find">Найти</button>
       </form>
     </div>
-
+    <div id="takeBookModal" class="modal">
+      <div class="modal-content1">
+        <h2>Взять книгу</h2>
+        <p id="takeBookMessage">Вы уверены, что хотите взять эту книгу?</p>
+        <div class="modal-actions">
+          <button id="confirmTakeBtn" class="save-btn">Взять</button>
+          <button class="cancel-btn" onclick="closeTakeModal()">Отмена</button>
+        </div>
+      </div>
+    </div>
     <script src="personalCabinet.js"></script>
   </body>
 </html>
