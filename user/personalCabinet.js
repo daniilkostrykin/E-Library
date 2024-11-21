@@ -378,52 +378,6 @@ document
   .getElementById("confirmReturnBtn")
   .addEventListener("click", confirmReturnBook);
 
-/*
-let bookToReturn = null; // Переменная для хранения информации о книге, которую нужно вернуть
-
-function openReturnModal(bookName, row) {
-  bookToReturn = { bookName, row }; // Сохраняем информацию о книге и строке
-  const message = `Вы уверены, что хотите вернуть книгу "${bookName}"?`;
-  document.getElementById("returnBookMessage").textContent = message;
-  document.getElementById("returnBookModal").style.display = "block";
-}
-
-function closeReturnModal() {
-  document.getElementById("returnBookModal").style.display = "none";
-  bookToReturn = null; // Очищаем переменную
-}
-
-function confirmReturnBook() {
-  if (bookToReturn) {
-    const { bookName, row } = bookToReturn;
-
-    const books = JSON.parse(localStorage.getItem(TAKEN_BOOKS_KEY)) || [];
-    const studentId = parseInt(localStorage.getItem("currentStudentId"), 10);
-
-    let userBooks = books.find((item) => item.userId === studentId);
-
-    if (userBooks) {
-      userBooks.books = userBooks.books.filter(
-        (book) => book.name !== bookName
-      ); // Удаляем книгу
-      localStorage.setItem(TAKEN_BOOKS_KEY, JSON.stringify(books));
-      row.remove(); // Удаляем строку из таблицы
-      closeReturnModal();
-      showToast(`Книга "${bookName}" успешно возвращена.`);
-      displayUserBooks(userBooks.books); // Обновляем список
-    }
-  }
-}
-// Привязываем событие к кнопке подтверждения
-document
-  .getElementById("confirmReturnBtn")
-  .addEventListener("click", confirmReturnBook);
-
-// Привязываем событие к кнопке отмены
-document
-  .getElementById("cancelReturnBtn")
-  .addEventListener("click", closeReturnModal);
-*/
 function searchBookSetup() {
   //Инициализация функции
 
@@ -462,9 +416,10 @@ function searchBook(event) {
 
   const filteredBooks = books.filter(
     (book) =>
-      book.Название.toLowerCase().includes(searchInput) ||
-      book.Автор.toLowerCase().includes(searchInput) ||
-      String(book.Количество).includes(searchInput)
+      book.Количество > 0 && // Исключаем книги с количеством 0
+      (book.Название.toLowerCase().includes(searchInput) ||
+        book.Автор.toLowerCase().includes(searchInput) ||
+        String(book.Количество).includes(searchInput))
   );
 
   if (filteredBooks.length === 0) {
@@ -487,7 +442,7 @@ function searchBook(event) {
 
       const countCell = row.insertCell();
       countCell.textContent = book.Количество;
-
+      countCell.style.color = "rgb(144, 238, 144)";
       // Кнопка "Взять книгу"
       const actionCell = row.insertCell();
       actionCell.style.display = "flex";
@@ -709,10 +664,13 @@ function removeBookRow(book) {
 function updateBooksTable() {
   const books = JSON.parse(localStorage.getItem(BOOKS_KEY)) || [];
   const booksTableBody = document.getElementById("booksTableBody");
+  const takenBooks = JSON.parse(localStorage.getItem(TAKEN_BOOKS_KEY)) || [];
+  const currentUserId = parseInt(localStorage.getItem("currentStudentId"), 10);
 
   booksTableBody.innerHTML = ""; // Очищаем таблицу
 
   books.forEach((book) => {
+    if (book["Количество"] === 0) return;
     const row = document.createElement("tr");
 
     const nameCell = row.insertCell();
@@ -723,6 +681,7 @@ function updateBooksTable() {
 
     const quantityCell = row.insertCell();
     quantityCell.textContent = book["Количество"];
+    quantityCell.style.color = "rgb(144, 238, 144)";
 
     const actionCell = row.insertCell();
     actionCell.style.display = "flex";
@@ -739,8 +698,24 @@ function updateBooksTable() {
     takeButton.style.borderRadius = "10px";
     takeButton.style.fontFamily = "Montserrat, sans-serif";
 
-    takeButton.addEventListener("click", () => openTakeModal(book));
+    // Проверяем, взял ли пользователь эту книгу
+    const userTakenBooks = takenBooks.find(
+      (entry) => entry.userId === currentUserId
+    );
+    const isBookTaken =
+      userTakenBooks &&
+      userTakenBooks.books.some(
+        (takenBook) => takenBook.name === book["Название"]
+      );
 
+    if (isBookTaken) {
+      takeButton.disabled = true; // Делаем кнопку неактивной
+      takeButton.style.backgroundColor = "gray";
+      takeButton.style.cursor = "not-allowed";
+      takeButton.textContent = "Книга взята";
+    } else {
+      takeButton.addEventListener("click", () => openTakeModal(book));
+    }
     actionCell.appendChild(takeButton);
 
     row.appendChild(nameCell);
