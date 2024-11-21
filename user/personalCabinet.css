@@ -26,6 +26,7 @@ body {
 
 #controls {
   display: flex; /* Flexbox для горизонтального расположения кнопок */
+  flex-wrap: wrap; 
   justify-content: flex-end; /* Выравнивание по правому краю */
   position: absolute; /* Абсолютное позиционирование */
   top: 50px; /* Отступ сверху */

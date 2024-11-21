@@ -41,6 +41,7 @@ body {
 
 #controls {
   display: flex;
+  flex-wrap: wrap; 
   justify-content: flex-start;
   align-items: center;
   margin-top: 400px;
