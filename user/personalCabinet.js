@@ -66,6 +66,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // console.log("Загружен текущий аккаунт:", account)
   }
+  const searchForm = document.getElementById("searchForm"); //  ID вашей формы поиска
+
+  searchForm.addEventListener("submit", (event) => {
+    event.preventDefault(); //  Предотвращаем перезагрузку
+    searchBook(); // Вызываем вашу функцию поиска
+  });
 
   if (account) {
     console.log("Account  found:", account);
@@ -398,8 +404,7 @@ function searchBookSetup() {
   }
 }
 
-function searchBook(event) {
-  event.preventDefault();
+function searchBook() {
   document.getElementById("booksTable").style.display = "none"; // изначально  скрываем  таблицу
   const searchInput = document
     .getElementById("searchInput")
@@ -462,15 +467,13 @@ function searchBook(event) {
         openTakeModal(book);
       });
       actionCell.appendChild(takeButton); // Добавляем  кнопку в ячейку
-
-      //Другие  действия
     });
 
     booksTable.style.display = "table"; // Отображаем таблицу  после заполнения
   }
 }
-let bookToTake = null; // Переменная для хранения информации о книге
-let isTakeModalOpen = false; // Новая переменная
+let bookToTake = null;
+let isTakeModalOpen = false;
 
 // Функция для открытия модального окна
 function openTakeModal(book) {
