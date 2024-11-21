@@ -223,7 +223,7 @@ function displayUserBooks(books) {
       returnButton.style.cursor = "pointer"; //  Указатель  мыши  при  наведении
 
       returnButton.addEventListener("click", () => {
-        if (confirm(`Вы уверены, что хотите вернуть книгу "${book.name}"?`)) {
+      //  if (confirm(`Вы уверены, что хотите вернуть книгу "${book.name}"?`)) {
           returnBook(book);
           updateLibrarianBookDisplay(book.name); //  Вызываем  функцию  для  обновления  таблицы  книг
           displayUserBooks(
@@ -231,7 +231,7 @@ function displayUserBooks(books) {
               parseInt(localStorage.getItem("currentStudentId"), 10)
             )
           ); // закомментируйте, если хотите перезапускать updateBookTable
-        }
+        
       });
 
       returnButtonContainer.style.textAlign = "right"; // Выравнивание  по  правому  краю
@@ -270,7 +270,7 @@ function returnBook(book) {
   saveTakenBooksToLocalStorage(takenBooks);
   increaseBookQuantity(book);
 
-  alert(`Книга  "${book.name}"  успешно возвращена.`);
+ // alert(`Книга  "${book.name}"  успешно возвращена.`);
   displayUserBooks(userBooks.books); // Обновляем  отображение задолженностей
 }
 /*
@@ -410,20 +410,28 @@ function searchBook(event) {
   }
 }
 let bookToTake = null; // Переменная для хранения информации о книге
+let isTakeModalOpen = false; // Новая переменная
 
 // Функция для открытия модального окна
 function openTakeModal(book) {
+  if (isTakeModalOpen) { // Проверка, открыто ли уже модальное окно
+    showToast("Вы уже пытаетесь взять книгу.");
+    return;
+  }
   bookToTake = book;
   document.getElementById(
     "takeBookMessage"
   ).textContent = `Вы уверены, что хотите взять книгу "${book.Название}"?`;
   document.getElementById("takeBookModal").style.display = "block";
+  isTakeModalOpen = true; // Устанавливаем флаг
+
 }
 
 // Функция для закрытия модального окна
 function closeTakeModal() {
   document.getElementById("takeBookModal").style.display = "none";
-  bookToTake = null; // Очищаем переменную
+  isTakeModalOpen = false; // Устанавливаем флаг
+
 }
 
 // Функция для подтверждения взятия книги
@@ -495,6 +503,8 @@ function confirmTakeBook() {
 
       // Закрываем модальное окно
       closeTakeModal();
+      bookToTake = null; 
+
   } else {
       showToast("Ошибка: книга не выбрана.");
       closeTakeModal();
@@ -626,7 +636,7 @@ function updateBooksTable() {
     takeButton.style.borderRadius = "10px";
     takeButton.style.fontFamily = "Montserrat, sans-serif";
 
-    takeButton.addEventListener("click", () => takeBook(book)); // Добавляем обработчик для выдачи
+    takeButton.addEventListener("click", () => openTakeModal(book));
 
     actionCell.appendChild(takeButton);
 
