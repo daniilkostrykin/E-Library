@@ -1,6 +1,7 @@
 //admin.js
 const BOOKS_KEY = "books";
 let addBookFormVisible = false; // Флаг для отслеживания видимости формы
+let originalBooks = []; // Массив книг из localStorage
 document.addEventListener("DOMContentLoaded", () => {
   originalBooks = JSON.parse(localStorage.getItem(BOOKS_KEY)) || []; //
   document.getElementById("save-changes").disabled = true;
@@ -101,7 +102,7 @@ function processAddBook(title, author, quantity, onlineVersion, location) {
 
   // Обновление отображения
   originalBooks = JSON.parse(localStorage.getItem(BOOKS_KEY));
-  displayBooks(originalBooks);
+  displayBooks(books);
 
   return true;
 }
@@ -134,7 +135,7 @@ function back() {
 
 function displayBooks(books) {
   const table = document.getElementById("bookTable");
-  table.innerHTML = "";
+  table.innerHTML = ""; // Очищаем таблицу
 
   // Заголовок таблицы
   const headerRow = table.insertRow();
@@ -169,7 +170,7 @@ function displayBooks(books) {
       cell.setAttribute("tabindex", "-1");
 
       if (key === "Электронная версия" || key === "Местоположение") {
-        const input = document.createElement("input");
+        const input = document.createElement("input"); // Всегда создаем новый input
         input.type = "text";
         input.value = value || "";
         input.placeholder =
@@ -179,7 +180,6 @@ function displayBooks(books) {
         input.style.textAlign = "center";
 
         input.addEventListener("input", () => {
-          book[key] = input.value; // Сохраняем изменения в объекте книги
           document.getElementById("save-changes").disabled = false;
           document.getElementById("cancel").disabled = false;
         });
@@ -192,8 +192,6 @@ function displayBooks(books) {
           }
         });
 
-        cell.appendChild(input);
-
         input.addEventListener("keydown", (event) =>
           handleArrowNavigation(
             event,
@@ -202,6 +200,8 @@ function displayBooks(books) {
             table
           )
         );
+
+        cell.appendChild(input);
       } else if (key === "Количество") {
         cell.textContent = value;
         cell.contentEditable = true;
@@ -224,6 +224,7 @@ function displayBooks(books) {
 
           book[key] = parseInt(cell.textContent, 10) || 0; // Сохраняем изменения в объекте книги
           updateCellColor(cell, cell.textContent);
+
           document.getElementById("save-changes").disabled = false;
           document.getElementById("cancel").disabled = false;
         });
@@ -233,7 +234,7 @@ function displayBooks(books) {
             event.preventDefault();
             cell.blur(); // Убираем фокус
             saveEditBook(); // Сохраняем изменения
-            showToast("Изменения сохранены.");
+            showToast("Изменения сохранены."); // или другой обработчик
           }
         });
 
@@ -250,11 +251,9 @@ function displayBooks(books) {
         cell.contentEditable = true;
 
         cell.addEventListener("input", () => {
-          book[key] = cell.textContent; // Сохраняем изменения в объекте книги
           document.getElementById("save-changes").disabled = false;
           document.getElementById("cancel").disabled = false;
         });
-
         cell.addEventListener("keydown", (event) => {
           if (event.key === "Enter") {
             event.preventDefault();
