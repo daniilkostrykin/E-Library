@@ -287,9 +287,26 @@ function displayBooks(books) {
 // Обработка навигации по ячейкам таблицы с помощью стрелок
 function handleArrowNavigation(event, rowIndex, colIndex, table) {
   const key = event.key;
-  const rows = table.rows;
+  const cell = event.target.closest("td");
+  const isContentEditable = cell && cell.isContentEditable;
 
   if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(key)) {
+    // Если пользователь в режиме редактирования, проверяем, нужно ли передвигать фокус
+    if (isContentEditable && (key === "ArrowLeft" || key === "ArrowRight")) {
+      const selection = window.getSelection();
+      const cursorPosition = selection.anchorOffset;
+      const textLength = selection.focusNode?.textContent?.length || 0;
+
+      if (
+        (key === "ArrowLeft" && cursorPosition > 0) ||
+        (key === "ArrowRight" && cursorPosition < textLength)
+      ) {
+        // Позволяем стандартное поведение, если курсор не в крайнем положении
+        return;
+      }
+    }
+
+    // Отключаем стандартное поведение стрелок
     event.preventDefault();
 
     let targetRow = rowIndex;
@@ -297,22 +314,23 @@ function handleArrowNavigation(event, rowIndex, colIndex, table) {
 
     switch (key) {
       case "ArrowUp":
-        targetRow = Math.max(1, rowIndex - 1);
+        targetRow = Math.max(1, rowIndex - 1); // Не выходим за заголовок
         break;
       case "ArrowDown":
-        targetRow = Math.min(rows.length - 1, rowIndex + 1);
+        targetRow = Math.min(table.rows.length - 1, rowIndex + 1);
         break;
       case "ArrowLeft":
         targetCol = Math.max(0, colIndex - 1);
         break;
       case "ArrowRight":
-        targetCol = Math.min(rows[targetRow].cells.length - 1, colIndex + 1);
+        targetCol = Math.min(table.rows[rowIndex].cells.length - 1, colIndex + 1);
         break;
     }
 
-    const targetCell = rows[targetRow]?.cells[targetCol];
+    // Переместить фокус на целевую ячейку
+    const targetCell = table.rows[targetRow]?.cells[targetCol];
     if (targetCell) {
-      const input = targetCell.querySelector("input");
+      const input = targetCell.querySelector("input, textarea");
       if (input) {
         input.focus();
       } else {
@@ -321,6 +339,8 @@ function handleArrowNavigation(event, rowIndex, colIndex, table) {
     }
   }
 }
+
+
 
 let bookToDelete = null; // Переменная для хранения удаляемой книги
 
