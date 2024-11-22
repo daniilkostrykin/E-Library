@@ -147,7 +147,7 @@ function displayBooks(books) {
     "Местоположение",
     "Удаление",
   ];
-  headers.forEach((headerText, index) => {
+  headers.forEach((headerText) => {
     const header = headerRow.insertCell();
     header.textContent = headerText;
     if (headerText === "Количество") {
@@ -156,43 +156,48 @@ function displayBooks(books) {
   });
 
   // Данные книг
-  books.forEach((book) => {
+  books.forEach((book, rowIndex) => {
     const row = table.insertRow();
-    Object.entries(book).forEach(([key, value]) => {
+    Object.entries(book).forEach(([key, value], colIndex) => {
       const cell = row.insertCell();
+
+      // Делаем ячейку фокусируемой
+      cell.setAttribute("tabindex", "-1");
 
       if (key === "Электронная версия") {
         const input = document.createElement("input");
         input.type = "text";
         input.value = value || "";
         input.placeholder = "Введите URL";
-        input.style.textAlign = "center"; // Это центрирует текст внутри поля ввода
+        input.style.textAlign = "center";
 
         input.addEventListener("input", () => {
           document.getElementById("save-changes").disabled = false;
           document.getElementById("cancel").disabled = false;
         });
+
         input.addEventListener("keydown", (event) => {
           if (event.key === "Enter") {
             event.preventDefault();
-            // Убираем фокус, чтобы сохранить изменения
-            input.blur();
-            // Сохраняем текущее значение
-            const trimmedValue = input.textContent.trim();
-            input.textContent = trimmedValue;
-
-            // Сохраняем изменения
-            saveEditBook();
-            
+            input.blur(); // Убираем фокус
+            saveEditBook(); // Сохраняем изменения
           }
         });
 
         cell.appendChild(input);
+
+        input.addEventListener("keydown", (event) =>
+          handleArrowNavigation(
+            event,
+            rowIndex + 1, // +1, чтобы учесть заголовок
+            colIndex,
+            table
+          )
+        );
       } else if (key === "Количество") {
         cell.textContent = value;
         cell.contentEditable = true;
 
-        // Установить цвет текста в зависимости от значения
         updateCellColor(cell, value);
 
         cell.addEventListener("input", () => {
@@ -204,75 +209,58 @@ function displayBooks(books) {
             cell.textContent = newValue;
           }
 
-          // Запрет на отрицательные значения и некорректный ввод
+          // Запрет на некорректный ввод
           if (isNaN(newValue) || parseInt(newValue, 10) < 0) {
-            cell.textContent = 0; // Устанавливаем 0 по умолчанию
+            cell.textContent = 0;
           }
+
           updateCellColor(cell, cell.textContent);
           document.getElementById("save-changes").disabled = false;
           document.getElementById("cancel").disabled = false;
         });
+
         cell.addEventListener("keydown", (event) => {
           if (event.key === "Enter") {
             event.preventDefault();
-            // Убираем фокус, чтобы сохранить изменения
-            cell.blur();
-            // Сохраняем текущее значение
-            const trimmedValue = cell.textContent.trim();
-            cell.textContent = trimmedValue;
-
-            // Сохраняем изменения
-            saveEditBook();
+            cell.blur(); // Убираем фокус
+            saveEditBook(); // Сохраняем изменения
             showToast("Изменения сохранены.");
           }
         });
-      } else if (key === "Местоположение") {
-        if (value) {
-          // Если значение не пустое
-          cell.textContent = value;
-        } else {
-          cell.textContent = "Неизвестно"; // Или любой другой текст-заполнитель
-          cell.style.color = "gray"; // Серый цвет текста
-        }
-        cell.contentEditable = true; // Остается редактируемым
-        cell.addEventListener("input", () => {
-          document.getElementById("save-changes").disabled = false;
-          document.getElementById("cancel").disabled = false;
-        });
-        cell.addEventListener("keydown", (event) => {
-          if (event.key === "Enter") {
-            event.preventDefault();
-            // Убираем фокус, чтобы сохранить изменения
-            cell.blur();
-            // Сохраняем текущее значение
-            const trimmedValue = cell.textContent.trim();
-            cell.textContent = trimmedValue;
 
-            // Сохраняем изменения
-            saveEditBook();
-          }
-        });
+        cell.addEventListener("keydown", (event) =>
+          handleArrowNavigation(
+            event,
+            rowIndex + 1, // +1, чтобы учесть заголовок
+            colIndex,
+            table
+          )
+        );
       } else {
-        cell.textContent = value;
+        cell.textContent = value || "Неизвестно";
         cell.contentEditable = true;
+
         cell.addEventListener("input", () => {
           document.getElementById("save-changes").disabled = false;
           document.getElementById("cancel").disabled = false;
         });
+
         cell.addEventListener("keydown", (event) => {
           if (event.key === "Enter") {
             event.preventDefault();
-            // Убираем фокус, чтобы сохранить изменения
-            cell.blur();
-            // Сохраняем текущее значение
-            const trimmedValue = cell.textContent.trim();
-            cell.textContent = trimmedValue;
-
-            // Сохраняем изменения
-            saveEditBook();
-            showToast("Изменения сохранены.");
+            cell.blur(); // Убираем фокус
+            saveEditBook(); // Сохраняем изменения
           }
         });
+
+        cell.addEventListener("keydown", (event) =>
+          handleArrowNavigation(
+            event,
+            rowIndex + 1, // +1, чтобы учесть заголовок
+            colIndex,
+            table
+          )
+        );
       }
     });
 
@@ -295,6 +283,45 @@ function displayBooks(books) {
     actionCell.appendChild(deleteButton);
   });
 }
+
+// Обработка навигации по ячейкам таблицы с помощью стрелок
+function handleArrowNavigation(event, rowIndex, colIndex, table) {
+  const key = event.key;
+  const rows = table.rows;
+
+  if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(key)) {
+    event.preventDefault();
+
+    let targetRow = rowIndex;
+    let targetCol = colIndex;
+
+    switch (key) {
+      case "ArrowUp":
+        targetRow = Math.max(1, rowIndex - 1);
+        break;
+      case "ArrowDown":
+        targetRow = Math.min(rows.length - 1, rowIndex + 1);
+        break;
+      case "ArrowLeft":
+        targetCol = Math.max(0, colIndex - 1);
+        break;
+      case "ArrowRight":
+        targetCol = Math.min(rows[targetRow].cells.length - 1, colIndex + 1);
+        break;
+    }
+
+    const targetCell = rows[targetRow]?.cells[targetCol];
+    if (targetCell) {
+      const input = targetCell.querySelector("input");
+      if (input) {
+        input.focus();
+      } else {
+        targetCell.focus();
+      }
+    }
+  }
+}
+
 let bookToDelete = null; // Переменная для хранения удаляемой книги
 
 function openDeleteModal(bookName, row) {
@@ -376,7 +403,6 @@ function saveEditBook() {
   document.getElementById("save-changes").disabled = true;
   document.getElementById("cancel").disabled = true;
   showToast("Изменения сохранены.");
-
 }
 
 function cancelEditBook() {
