@@ -161,6 +161,10 @@ function displayBooks(books) {
     Object.entries(book).forEach(([key, value], colIndex) => {
       const cell = row.insertCell();
 
+      // Ограничиваем высоту ячейки
+      cell.style.maxHeight = "50px";
+      cell.style.overflow = "hidden"; // Скрываем лишний контент
+      cell.style.whiteSpace = "nowrap"; // Предотвращаем перенос строк
       // Делаем ячейку фокусируемой
       cell.setAttribute("tabindex", "-1");
 
