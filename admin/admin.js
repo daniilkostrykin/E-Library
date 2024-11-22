@@ -1,7 +1,6 @@
 //admin.js
 const BOOKS_KEY = "books";
 let addBookFormVisible = false; // Флаг для отслеживания видимости формы
-
 document.addEventListener("DOMContentLoaded", () => {
   originalBooks = JSON.parse(localStorage.getItem(BOOKS_KEY)) || []; //
   document.getElementById("save-changes").disabled = true;
@@ -158,6 +157,7 @@ function displayBooks(books) {
   // Данные книг
   books.forEach((book, rowIndex) => {
     const row = table.insertRow();
+
     Object.entries(book).forEach(([key, value], colIndex) => {
       const cell = row.insertCell();
 
@@ -168,14 +168,18 @@ function displayBooks(books) {
       // Делаем ячейку фокусируемой
       cell.setAttribute("tabindex", "-1");
 
-      if (key === "Электронная версия") {
+      if (key === "Электронная версия" || key === "Местоположение") {
         const input = document.createElement("input");
         input.type = "text";
         input.value = value || "";
-        input.placeholder = "Введите URL";
+        input.placeholder =
+          key === "Электронная версия"
+            ? "Введите URL"
+            : "Введите местоположение";
         input.style.textAlign = "center";
 
         input.addEventListener("input", () => {
+          book[key] = input.value; // Сохраняем изменения в объекте книги
           document.getElementById("save-changes").disabled = false;
           document.getElementById("cancel").disabled = false;
         });
@@ -218,6 +222,7 @@ function displayBooks(books) {
             cell.textContent = 0;
           }
 
+          book[key] = parseInt(cell.textContent, 10) || 0; // Сохраняем изменения в объекте книги
           updateCellColor(cell, cell.textContent);
           document.getElementById("save-changes").disabled = false;
           document.getElementById("cancel").disabled = false;
@@ -241,10 +246,11 @@ function displayBooks(books) {
           )
         );
       } else {
-        cell.textContent = value || "Неизвестно";
+        cell.textContent = value;
         cell.contentEditable = true;
 
         cell.addEventListener("input", () => {
+          book[key] = cell.textContent; // Сохраняем изменения в объекте книги
           document.getElementById("save-changes").disabled = false;
           document.getElementById("cancel").disabled = false;
         });
@@ -412,39 +418,54 @@ function saveEditBook() {
   const table = document.getElementById("bookTable");
   const rows = table.rows;
   const newBooks = [];
+  let hasErrors = false;
 
   for (let i = 1; i < rows.length; i++) {
+    // Пропускаем заголовок
     const row = rows[i];
     const cells = row.cells;
 
     const onlineVersion = cells[3]?.firstChild?.value || "";
+    const location = cells[4]?.firstChild?.value || "";      // Из input
 
-    // Validate URL before saving
+    // Валидация URL
     if (onlineVersion && !isValidURL(onlineVersion)) {
       showToast("Электронная версия должна иметь корректный URL.");
-
-      //Optionally, highlight or focus on invalid input for user correction.
       cells[3].firstChild.focus();
-      cells[3].firstChild.classList.add("invalid-url"); // Add a CSS class for styling
-      return; // Stop saving if URL is invalid
+      cells[3].firstChild.classList.add("invalid-url"); // Добавляем визуальный индикатор ошибки
+      hasErrors = true;
+      continue; // Пропускаем сохранение этой строки
+    } else {
+      cells[3]?.firstChild?.classList.remove("invalid-url"); // Убираем ошибку, если URL корректный
     }
+
+ 
+
     const newBook = {
-      Название: cells[0]?.textContent || "",
-      Автор: cells[1]?.textContent || "",
-      Количество: parseInt(cells[2]?.textContent) || 0,
-      "Электронная версия": cells[3]?.firstChild?.value || "",
-      Местоположение: cells[4]?.textContent || "",
+      Название: cells[0]?.textContent.trim() || "",
+      Автор: cells[1]?.textContent.trim() || "",
+      Количество: parseInt(cells[2]?.textContent.trim(), 10) || 0,
+      "Электронная версия": onlineVersion,
+      Местоположение: location,
     };
 
     newBooks.push(newBook);
   }
 
+  if (hasErrors) {
+    showToast("Пожалуйста, исправьте ошибки перед сохранением.");
+    return;
+  }
+
+  // Сохраняем данные
   localStorage.setItem(BOOKS_KEY, JSON.stringify(newBooks));
-  originalBooks = JSON.parse(JSON.stringify(newBooks));
-  originalBooks = [...newBooks]; // Обновляем originalBooks
+  originalBooks = [...newBooks]; // Клонируем данные в originalBooks
   displayBooks(newBooks);
+
+  // Деактивируем кнопки после успешного сохранения
   document.getElementById("save-changes").disabled = true;
   document.getElementById("cancel").disabled = true;
+
   showToast("Изменения сохранены.");
 }
 
