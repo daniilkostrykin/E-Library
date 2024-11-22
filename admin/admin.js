@@ -40,6 +40,23 @@ document.addEventListener("DOMContentLoaded", () => {
       closeModal();
     }
   });
+  // Логика перехода между полями с помощью Enter
+  const formFields = addBookForm.querySelectorAll("input, textarea, select");
+  formFields.forEach((field, index) => {
+    field.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") {
+        event.preventDefault(); // Отключаем стандартное поведение Enter
+
+        // Если это последнее поле, отправляем форму
+        if (index === formFields.length - 1) {
+          addBookForm.requestSubmit();
+        } else {
+          // Перемещаем фокус на следующее поле
+          formFields[index + 1].focus();
+        }
+      }
+    });
+  });
 });
 function processAddBook(title, author, quantity, onlineVersion, location) {
   // Проверка обязательных полей
@@ -155,6 +172,20 @@ function displayBooks(books) {
           document.getElementById("save-changes").disabled = false;
           document.getElementById("cancel").disabled = false;
         });
+        input.addEventListener("keydown", (event) => {
+          if (event.key === "Enter") {
+            event.preventDefault();
+            // Убираем фокус, чтобы сохранить изменения
+            input.blur();
+            // Сохраняем текущее значение
+            const trimmedValue = input.textContent.trim();
+            input.textContent = trimmedValue;
+
+            // Сохраняем изменения
+            saveEditBook();
+            
+          }
+        });
 
         cell.appendChild(input);
       } else if (key === "Количество") {
@@ -181,6 +212,20 @@ function displayBooks(books) {
           document.getElementById("save-changes").disabled = false;
           document.getElementById("cancel").disabled = false;
         });
+        cell.addEventListener("keydown", (event) => {
+          if (event.key === "Enter") {
+            event.preventDefault();
+            // Убираем фокус, чтобы сохранить изменения
+            cell.blur();
+            // Сохраняем текущее значение
+            const trimmedValue = cell.textContent.trim();
+            cell.textContent = trimmedValue;
+
+            // Сохраняем изменения
+            saveEditBook();
+            showToast("Изменения сохранены.");
+          }
+        });
       } else if (key === "Местоположение") {
         if (value) {
           // Если значение не пустое
@@ -194,12 +239,39 @@ function displayBooks(books) {
           document.getElementById("save-changes").disabled = false;
           document.getElementById("cancel").disabled = false;
         });
+        cell.addEventListener("keydown", (event) => {
+          if (event.key === "Enter") {
+            event.preventDefault();
+            // Убираем фокус, чтобы сохранить изменения
+            cell.blur();
+            // Сохраняем текущее значение
+            const trimmedValue = cell.textContent.trim();
+            cell.textContent = trimmedValue;
+
+            // Сохраняем изменения
+            saveEditBook();
+          }
+        });
       } else {
         cell.textContent = value;
         cell.contentEditable = true;
         cell.addEventListener("input", () => {
           document.getElementById("save-changes").disabled = false;
           document.getElementById("cancel").disabled = false;
+        });
+        cell.addEventListener("keydown", (event) => {
+          if (event.key === "Enter") {
+            event.preventDefault();
+            // Убираем фокус, чтобы сохранить изменения
+            cell.blur();
+            // Сохраняем текущее значение
+            const trimmedValue = cell.textContent.trim();
+            cell.textContent = trimmedValue;
+
+            // Сохраняем изменения
+            saveEditBook();
+            showToast("Изменения сохранены.");
+          }
         });
       }
     });
@@ -275,13 +347,25 @@ function saveEditBook() {
     const row = rows[i];
     const cells = row.cells;
 
+    const onlineVersion = cells[3]?.firstChild?.value || "";
+
+    // Validate URL before saving
+    if (onlineVersion && !isValidURL(onlineVersion)) {
+      showToast("Электронная версия должна иметь корректный URL.");
+
+      //Optionally, highlight or focus on invalid input for user correction.
+      cells[3].firstChild.focus();
+      cells[3].firstChild.classList.add("invalid-url"); // Add a CSS class for styling
+      return; // Stop saving if URL is invalid
+    }
     const newBook = {
-      Название: cells[0].textContent,
-      Автор: cells[1].textContent,
-      Количество: parseInt(cells[2].textContent),
-      "Электронная версия": cells[3].firstChild.value, // Читаем значение из input
-      Местоположение: cells[4].textContent,
+      Название: cells[0]?.textContent || "",
+      Автор: cells[1]?.textContent || "",
+      Количество: parseInt(cells[2]?.textContent) || 0,
+      "Электронная версия": cells[3]?.firstChild?.value || "",
+      Местоположение: cells[4]?.textContent || "",
     };
+
     newBooks.push(newBook);
   }
 
@@ -291,6 +375,8 @@ function saveEditBook() {
   displayBooks(newBooks);
   document.getElementById("save-changes").disabled = true;
   document.getElementById("cancel").disabled = true;
+  showToast("Изменения сохранены.");
+
 }
 
 function cancelEditBook() {
