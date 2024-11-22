@@ -323,7 +323,10 @@ function handleArrowNavigation(event, rowIndex, colIndex, table) {
         targetCol = Math.max(0, colIndex - 1);
         break;
       case "ArrowRight":
-        targetCol = Math.min(table.rows[rowIndex].cells.length - 1, colIndex + 1);
+        targetCol = Math.min(
+          table.rows[rowIndex].cells.length - 1,
+          colIndex + 1
+        );
         break;
     }
 
@@ -333,14 +336,30 @@ function handleArrowNavigation(event, rowIndex, colIndex, table) {
       const input = targetCell.querySelector("input, textarea");
       if (input) {
         input.focus();
+        // Для input, установить курсор в конец значения
+        input.selectionStart = input.selectionEnd = input.value.length;
       } else {
         targetCell.focus();
+        // Для contenteditable ячеек, установить курсор в конец текста
+        const range = document.createRange();
+        const selection = window.getSelection();
+
+        if (targetCell.childNodes.length > 0) {
+          // ensure there is a childnode to move selection into in cell or add condition in for empty ones handling
+
+          range.setStart(
+            targetCell.childNodes[0],
+            targetCell.childNodes[0].length
+          );
+          range.collapse(true); // Схлопываем выделение, чтобы курсор был в конце
+
+          selection.removeAllRanges();
+          selection.addRange(range);
+        }
       }
     }
   }
 }
-
-
 
 let bookToDelete = null; // Переменная для хранения удаляемой книги
 

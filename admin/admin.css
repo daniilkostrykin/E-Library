@@ -57,6 +57,19 @@ body {
 #adminPanel td:nth-child(3) {
   color: green; /* Цвет текста для ячеек третьего столбца */
 }
+#adminPanel td[contenteditable="true"]:focus {
+  outline: auto; /* или outline: 1px solid blue; для конкретного стиля */
+}
+
+/* Убираем outline у input */
+#adminPanel input[type="text"]:focus {
+  outline: none;
+}
+
+/* Добавляем outline к ячейке при фокусе на input внутри неё */
+#adminPanel td:focus-within {
+  outline: auto; /* Или ваш желаемый стиль outline */
+}
 #controls {
   display: flex;
   flex-wrap: wrap; 
