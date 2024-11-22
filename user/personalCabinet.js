@@ -278,7 +278,12 @@ function displayUserBooks(books) {
   userDebtElement.textContent = `${debtCount}`;
   userDebtElement.style.color = debtCount > 0 ? "#ea242e" : "#41a0ff";
 }
-
+function formatDate(date) {
+  const day = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const year = date.getFullYear();
+  return `${day}.${month}.${year}`;
+}
 //Взятие книги
 let bookToReturn = null; // Переменная для хранения информации о книге
 let isReturnModalOpen = false; // Новая переменная
@@ -541,12 +546,13 @@ function confirmTakeBook() {
     // Рассчитываем срок сдачи
     const dueDate = new Date();
     dueDate.setDate(dueDate.getDate() + 14);
+    const formattedDueDate = formatDate(dueDate); // <--  Форматируем дату
 
     // Добавляем книгу в список взятых книг пользователя
     userBooks.books.push({
       name: bookToTake.Название,
       author: bookToTake.Автор,
-      dueDate: dueDate.toISOString().split("T")[0],
+      dueDate: formattedDueDate, // <--  Используем форматированную дату
     });
 
     // Обновляем данные в LocalStorage
@@ -573,20 +579,6 @@ function confirmTakeBook() {
   }
 }
 
-function calculateDueDate(borrowDays = 14) {
-  // Получаем текущую дату
-  const currentDate = new Date();
-
-  // Добавляем количество дней для возврата
-  currentDate.setDate(currentDate.getDate() + borrowDays);
-
-  // Форматируем дату в удобный вид (например, YYYY-MM-DD)
-  const year = currentDate.getFullYear();
-  const month = String(currentDate.getMonth() + 1).padStart(2, "0"); // Месяцы с 0, поэтому +1
-  const day = String(currentDate.getDate()).padStart(2, "0");
-
-  return `${year}-${month}-${day}`; // Возвращаем дату в формате 'ГГГГ-ММ-ДД'
-}
 
 // Привязываем событие к кнопке подтверждения
 document

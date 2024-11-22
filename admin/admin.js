@@ -425,7 +425,7 @@ function saveEditBook() {
     const cells = row.cells;
 
     const onlineVersion = cells[3]?.firstChild?.value || "";
-    const location = cells[4]?.firstChild?.value || "";      // Из input
+    const location = cells[4]?.firstChild?.value || ""; // Из input
 
     // Валидация URL
     if (onlineVersion && !isValidURL(onlineVersion)) {
@@ -437,8 +437,6 @@ function saveEditBook() {
     } else {
       cells[3]?.firstChild?.classList.remove("invalid-url"); // Убираем ошибку, если URL корректный
     }
-
- 
 
     const newBook = {
       Название: cells[0]?.textContent.trim() || "",
@@ -500,6 +498,9 @@ function searchBook() {
 }
 function openModal() {
   document.getElementById("addBookModal").style.display = "block";
+  setTimeout(() => {
+    document.getElementById("title").focus(); // "title" - id вашего первого поля ввода
+  }, 0); // setTimeout используется для гарантии, что DOM полностью загружен.
 }
 
 function closeModal() {
