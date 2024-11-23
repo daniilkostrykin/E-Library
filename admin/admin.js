@@ -56,10 +56,95 @@ document.addEventListener("DOMContentLoaded", () => {
           // Перемещаем фокус на следующее поле
           formFields[index + 1].focus();
         }
+      } // Добавляем стрелки
+      if (
+        ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(event.key)
+      ) {
+        handleArrowNavigationForForm(event, formFields, index);
       }
     });
   });
 });
+// Навигация по ячейкам и полям формы с помощью стрелок
+function handleArrowNavigationForForm(event, fields, currentIndex) {
+  event.preventDefault();
+  let targetIndex = currentIndex;
+
+  switch (event.key) {
+    case "ArrowUp":
+      targetIndex = Math.max(0, currentIndex - 1);
+      break;
+    case "ArrowDown":
+      targetIndex = Math.min(fields.length - 1, currentIndex + 1);
+      break;
+    case "ArrowLeft":
+      // Для перехода влево по горизонтали, обработка для таблицы
+      break;
+    case "ArrowRight":
+      // Для перехода вправо по горизонтали, обработка для таблицы
+      break;
+  }
+
+  fields[targetIndex].focus(); // Переместить фокус
+}
+
+// Обработка навигации для ячеек таблицы
+function handleArrowNavigation(event, rowIndex, colIndex, table) {
+  const key = event.key;
+  const cell = event.target.closest("td");
+  const isContentEditable = cell && cell.isContentEditable;
+
+  if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(key)) {
+    // Если пользователь в режиме редактирования, проверяем, нужно ли передвигать фокус
+    if (isContentEditable && (key === "ArrowLeft" || key === "ArrowRight")) {
+      const selection = window.getSelection();
+      const cursorPosition = selection.anchorOffset;
+      const textLength = selection.focusNode?.textContent?.length || 0;
+
+      if (
+        (key === "ArrowLeft" && cursorPosition > 0) ||
+        (key === "ArrowRight" && cursorPosition < textLength)
+      ) {
+        return; // Оставляем стандартное поведение, если курсор не в крайнем положении
+      }
+    }
+
+    // Отключаем стандартное поведение стрелок
+    event.preventDefault();
+
+    let targetRow = rowIndex;
+    let targetCol = colIndex;
+
+    switch (key) {
+      case "ArrowUp":
+        targetRow = Math.max(1, rowIndex - 1);
+        break;
+      case "ArrowDown":
+        targetRow = Math.min(table.rows.length - 1, rowIndex + 1);
+        break;
+      case "ArrowLeft":
+        targetCol = Math.max(0, colIndex - 1);
+        break;
+      case "ArrowRight":
+        targetCol = Math.min(
+          table.rows[rowIndex].cells.length - 1,
+          colIndex + 1
+        );
+        break;
+    }
+
+    const targetCell = table.rows[targetRow]?.cells[targetCol];
+    if (targetCell) {
+      const input = targetCell.querySelector("input, textarea");
+      if (input) {
+        input.focus();
+        input.selectionStart = input.selectionEnd = input.value.length;
+      } else {
+        targetCell.focus();
+      }
+    }
+  }
+}
 function processAddBook(title, author, quantity, onlineVersion, location) {
   // Проверка обязательных полей
   if (!title) {
@@ -295,82 +380,6 @@ function displayBooks(books) {
   });
 }
 
-// Обработка навигации по ячейкам таблицы с помощью стрелок
-function handleArrowNavigation(event, rowIndex, colIndex, table) {
-  const key = event.key;
-  const cell = event.target.closest("td");
-  const isContentEditable = cell && cell.isContentEditable;
-
-  if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(key)) {
-    // Если пользователь в режиме редактирования, проверяем, нужно ли передвигать фокус
-    if (isContentEditable && (key === "ArrowLeft" || key === "ArrowRight")) {
-      const selection = window.getSelection();
-      const cursorPosition = selection.anchorOffset;
-      const textLength = selection.focusNode?.textContent?.length || 0;
-
-      if (
-        (key === "ArrowLeft" && cursorPosition > 0) ||
-        (key === "ArrowRight" && cursorPosition < textLength)
-      ) {
-        // Позволяем стандартное поведение, если курсор не в крайнем положении
-        return;
-      }
-    }
-
-    // Отключаем стандартное поведение стрелок
-    event.preventDefault();
-
-    let targetRow = rowIndex;
-    let targetCol = colIndex;
-
-    switch (key) {
-      case "ArrowUp":
-        targetRow = Math.max(1, rowIndex - 1); // Не выходим за заголовок
-        break;
-      case "ArrowDown":
-        targetRow = Math.min(table.rows.length - 1, rowIndex + 1);
-        break;
-      case "ArrowLeft":
-        targetCol = Math.max(0, colIndex - 1);
-        break;
-      case "ArrowRight":
-        targetCol = Math.min(
-          table.rows[rowIndex].cells.length - 1,
-          colIndex + 1
-        );
-        break;
-    }
-
-    // Переместить фокус на целевую ячейку
-    const targetCell = table.rows[targetRow]?.cells[targetCol];
-    if (targetCell) {
-      const input = targetCell.querySelector("input, textarea");
-      if (input) {
-        input.focus();
-        // Для input, установить курсор в конец значения
-        input.selectionStart = input.selectionEnd = input.value.length;
-      } else {
-        targetCell.focus();
-        // Для contenteditable ячеек, установить курсор в конец текста
-        const range = document.createRange();
-        const selection = window.getSelection();
-
-        if (targetCell.childNodes.length > 0) {
-          // ensure there is a childnode to move selection into in cell or add condition in for empty ones handling
-
-          range.setStart(
-            targetCell.childNodes[0],
-            targetCell.childNodes[0].length
-          );
-          range.collapse(true); // Схлопываем выделение, чтобы курсор был в конце
-
-          selection.removeAllRanges();
-          selection.addRange(range);
-        }
-      }
-    }
-  }
-}
 
 let bookToDelete = null; // Переменная для хранения удаляемой книги
 
@@ -489,7 +498,8 @@ function saveEditBook() {
 function cancelEditBook() {
   const books = JSON.parse(localStorage.getItem(BOOKS_KEY)) || [];
   originalBooks = books.map((book) => ({ ...book })); // Обновляем оригинал
-  displayBooks(originalBooks);  document.getElementById("save-changes").disabled = true;
+  displayBooks(originalBooks);
+  document.getElementById("save-changes").disabled = true;
   document.getElementById("cancel").disabled = true;
 }
 // Функция для сохранения массива книг в localStorage
