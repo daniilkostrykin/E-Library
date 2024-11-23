@@ -61,11 +61,14 @@ body {
 #adminPanel td:nth-child(1),
 #adminPanel td:nth-child(2) {
   max-width: 222px;
-
 }
 
-#adminPanel td[contenteditable="true"]:focus {
-  outline: auto; /* или outline: 1px solid blue; для конкретного стиля */
+#adminPanel td[contenteditable="true"]:focus:not(:has(button)) {
+  outline: auto;
+}
+
+#adminPanel td[contenteditable="true"]:focus:has(button) {
+  outline: none;
 }
 
 /* Убираем outline у input */
@@ -74,9 +77,16 @@ body {
 }
 
 /* Добавляем outline к ячейке при фокусе на input внутри неё */
-#adminPanel td:focus-within {
-  outline: auto; /* Или ваш желаемый стиль outline */
+/* Добавляем обводку для ячейки с фокусом на input */
+#adminPanel td:has(input:focus) {
+  outline: auto; /* Или любой стиль обводки */
 }
+
+/* Убираем обводку у самого input */
+#adminPanel td input:focus {
+  outline: none;
+}
+
 #controls {
   display: flex;
   flex-wrap: wrap;
