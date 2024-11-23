@@ -3,7 +3,9 @@ const BOOKS_KEY = "books";
 let addBookFormVisible = false; // Флаг для отслеживания видимости формы
 let originalBooks = []; // Массив книг из localStorage
 document.addEventListener("DOMContentLoaded", () => {
-  originalBooks = JSON.parse(localStorage.getItem(BOOKS_KEY)) || []; //
+  originalBooks =
+    JSON.parse(localStorage.getItem(BOOKS_KEY))?.map((book) => ({ ...book })) ||
+    [];
   document.getElementById("save-changes").disabled = true;
   document.getElementById("cancel").disabled = true;
   displayBooks(originalBooks);
@@ -424,10 +426,28 @@ function saveEditBook() {
     const row = rows[i];
     const cells = row.cells;
 
+    const title = cells[0]?.textContent.trim();
+    const author = cells[1]?.textContent.trim();
+    const quantity = parseInt(cells[2]?.textContent.trim(), 10) || 0;
     const onlineVersion = cells[3]?.firstChild?.value || "";
     const location = cells[4]?.firstChild?.value || ""; // Из input
 
-    // Валидация URL
+    // Проверка на пустые поля
+    if (!title) {
+      hasErrors = true;
+      cells[0].classList.add("error-cell");
+    } else {
+      cells[0].classList.remove("error-cell");
+    }
+
+    if (!author) {
+      hasErrors = true;
+      cells[1].classList.add("error-cell");
+    } else {
+      cells[1].classList.remove("error-cell");
+    }
+
+    // Проверка URL
     if (onlineVersion && !isValidURL(onlineVersion)) {
       showToast("Электронная версия должна иметь корректный URL.");
       cells[3].firstChild.focus();
@@ -439,9 +459,9 @@ function saveEditBook() {
     }
 
     const newBook = {
-      Название: cells[0]?.textContent.trim() || "",
-      Автор: cells[1]?.textContent.trim() || "",
-      Количество: parseInt(cells[2]?.textContent.trim(), 10) || 0,
+      Название: title,
+      Автор: author,
+      Количество: quantity,
       "Электронная версия": onlineVersion,
       Местоположение: location,
     };
@@ -450,13 +470,13 @@ function saveEditBook() {
   }
 
   if (hasErrors) {
-    showToast("Пожалуйста, исправьте ошибки перед сохранением.");
+    showToast("Пожалуйста, заполните все обязательные поля перед сохранением.");
     return;
   }
 
   // Сохраняем данные
   localStorage.setItem(BOOKS_KEY, JSON.stringify(newBooks));
-  originalBooks = [...newBooks]; // Клонируем данные в originalBooks
+  originalBooks = newBooks.map((book) => ({ ...book }));
   displayBooks(newBooks);
 
   // Деактивируем кнопки после успешного сохранения
@@ -467,8 +487,9 @@ function saveEditBook() {
 }
 
 function cancelEditBook() {
-  displayBooks(originalBooks);
-  document.getElementById("save-changes").disabled = true;
+  const books = JSON.parse(localStorage.getItem(BOOKS_KEY)) || [];
+  originalBooks = books.map((book) => ({ ...book })); // Обновляем оригинал
+  displayBooks(originalBooks);  document.getElementById("save-changes").disabled = true;
   document.getElementById("cancel").disabled = true;
 }
 // Функция для сохранения массива книг в localStorage
