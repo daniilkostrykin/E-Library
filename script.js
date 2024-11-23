@@ -20,10 +20,10 @@ signInOverlayButton.addEventListener("click", () => {
   container.classList.remove("right-panel-active");
 });
 
-
 //Регистрация нового пользователя
-function createAccount(event) {
+async function createAccount(event) {
   event.preventDefault();
+
   const name = regForm.elements["reg-name"].value.trim();
   const group = regForm.elements["reg-group"].value.trim();
   const email = regForm.elements["reg-email"].value.trim();
@@ -33,43 +33,25 @@ function createAccount(event) {
   if (!validateRegistration(name, group, email, password, confirmPassword))
     return;
 
-  const accounts = JSON.parse(localStorage.getItem(ACCOUNTS_KEY)) || [];
-
-  if (accounts.some((account) => account.email === email)) {
-    showToast("Аккаунт с таким email уже существует!");
-    return;
+  try {
+    const response = await axios.post("/api/register", {
+      name,
+      group,
+      email,
+      password,
+    });
+    if (response.data.success) {
+      showToast("Аккаунт успешно создан!");
+      regForm.reset();
+      container.classList.remove("right-panel-active");
+    } else {
+      showToast(response.data.message || "Ошибка регистрации");
+    }
+  } catch (error) {
+    handleError(error, "Ошибка при регистрации пользователя");
   }
-  let role = "user";
-  if (name.toLowerCase().includes("librarian")) {
-    role = "librarian";
-  }
-  if (email === "1" && password === "1") {
-    role = "admin";
-    const newAccount = { name, group, email, password, role };
-    accounts.push(newAccount);
-    localStorage.setItem(ACCOUNTS_KEY, JSON.stringify(accounts)); // Сохраняем аккаунт админа
-
-    localStorage.setItem("loggedInEmail", email); // Логиним админа
-    checkRole(); // Перенаправляем в админ панель
-
-    showToast("Вход успешен!");
-    regForm.reset();
-    container.classList.remove("right-panel-active");
-
-    return; // Останавливаем выполнение функции, чтобы не создавать обычный аккаунт
-  }
-
-  // Создаем обычный аккаунт:
-  const newAccount = { name, group, email, password, role };
-  accounts.push(newAccount);
-  localStorage.setItem(ACCOUNTS_KEY, JSON.stringify(accounts));
-
-  updateStudentsInLocalStorage(newAccount);
-
-  showToast("Аккаунт успешно создан!");
-  regForm.reset();
-  container.classList.remove("right-panel-active");
 }
+
 let students = [];
 function updateStudentsInLocalStorage(newStudentData) {
   if (newStudentData.role !== "admin" && newStudentData.role !== "librarian") {
@@ -112,7 +94,7 @@ function updateStudentsInLocalStorage(newStudentData) {
 
 // Авторизация
 signInButton.addEventListener("click", login);
-function login(event) {
+async function login(event) {
   event.preventDefault();
 
   const email = loginForm.elements["email"].value.trim();
@@ -123,29 +105,50 @@ function login(event) {
     return;
   }
 
-  if (email === "1" && password === "1") {
-    window.location.href = "admin/admin0.html";
-    console.log("Вход в административную");
-    return;
-  }
+  try {
+    const response = await axios.post("/api/login", { email, password });
+    const data = response.data;
 
-  const accounts = JSON.parse(localStorage.getItem(ACCOUNTS_KEY)) || [];
+    if (data.success && data.token) {
+      localStorage.setItem("token", data.token); // Токен для последующих запросов
+      showToast("Вы успешно вошли!");
 
-  const account = accounts.find(
-    (account) => account.email === email && account.password === password
-  );
-
-  if (account) {
-    localStorage.setItem("loggedInEmail", account.email);
-    showToast("Вы успешно вошли!");
-
-    setTimeout(() => {
-      checkRole();
-    }, 1000);
-  } else {
-    showToast("Неверный email или пароль!");
+      await getUserInfo(data.token); // Загружаем информацию о пользователе
+      checkRole(); // Перенаправляем по роли
+    } else {
+      showToast(data.message || "Ошибка авторизации");
+    }
+  } catch (error) {
+    handleError(error, "Ошибка при авторизации");
   }
 }
+
+function checkRoleMock() {
+  const role = localStorage.getItem("mockRole"); // Получаем mock роль.
+
+  if (role === "admin") {
+    window.location.href = "admin/admin0.html";
+  } else if (role === "librarian") {
+    window.location.href = "librarian/librarian.html";
+  }
+}
+
+async function getUserInfo(token) {
+  try {
+    const response = await axios.get("/api/user-info", {
+      headers: {
+        Authorization: `Bearer ${token}`, // Передача токена авторизации
+      },
+    });
+
+    const userData = response.data;
+    // Сохраняем роль и другую информацию для дальнейшего использования
+    localStorage.setItem("userData", JSON.stringify(userData));
+  } catch (error) {
+    handleError(error, "Ошибка при получении данных пользователя");
+  }
+}
+
 function validateRegistration(name, group, email, password, confirmPassword) {
   // Валидация имени
   const nameParts = name.trim().split(/\s+/); // Разделяем ФИО на части по пробелам
@@ -178,7 +181,9 @@ function validateRegistration(name, group, email, password, confirmPassword) {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
   if (!emailRegex.test(email)) {
-    showToast("Проверьте правильность написания email. Пример: example@mail.com");
+    showToast(
+      "Проверьте правильность написания email. Пример: example@mail.com"
+    );
     return false;
   }
 
@@ -200,22 +205,21 @@ function validateRegistration(name, group, email, password, confirmPassword) {
 }
 
 function checkRole() {
-  const account = getLoggedInAccount();
+  const userData = JSON.parse(localStorage.getItem("userData"));
 
-  if (!account) {
+  if (!userData) {
+    showToast("Ошибка: пользователь не найден");
     return;
   }
 
-  if (account.role === "admin") {
+  if (userData.role === "admin") {
     window.location.href = "admin/admin0.html";
-  } else if (account.role === "librarian") {
+  } else if (userData.role === "librarian") {
     window.location.href = "librarian/librarian.html";
   } else {
     window.location.href = `user/personalCabinet.html?fio=${encodeURIComponent(
-      account.name
-    )}&group=${encodeURIComponent(account.group)}&id=${encodeURIComponent(
-      account.id
-    )}`;
+      userData.name
+    )}&group=${encodeURIComponent(userData.group)}`;
   }
 }
 
