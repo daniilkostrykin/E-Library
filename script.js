@@ -1,4 +1,7 @@
 // script.js
+// Добавьте эту строку в начале вашего script.js
+axios.defaults.baseURL = "http://localhost:3000";
+
 const ACCOUNTS_KEY = "accounts";
 const STUDENTS_KEY = "students";
 const signUpButton = document.getElementById("signUp");
@@ -31,14 +34,12 @@ async function createAccount(event) {
 
   if (!validateRegistration(name, group, email, password, confirmPassword))
     return;
-  const persons_id = 1;
   try {
-    const response = await axios.post("/register", {
+    const response = await axios.post("/api/auth/register", {
       name,
       group,
       email,
       password,
-      persons_id,
     });
     if (response.data.success) {
       showToast("Аккаунт успешно создан!");
