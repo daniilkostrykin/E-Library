@@ -4,6 +4,7 @@ from flask_bcrypt import Bcrypt
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
 from db import init_db
 from models import register_user, get_user_by_email
+import json 
 
 app = Flask(__name__)
 CORS(app)  # Разрешает запросы с фронтенда
@@ -52,13 +53,15 @@ def login():
         return jsonify({"success": False, "message": "Неверный email или пароль"}), 401
 
     # Генерация JWT токена
-    token = create_access_token(identity={"id": user["id"], "role": user.get("role", "user")})
+    identity = {"id": user["id"], "role": user.get("role", "user")}
+    token = create_access_token(identity=json.dumps(identity))  # <--  Изменение здесь
     return jsonify({"success": True, "token": token}), 200
 
 @app.route("/api/auth/user-info", methods=["GET"])
 @jwt_required()
 def user_info():
-    current_user = get_jwt_identity()
+    current_user_json = get_jwt_identity()  # <-- Присваиваем результат get_jwt_identity()
+    current_user = json.loads(current_user_json) # Обратно в словарь
     return jsonify({"success": True, "user": current_user}), 200
 
 if __name__ == "__main__":
