@@ -1,4 +1,5 @@
-
+//database.js
+import axios from 'axios';
 const { Sequelize } = require("sequelize");
 require("dotenv").config();
 
