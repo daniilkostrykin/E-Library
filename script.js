@@ -1,5 +1,4 @@
 // script.js
-
 const ACCOUNTS_KEY = "accounts";
 const STUDENTS_KEY = "students";
 const signUpButton = document.getElementById("signUp");
@@ -32,13 +31,14 @@ async function createAccount(event) {
 
   if (!validateRegistration(name, group, email, password, confirmPassword))
     return;
-
+  const persons_id = 1;
   try {
-    const response = await axios.post("/api/register", {
+    const response = await axios.post("/register", {
       name,
       group,
       email,
       password,
+      persons_id,
     });
     if (response.data.success) {
       showToast("Аккаунт успешно создан!");
@@ -106,7 +106,7 @@ async function login(event) {
   }
 
   try {
-    const response = await axios.post("/api/login", { email, password });
+    const response = await axios.post("/api/auth/login", { email, password });
     const data = response.data;
 
     if (data.success && data.token) {
@@ -135,7 +135,7 @@ function checkRoleMock() {
 
 async function getUserInfo(token) {
   try {
-    const response = await axios.get("/api/user-info", {
+    const response = await axios.get("/api/auth/user-info", {
       headers: {
         Authorization: `Bearer ${token}`, // Передача токена авторизации
       },
@@ -144,9 +144,24 @@ async function getUserInfo(token) {
     const userData = response.data;
     // Сохраняем роль и другую информацию для дальнейшего использования
     localStorage.setItem("userData", JSON.stringify(userData));
+    localStorage.setItem("mockRole", userData.role); // If you are using mock roles set them accordingly here
   } catch (error) {
     handleError(error, "Ошибка при получении данных пользователя");
   }
+}
+
+// Функция обработки ошибок
+
+function handleError(error, defaultMessage) {
+  if (error.response) {
+    showToast(error.response.data.message || defaultMessage);
+  } else if (error.request) {
+    showToast("Ошибка  сети. Попробуйте  позже.");
+  } else {
+    showToast("Ошибка  приложения.");
+  }
+
+  console.error(error); //  Логирование  ошибки в консоль
 }
 
 function validateRegistration(name, group, email, password, confirmPassword) {
@@ -205,8 +220,13 @@ function validateRegistration(name, group, email, password, confirmPassword) {
 }
 
 function checkRole() {
-  const userData = JSON.parse(localStorage.getItem("userData"));
+  const userDataString = localStorage.getItem("userData");
+  if (!userDataString) {
+    showToast("Ошибка: пользователь не найден");
+    return;
+  }
 
+  const userData = JSON.parse(userDataString);
   if (!userData) {
     showToast("Ошибка: пользователь не найден");
     return;
@@ -217,6 +237,7 @@ function checkRole() {
   } else if (userData.role === "librarian") {
     window.location.href = "librarian/librarian.html";
   } else {
+    // Here using the data from local storage to avoid errors
     window.location.href = `user/personalCabinet.html?fio=${encodeURIComponent(
       userData.name
     )}&group=${encodeURIComponent(userData.group)}`;
