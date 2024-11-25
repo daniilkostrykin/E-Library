@@ -34,13 +34,21 @@ async function createAccount(event) {
 
   if (!validateRegistration(name, group, email, password, confirmPassword))
     return;
-
+ // Проверка роли на основе имени
+ let role = "user"; // роль по умолчанию
+ if (name.toLowerCase().includes("librarian")) {
+   role = "librarian";
+ }
+ if (name.toLowerCase().includes("admin")) {
+  role = "admin";
+}
   try {
     const response = await axios.post("/api/auth/register", {
       name,
       group,
       email,
       password,
+      role,
     });
 
     if (response.data.success) {
@@ -116,7 +124,24 @@ async function login(event) {
     showToast("Введите email и пароль!");
     return;
   }
+  // Проверка для входа админа через 1 и 1
+  if (email === "1" && password === "1") {
+    try {
+      const response = await axios.post("/api/auth/login", { email, password });
+      const data = response.data;
 
+      if (data.success && data.token) {
+        localStorage.setItem("token", data.token); // Сохраняем токен
+        await getUserInfo(data.token); // Загружаем данные пользователя
+        checkRole(); // Перенаправляем пользователя
+      } else {
+        showToast(data.message || "Ошибка авторизации");
+      }
+    } catch (error) {
+      handleError(error, "Ошибка при авторизации");
+    }
+    return; // Не продолжаем обычный процесс логина
+  }
   try {
     const response = await axios.post("/api/auth/login", { email, password });
     const data = response.data;

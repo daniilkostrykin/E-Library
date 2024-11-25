@@ -24,9 +24,12 @@ def home():
     return "API is running. Use /api/auth/register or /api/auth/login endpoints."
 
 # Маршруты для аутентификации находятся под префиксом /api/auth/
+
 @app.route("/api/auth/register", methods=["POST"])
 def register():
     data = request.get_json()
+    app.logger.debug(f"Received data: {data}")  # Логируем полученные данные
+
     name = data.get("name")
     group = data.get("group")
     email = data.get("email")
@@ -35,13 +38,22 @@ def register():
     if not (name and group and email and password):
         return jsonify({"success": False, "message": "Все поля обязательны"}), 400
 
-    # Хэшируем пароль
+    role = "user"
+    if "librarian" in name.lower():
+        role = "librarian"
+    if "admin" in name.lower():
+        role = "admin"
+    app.logger.debug(f"Assigned role: {role}")  # Логируем присвоенную роль
+
     hashed_password = bcrypt.generate_password_hash(password).decode("utf-8")
+    app.logger.debug("Password hashed successfully")  # Подтверждаем хэширование
 
     try:
-        user_id = register_user(conn, name, group, email, hashed_password)
+        user_id = register_user(conn, name, group, email, hashed_password, role)
+        app.logger.debug(f"User registered with ID: {user_id}")  # Логируем ID нового пользователя
         return jsonify({"success": True, "userId": user_id}), 201
     except Exception as e:
+        app.logger.error(f"Error during registration: {e}")  # Логируем ошибку
         return jsonify({"success": False, "message": str(e)}), 500
 
 @app.route("/api/auth/login", methods=["POST"])
@@ -140,6 +152,15 @@ def return_book_route():
         return jsonify({"success": True, "message": "Книга успешно возвращена"}), 200
     except Exception as e:
         return jsonify({"success": False, "message": str(e)}), 500
+@app.before_request
+def handle_options_request():
+    if request.method == "OPTIONS":
+        response = app.response_class()
+        response.headers["Access-Control-Allow-Origin"] = "http://127.0.0.1:5500"
+        response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS"
+        response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
+        response.headers["Access-Control-Allow-Credentials"] = "true"
+        return response, 200
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=3000, debug=True)

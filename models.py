@@ -1,14 +1,14 @@
 import psycopg2.extras
 
-def register_user(conn, name, group, email, password):
+def register_user(conn, name, group, email, password, role):
     with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
         cur.execute(
             """
-            INSERT INTO users (name, group_name, email, password)
-            VALUES (%s, %s, %s, %s)
+            INSERT INTO users (name, group_name, email, password, role)
+            VALUES (%s, %s, %s, %s, %s)
             RETURNING id
             """,
-            (name, group, email, password),
+            (name, group, email, password, role),
         )
         user_id = cur.fetchone()["id"]
         return user_id
