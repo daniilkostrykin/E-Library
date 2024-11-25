@@ -56,7 +56,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         throw new Error("Данные аккаунта не найдены.");
       }
       console.log("Текущий аккаунт:", account);
-      // displayUserInfo(account); // Отображаем информацию о текущем пользователе
+      displayUserInfo(account); // Отображаем информацию о текущем пользователе
     }
     console.log("Токен из localStorage:", token);
     console.log("URL Parameters:", urlParams);
@@ -89,6 +89,7 @@ async function displayStudentInfo(studentId) {
 
 function getURLParams() {
   const params = new URLSearchParams(window.location.search);
+
   return {
     fio:
       params.get("fio") === "undefined"
@@ -100,7 +101,21 @@ function getURLParams() {
         : decodeURIComponent(params.get("group")),
   };
 }
+function displayUserInfo(account) {
+  document.getElementById("user-name").textContent = account.name || ""; // fio в userData   нет
 
+  document.getElementById("user-group").textContent = account.group || "";
+
+  document.getElementById("user-debt").textContent = 0; //  установи начальное значение,  пока не  загружены данные о  задолженностях
+
+  // если нужно отображать список  книг или другие данные, вызывай соотв. функции,
+  // например
+  // displayUserBooks(loadUserBooks(account.id))
+
+  if (account.role === "librarian" || account.role === "admin") {
+    // .... вызови функцию  для поиска книг если нужно
+  }
+}
 async function getLoggedInAccount() {
   try {
     const token = localStorage.getItem("token");
