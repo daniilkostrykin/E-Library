@@ -108,13 +108,13 @@ function displayUserInfo(account) {
 
   document.getElementById("user-debt").textContent = 0; //  установи начальное значение,  пока не  загружены данные о  задолженностях
 
-  // если нужно отображать список  книг или другие данные, вызывай соотв. функции,
-  // например
-  // displayUserBooks(loadUserBooks(account.id))
-
-  if (account.role === "librarian" || account.role === "admin") {
-    // .... вызови функцию  для поиска книг если нужно
-  }
+   // Отображение формы поиска для администраторов и библиотекарей
+   const searchForm = document.getElementById("searchForm");
+   if (account.role === "librarian" || account.role === "admin") {
+     searchForm.style.display = "block"; // Показываем форму поиска
+   } else {
+     searchForm.style.display = "none"; // Скрываем форму поиска для студентов
+   }
 }
 async function getLoggedInAccount() {
   try {
