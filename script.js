@@ -34,6 +34,7 @@ async function createAccount(event) {
 
   if (!validateRegistration(name, group, email, password, confirmPassword))
     return;
+
   try {
     const response = await axios.post("/api/auth/register", {
       name,
@@ -41,10 +42,20 @@ async function createAccount(event) {
       email,
       password,
     });
+
     if (response.data.success) {
       showToast("Аккаунт успешно создан!");
       regForm.reset();
       container.classList.remove("right-panel-active");
+
+      // Автоматический вход после регистрации
+      const loginResponse = await axios.post("/api/auth/login", {
+        email,
+        password,
+      });
+      localStorage.setItem("token", loginResponse.data.token);
+      await getUserInfo(loginResponse.data.token);
+      checkRole(); // Перенаправление по роли
     } else {
       showToast(response.data.message || "Ошибка регистрации");
     }
@@ -111,11 +122,9 @@ async function login(event) {
     const data = response.data;
 
     if (data.success && data.token) {
-      localStorage.setItem("token", data.token); // Токен для последующих запросов
-      showToast("Вы успешно вошли!");
-
-      await getUserInfo(data.token); // Загружаем информацию о пользователе
-      checkRole(); // Перенаправляем по роли
+      localStorage.setItem("token", data.token); // Сохраняем токен
+      await getUserInfo(data.token); // Загружаем данные пользователя
+      checkRole(); // Перенаправляем пользователя
     } else {
       showToast(data.message || "Ошибка авторизации");
     }
@@ -133,21 +142,27 @@ function checkRoleMock() {
     window.location.href = "librarian/librarian.html";
   }
 }
-
 async function getUserInfo(token) {
   try {
     const response = await axios.get("/api/auth/user-info", {
       headers: {
-        Authorization: `Bearer ${token}`, // Передача токена авторизации
+        Authorization: `Bearer ${token}`,
       },
     });
 
     const userData = response.data;
-    // Сохраняем роль и другую информацию для дальнейшего использования
+
+    // Сохраняем данные пользователя
     localStorage.setItem("userData", JSON.stringify(userData));
-    localStorage.setItem("mockRole", userData.role); // If you are using mock roles set them accordingly here
   } catch (error) {
-    handleError(error, "Ошибка при получении данных пользователя");
+    if (error.response && error.response.status === 401) {
+      // Если токен недействителен
+      showToast("Сессия истекла. Выполните вход снова.");
+      localStorage.removeItem("token");
+      window.location.href = "index.html";
+    } else {
+      handleError(error, "Ошибка при получении данных пользователя");
+    }
   }
 }
 
@@ -220,28 +235,42 @@ function validateRegistration(name, group, email, password, confirmPassword) {
   return true;
 }
 
-function checkRole() {
-  const userDataString = localStorage.getItem("userData");
-  if (!userDataString) {
-    showToast("Ошибка: пользователь не найден");
-    return;
-  }
+async function checkRole() {
+  // ... (остальной код)
 
-  const userData = JSON.parse(userDataString);
-  if (!userData) {
-    showToast("Ошибка: пользователь не найден");
-    return;
-  }
+  try {
+    const userDataString = localStorage.getItem("userData");
 
-  if (userData.role === "admin") {
-    window.location.href = "admin/admin0.html";
-  } else if (userData.role === "librarian") {
-    window.location.href = "librarian/librarian.html";
-  } else {
-    // Here using the data from local storage to avoid errors
-    window.location.href = `user/personalCabinet.html?fio=${encodeURIComponent(
-      userData.name
-    )}&group=${encodeURIComponent(userData.group)}`;
+    if (!userDataString) {
+      // более надежная проверка. userDataString может быть и пустая строка
+      //Обработка ситуации, когда данных о пользователе нет
+      console.error("Данные пользователя не найдены в localStorage.");
+      showToast("Ошибка авторизации. Попробуйте снова.");
+      localStorage.removeItem("token"); // очищаем токен, т.к. авторизация провалена.
+      return;
+    }
+
+    const userData = JSON.parse(userDataString).user; // <--- обращаемся к свойству .user
+
+    if (userData.user) {
+      userData = userData.user; // Если есть свойство user, то используем его
+    }
+
+    const fio = encodeURIComponent(userData.name);
+    const group = encodeURIComponent(userData.group);
+
+    if (userData.role === "admin") {
+      window.location.href = "admin/admin0.html";
+    } else if (userData.role === "librarian") {
+      window.location.href = "librarian/librarian.html";
+    } else {
+      window.location.href = `user/personalCabinet.html?fio=${fio}&group=${group}&id=${userData.id}`;
+      //  Важно убедиться, что 'userData' содержит корректную информацию до редиректа
+    }
+  } catch (e) {
+    // обработать ошибку парсинга
+    console.error("Ошибка обработки данных пользователя:", e);
+    showToast("Ошибка обработки данных пользователя.");
   }
 }
 
