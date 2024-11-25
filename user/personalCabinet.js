@@ -1,9 +1,22 @@
 // personalCabinet.js
+axios.defaults.baseURL = "http://localhost:3000";
+
 const BOOKS_KEY = "books";
 const STUDENTS_KEY = "students"; //  Ключ для студентов
 const TAKEN_BOOKS_KEY = "takenBooks"; //  Ключ для взятых книг
 function goToLibrary() {
   window.location.href = "../library/library.html";
+}
+function logout() {
+  localStorage.removeItem("token"); //  удалить  токен после  выхода
+
+  localStorage.removeItem("loggedInEmail");
+
+  localStorage.removeItem("currentStudentId");
+
+  window.location.href = "../index.html";
+
+  console.log("Logged out and redirected to index.html"); // все выходы обработаны одинакого
 }
 /*
 document.addEventListener("DOMContentLoaded", () => {
@@ -19,11 +32,12 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   const urlParams = getURLParams();
   console.log("URL Params:", urlParams);
+  console.log("Axios base URL:", axios.defaults.baseURL);
 
-  const jwtToken = localStorage.getItem("jwtToken");
-  if (!jwtToken) {
+  const token = localStorage.getItem("token");
+  if (!token) {
     console.warn("JWT токен отсутствует. Редирект на страницу входа.");
-   // window.location.href = "../index.html";
+    // window.location.href = "../index.html";
     return;
   }
 
@@ -33,6 +47,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (urlParams.id) {
       const studentId = parseInt(urlParams.id, 10);
       console.log("ID студента:", studentId);
+      console.log("Account:", account); // проверь  account  перед использованием
       await displayStudentInfo(studentId); // Получаем и отображаем данные студента
     } else {
       console.log("Загружаем текущий аккаунт...");
@@ -41,19 +56,17 @@ document.addEventListener("DOMContentLoaded", async () => {
         throw new Error("Данные аккаунта не найдены.");
       }
       console.log("Текущий аккаунт:", account);
-      displayUserInfo(account); // Отображаем информацию о текущем пользователе
+      // displayUserInfo(account); // Отображаем информацию о текущем пользователе
     }
-    console.log("Токен из localStorage:", jwtToken);
-console.log("URL Parameters:", urlParams);
-console.log("Полученный аккаунт:", account);
-
+    console.log("Токен из localStorage:", token);
+    console.log("URL Parameters:", urlParams);
+    console.log("Полученный аккаунт:", account);
   } catch (error) {
     console.error("Ошибка при загрузке данных:", error);
     showToast("Ошибка загрузки данных.");
-   // window.location.href = "../index.html"; // Редирект на главную при ошибке
+    // window.location.href = "../index.html"; // Редирект на главную при ошибке
   }
 });
-
 
 async function displayStudentInfo(studentId) {
   try {
@@ -77,23 +90,54 @@ async function displayStudentInfo(studentId) {
 function getURLParams() {
   const params = new URLSearchParams(window.location.search);
   return {
-     fio: params.get("fio") === "undefined" ? null : decodeURIComponent(params.get("fio")),
-     group: params.get("group") === "undefined" ? null : decodeURIComponent(params.get("group")),
+    fio:
+      params.get("fio") === "undefined"
+        ? null
+        : decodeURIComponent(params.get("fio")),
+    group:
+      params.get("group") === "undefined"
+        ? null
+        : decodeURIComponent(params.get("group")),
   };
 }
 
 async function getLoggedInAccount() {
   try {
-    const jwtToken = localStorage.getItem("jwtToken");
-
-    if (!jwtToken) {
+    const token = localStorage.getItem("token");
+    console.log("Token:", token); // добавлено.  Проверь, есть ли токен.
+    const decodedToken = jwt_decode(token); // если 'jwt-decode' установлен
+    console.log("Decoded Token:", decodedToken);
+    const userIdFromToken = decodedToken?.id; // пример для decodedToken, если парсится, иначе возьми из response
+    if (!token) {
       console.warn("JWT токен отсутствует. Пользователь не залогинен.");
       return null;
     }
+    /*   if (token) {
+      try {
+        const decoded = jwt_decode(token);
+        console.log(decoded);
+        //  например decoded.id, decoded.role
+      } catch (error) {
+        console.error("Ошибка декодирования JWT:", error);
+      }
+    }*/
 
+    try {
+      const sub = JSON.parse(decodedToken.sub); // <-  распарсить строку в объект
+      const userIdFromToken = sub.id;
+      console.log("userIdFromToken:", userIdFromToken, typeof userIdFromToken);
+    } catch (err) {
+      console.error(
+        "Failed  to  parse  'sub'  from JWT: ",
+        err,
+        decodedToken.sub
+      ); // обработай как-то, верни null  например.
+
+      return null; // например
+    }
     const response = await axios.get("/api/auth/user-info", {
       headers: {
-        Authorization: `Bearer ${jwtToken}`, // Добавляем токен в заголовок
+        Authorization: `Bearer ${token}`, // Добавляем токен в заголовок
       },
     });
 
@@ -131,7 +175,6 @@ async function returnBook(bookId, studentId) {
     showToast("Ошибка возврата книги.");
   }
 }
-
 
 function displayUserBooks(books) {
   const loggedInAccount = getLoggedInAccount();
@@ -250,8 +293,8 @@ function displayUserBooks(books) {
   userDebtElement.style.color = debtCount > 0 ? "#ea242e" : "#41a0ff";
 }
 function formatDate(date) {
-  const day = String(date.getDate()).padStart(2, '0');
-  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, "0");
+  const month = String(date.getMonth() + 1).padStart(2, "0");
   const year = date.getFullYear();
   return `${day}.${month}.${year}`;
 }
@@ -360,22 +403,21 @@ document
   .getElementById("confirmReturnBtn")
   .addEventListener("click", confirmReturnBook);
 
-  function searchBookSetup() {
-    const searchInput = document.getElementById("searchInput");
-    searchInput.addEventListener("input", async () => {
-      const query = searchInput.value.trim().toLowerCase();
-      try {
-        const response = await axios.get(`/api/books`, {
-          params: { query },
-        });
-        displayBooks(response.data);
-      } catch (error) {
-        console.error("Error fetching books:", error);
-        showToast("Ошибка поиска книг.");
-      }
-    });
-  }
-  
+function searchBookSetup() {
+  const searchInput = document.getElementById("searchInput");
+  searchInput.addEventListener("input", async () => {
+    const query = searchInput.value.trim().toLowerCase();
+    try {
+      const response = await axios.get(`/api/books`, {
+        params: { query },
+      });
+      displayBooks(response.data);
+    } catch (error) {
+      console.error("Error fetching books:", error);
+      showToast("Ошибка поиска книг.");
+    }
+  });
+}
 
 function searchBook() {
   document.getElementById("booksTable").style.display = "none"; // изначально  скрываем  таблицу
@@ -546,7 +588,6 @@ function confirmTakeBook() {
     closeTakeModal();
   }
 }
-
 
 // Привязываем событие к кнопке подтверждения
 document
@@ -754,32 +795,7 @@ function saveTakenBooksToLocalStorage(takenBooks) {
   localStorage.setItem(TAKEN_BOOKS_KEY, JSON.stringify(takenBooks));
 }
 
-function logout() {
-  const account = getLoggedInAccount();
-  // Если есть аккаунт и это библиотекарь или админ, перенаправляем на страницу library
-  if (account && (account.role === "admin" || account.role === "librarian")) {
-    if (account.role === "admin") {
-      window.location.href = "../admin/admin0.html";
-    } else if (account.role === "librarian") {
-      window.location.href = "../librarian/librarian.html";
-    }
-
-    console.log("Logged out and returned to librarian/admin page.");
-  } else {
-    //  Иначе -  это обычный  студент
-
-    localStorage.removeItem("loggedInEmail"); // Удаляем информацию  о  залогиненном пользователе
-
-    localStorage.removeItem("currentStudentId");
-
-    window.location.href = "../index.html"; //  Перенаправляем  на  страницу  авторизации
-
-    console.log("Logged  out as student  and redirected to index.html");
-  }
-}
-
-
-
+/*
 function displayStudentInfo(studentData, studentId) {
   // Отобразить информацию студента, скрыв данные пользователя
   document.getElementById("user-name").textContent = studentData.fio;
@@ -804,3 +820,4 @@ function displayStudentInfo(studentData, studentId) {
     //  Дополнительно: можете добавить здесь логику для кнопки "Сдать книгу", если нужно
   }
 }
+*/

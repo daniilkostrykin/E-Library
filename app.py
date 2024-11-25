@@ -79,7 +79,7 @@ def user_info():
       current_user = get_jwt_identity()
       user_data_dict = json.loads(current_user)  # Преобразование  обратно в  словарь
       user_id = user_data_dict["id"]
-
+      app.logger.debug(f"user_id from JWT: {user_id}")  #<---  логируем id из jwt
       with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
           cur.execute("SELECT id, role, name, group_name FROM users WHERE id = %s", (user_id,))
           user = cur.fetchone()
@@ -95,6 +95,8 @@ def user_info():
               "name": user["name"],
               "group": user["group_name"]
           }
+          app.logger.debug(f"User from DB: {user}") #<--- логируем результат запроса
+
           return jsonify({"user": user_data})
 
   except Exception as e: #  except  теперь  обрабатывает  все ошибки в try  блоке.
