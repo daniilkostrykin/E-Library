@@ -13,7 +13,7 @@ CORS(app)  # Разрешает запросы с фронтенда
 bcrypt = Bcrypt(app)
 
 # Настройка JWT
-app.config["JWT_SECRET_KEY"] = "your-secret-key"  # Замените на ваш секретный ключ
+app.config["JWT_SECRET_KEY"] = "my-secret-key"  
 jwt = JWTManager(app)
 
 # Подключение к базе данных
@@ -71,17 +71,6 @@ def login():
     token = create_access_token(identity=json.dumps(identity))  # <--  Изменение здесь
     return jsonify({"success": True, "token": token}), 200
 
-from flask import jsonify
-from flask_jwt_extended import jwt_required, get_jwt_identity
-
-
-from flask import jsonify
-from flask_jwt_extended import jwt_required, get_jwt_identity
-import json
-
-from flask import jsonify
-from flask_jwt_extended import jwt_required, get_jwt_identity
-import json
 
 @app.route('/api/auth/user-info', methods=['GET'])
 @jwt_required()
