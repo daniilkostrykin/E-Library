@@ -2,10 +2,10 @@
 const BOOKS_KEY = "books";
 let addBookFormVisible = false; // Флаг для отслеживания видимости формы
 let originalBooks = []; // Массив книг из localStorage
-document.addEventListener("DOMContentLoaded", () => {
-  originalBooks =
-    JSON.parse(localStorage.getItem(BOOKS_KEY))?.map((book) => ({ ...book })) ||
-    [];
+document.addEventListener("DOMContentLoaded", async () => {
+  // Загружаем книги с сервера и сохраняем их в originalBooks
+  await updateBookTable();
+
   document.getElementById("save-changes").disabled = true;
   document.getElementById("cancel").disabled = true;
   displayBooks(originalBooks);
@@ -14,24 +14,25 @@ document.addEventListener("DOMContentLoaded", () => {
     event.preventDefault();
     searchBook();
   });
-
   document.getElementById("addBookBtn").addEventListener("click", addBook);
   document
     .getElementById("save-changes")
     .addEventListener("click", saveEditBook);
   document.getElementById("cancel").addEventListener("click", cancelEditBook);
   document.getElementById("back-button").addEventListener("click", back);
-  const addBookForm = document.getElementById("addBookForm"); // Предполагаемый id вашей формы
 
-  addBookForm.addEventListener("submit", (event) => {
-    event.preventDefault(); // Prevent form from submitting normally
+  const addBookForm = document.getElementById("addBookForm");
+
+  addBookForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
 
     const title = document.getElementById("title").value;
     const author = document.getElementById("author").value;
     const quantity = parseInt(document.getElementById("quantity").value, 10);
     const onlineVersion = document.getElementById("onlineVersion").value;
     const location = document.getElementById("location").value;
-    const success = processAddBook(
+
+    const success = await processAddBook(
       title,
       author,
       quantity,
@@ -42,6 +43,7 @@ document.addEventListener("DOMContentLoaded", () => {
       closeModal();
     }
   });
+
   // Логика перехода между полями с помощью Enter
   const formFields = addBookForm.querySelectorAll("input, textarea, select");
   formFields.forEach((field, index) => {
@@ -65,6 +67,17 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 });
+// Обновление таблицы с книгами
+async function updateBookTable() {
+  try {
+    const response = await axios.get('/api/books'); // Предполагаемый эндпоинт
+    originalBooks = response.data;
+    displayBooks(originalBooks);
+  } catch (error) {
+    console.error("Ошибка при загрузке данных с сервера", error);
+    showToast("Не удалось загрузить данные. Попробуйте позже.");
+  }
+}
 // Навигация по ячейкам и полям формы с помощью стрелок
 function handleArrowNavigationForForm(event, fields, currentIndex) {
   event.preventDefault();
@@ -145,7 +158,7 @@ function handleArrowNavigation(event, rowIndex, colIndex, table) {
     }
   }
 }
-function processAddBook(title, author, quantity, onlineVersion, location) {
+async function processAddBook(title, author, quantity, onlineVersion, location) {
   // Проверка обязательных полей
   if (!title) {
     showToast("Введите название книги.");
@@ -173,25 +186,24 @@ function processAddBook(title, author, quantity, onlineVersion, location) {
     return false;
   }
 
-  // Создание объекта книги
   const newBook = {
     Название: title,
     Автор: author,
-    Количество: quantityNum,
+    Количество: quantity,
     "Электронная версия": onlineVersion,
     Местоположение: location,
   };
 
-  // Добавление книги в localStorage
-  const books = JSON.parse(localStorage.getItem(BOOKS_KEY)) || [];
-  books.push(newBook);
-  localStorage.setItem(BOOKS_KEY, JSON.stringify(books));
-
-  // Обновление отображения
-  originalBooks = JSON.parse(localStorage.getItem(BOOKS_KEY));
-  displayBooks(books);
-
-  return true;
+  try {
+    await axios.post('/api/books', newBook); // Эндпоинт для добавления
+    await updateBookTable();
+    showToast("Книга успешно добавлена!");
+    return true;
+  } catch (error) {
+    console.error("Ошибка при добавлении книги", error);
+    showToast("Не удалось добавить книгу. Попробуйте позже.");
+    return false;
+  }
 }
 
 function showError(inputField, message) {
@@ -380,7 +392,6 @@ function displayBooks(books) {
   });
 }
 
-
 let bookToDelete = null; // Переменная для хранения удаляемой книги
 
 function openDeleteModal(bookName, row) {
@@ -395,17 +406,19 @@ function closeDeleteModal() {
   bookToDelete = null; // Очищаем переменную
 }
 
-function confirmDeleteBook() {
-  if (bookToDelete) {
-    const { bookName, row } = bookToDelete;
 
-    const books = JSON.parse(localStorage.getItem(BOOKS_KEY)) || [];
-    const filteredBooks = books.filter((book) => book.Название !== bookName);
+// Удаление книги
+async function confirmDeleteBook() {
+  if (!bookToDelete) return;
 
-    localStorage.setItem(BOOKS_KEY, JSON.stringify(filteredBooks));
-    row.remove(); // Удаляем строку из таблицы
+  try {
+    await axios.delete(`/api/books/${bookToDelete.bookName}`); // Эндпоинт удаления
+    await updateBookTable();
     closeDeleteModal();
-    showToast(`Книга "${bookName}" успешно удалена.`);
+    showToast(`Книга "${bookToDelete.bookName}" успешно удалена.`);
+  } catch (error) {
+    console.error("Ошибка при удалении книги", error);
+    showToast("Не удалось удалить книгу. Попробуйте позже.");
   }
 }
 
@@ -424,7 +437,9 @@ function updateCellColor(cell, value) {
   }
 }
 
-function saveEditBook() {
+
+// Сохранение изменений
+async function saveEditBook() {
   const table = document.getElementById("bookTable");
   const rows = table.rows;
   const newBooks = [];
@@ -474,25 +489,16 @@ function saveEditBook() {
       "Электронная версия": onlineVersion,
       Местоположение: location,
     };
-
-    newBooks.push(newBook);
   }
 
-  if (hasErrors) {
-    showToast("Пожалуйста, заполните все обязательные поля перед сохранением.");
-    return;
+  try {
+    await axios.put('/api/books', updatedBooks); // Эндпоинт для обновления
+    await updateBookTable();
+    showToast("Изменения успешно сохранены.");
+  } catch (error) {
+    console.error("Ошибка при сохранении изменений", error);
+    showToast("Не удалось сохранить изменения. Попробуйте позже.");
   }
-
-  // Сохраняем данные
-  localStorage.setItem(BOOKS_KEY, JSON.stringify(newBooks));
-  originalBooks = newBooks.map((book) => ({ ...book }));
-  displayBooks(newBooks);
-
-  // Деактивируем кнопки после успешного сохранения
-  document.getElementById("save-changes").disabled = true;
-  document.getElementById("cancel").disabled = true;
-
-  showToast("Изменения сохранены.");
 }
 
 function cancelEditBook() {
