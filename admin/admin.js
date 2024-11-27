@@ -1,7 +1,7 @@
 //admin.js
 const BOOKS_KEY = "books";
 let addBookFormVisible = false; // Флаг для отслеживания видимости формы
-let originalBooks = []; // Массив книг из localStorage
+let originalBooks = [];
 document.addEventListener("DOMContentLoaded", async () => {
   // Загружаем книги с сервера и сохраняем их в originalBooks
   await updateBookTable();
@@ -501,38 +501,42 @@ async function saveEditBook() {
   }
 }
 
-function cancelEditBook() {
-  const books = JSON.parse(localStorage.getItem(BOOKS_KEY)) || [];
-  originalBooks = books.map((book) => ({ ...book })); // Обновляем оригинал
-  displayBooks(originalBooks);
-  document.getElementById("save-changes").disabled = true;
-  document.getElementById("cancel").disabled = true;
-}
-// Функция для сохранения массива книг в localStorage
-function saveBooksToLocalStorage(books) {
-  localStorage.setItem(BOOKS_KEY, JSON.stringify(books)); // Сохраняем обновленный массив
+async function cancelEditBook() {
+  try {
+    // Загружаем актуальный список книг с сервера
+    const response = await axios.get('/api/books'); // Эндпоинт для получения всех книг
+    const books = response.data;
+
+    originalBooks = books.map((book) => ({ ...book })); // Обновляем оригинал
+    displayBooks(originalBooks);
+
+    // Отключаем кнопки после отмены редактирования
+    document.getElementById("save-changes").disabled = true;
+    document.getElementById("cancel").disabled = true;
+  } catch (error) {
+    console.error("Ошибка при отмене редактирования", error);
+    showToast("Не удалось отменить изменения. Попробуйте позже.");
+  }
 }
 
-function searchBook() {
-  const books = JSON.parse(localStorage.getItem(BOOKS_KEY)) || [];
+async function searchBook() {
   const query = document.getElementById("searchInput").value.toLowerCase();
 
-  if (query.length === 0) {
-    displayBooks(books);
-  } else {
-    const filteredBooks = books.filter(
-      (book) =>
-        book.Название.toLowerCase().includes(query) ||
-        book.Автор.toLowerCase().includes(query)
-    );
+  try {
+    const response = await axios.get('/api/books/search', { params: { query } }); // Предполагаемый эндпоинт поиска
+    const books = response.data;
 
-    if (filteredBooks.length) {
-      displayBooks(filteredBooks);
+    if (books.length) {
+      displayBooks(books);
     } else {
       showToast("Совпадений не найдено!");
     }
+  } catch (error) {
+    console.error("Ошибка при поиске книг", error);
+    showToast("Не удалось выполнить поиск. Попробуйте позже.");
   }
 }
+
 function openModal() {
   document.getElementById("addBookModal").style.display = "block";
   setTimeout(() => {
