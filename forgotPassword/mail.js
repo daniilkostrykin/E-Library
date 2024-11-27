@@ -26,8 +26,14 @@ document
 function isValidEmail(email) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
-function checkAccountExists(email) {
-  const accounts = JSON.parse(localStorage.getItem("accounts")) || [];
-
-  return accounts.some((account) => account.email === email);
+async function checkAccountExists(email) {
+  try {
+    const response = await axios.get('/api/accounts', { params: { email } }); 
+    // Эндпоинт должен возвращать данные о наличии аккаунта с указанным email.
+    
+    return response.data.exists; // Предполагается, что сервер возвращает { exists: true/false }
+  } catch (error) {
+    console.error("Ошибка при проверке существования аккаунта:", error);
+    return false; // Можно вернуть false или бросить ошибку в зависимости от бизнес-логики
+  }
 }

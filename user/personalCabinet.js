@@ -12,8 +12,6 @@ function logout() {
 
   localStorage.removeItem("loggedInEmail");
 
-  localStorage.removeItem("currentStudentId");
-
   window.location.href = "../index.html";
 
   console.log("Logged out and redirected to index.html"); // все выходы обработаны одинакого
@@ -345,72 +343,94 @@ function closeReturnModal() {
   document.getElementById("returnBookModal").style.display = "none";
   isReturnModalOpen = false; // Устанавливаем флаг
 }
+async function getStudentIdByEmail(email) {
+  try {
+    // Отправляем запрос на сервер для поиска студента по email
+    const response = await axios.get(`/api/students/findByEmail?email=${email}`);
+    
+    // Проверяем, если студент найден
+    if (response.data && response.data.id) {
+      return response.data.id;
+    } else {
+      throw new Error("Студент не найден.");
+    }
+  } catch (error) {
+    console.error("Ошибка при получении studentId:", error);
+    throw new Error("Произошла ошибка при получении данных студента.");
+  }
+}
 
 // Функция для подтверждения взятия книги
 async function confirmReturnBook() {
   console.log("Клик на кнопку confirm");
+  try {
+    if (bookToReturn) {
+      const studentId = await getStudentIdByEmail(studentEmail);
+      console.log("Student ID:", studentId);
+      if (!studentId) {
+        showToast("Ошибка: текущий студент не определен.");
+        closeReturnModal();
+        return;
+      }
 
-  if (bookToReturn) {
-    const studentId = parseInt(localStorage.getItem("currentStudentId"), 10);
+      // Fetch the user's books from the database
+      const response = await axios.get(`/api/taken-books/${studentId}`);
+      const userBooksData = response.data;
 
-    if (!studentId) {
-      showToast("Ошибка: текущий студент не определен.");
+      if (!userBooksData || userBooksData.books.length === 0) {
+        showToast("У вас нет взятых книг.");
+        closeReturnModal();
+        return;
+      }
+
+      // Find the book to return
+      const bookIndex = userBooksData.books.findIndex(
+        (b) => b.name === bookToReturn.name
+      );
+
+      if (bookIndex === -1) {
+        showToast("У вас нет этой книги.");
+        closeReturnModal();
+        return;
+      }
+
+      // Remove the book from user's borrowed books
+      userBooksData.books.splice(bookIndex, 1);
+
+      // If user has no more books, remove their record
+      if (userBooksData.books.length === 0) {
+        await axios.delete(`/api/taken-books/${studentId}`);
+      } else {
+        await axios.put(`/api/taken-books/${studentId}`, userBooksData);
+      }
+
+      // Return the book to the library (update book count)
+      const booksResponse = await axios.get("/api/books");
+      const books = booksResponse.data;
+      const bookInLibrary = books.find(
+        (b) => b["Название"] === bookToReturn.name
+      );
+
+      if (bookInLibrary) {
+        bookInLibrary["Количество"]++;
+        await axios.put(`/api/books/${bookInLibrary.id}`, bookInLibrary);
+      }
+
+      // Update UI
+      displayUserBooks(userBooksData.books);
+      showToast(`Книга "${bookToReturn.name}" успешно возвращена.`);
       closeReturnModal();
-      return;
-    }
-
-    // Fetch the user's books from the database
-    const response = await axios.get(`/api/taken-books/${studentId}`);
-    const userBooksData = response.data;
-
-    if (!userBooksData || userBooksData.books.length === 0) {
-      showToast("У вас нет взятых книг.");
-      closeReturnModal();
-      return;
-    }
-
-    // Find the book to return
-    const bookIndex = userBooksData.books.findIndex(
-      (b) => b.name === bookToReturn.name
-    );
-
-    if (bookIndex === -1) {
-      showToast("У вас нет этой книги.");
-      closeReturnModal();
-      return;
-    }
-
-    // Remove the book from user's borrowed books
-    userBooksData.books.splice(bookIndex, 1);
-
-    // If user has no more books, remove their record
-    if (userBooksData.books.length === 0) {
-      await axios.delete(`/api/taken-books/${studentId}`);
+      bookToReturn = null;
+      updateBooksTable();
     } else {
-      await axios.put(`/api/taken-books/${studentId}`, userBooksData);
+      showToast("Ошибка: книга не выбрана.");
+      closeReturnModal();
     }
-
-    // Return the book to the library (update book count)
-    const booksResponse = await axios.get("/api/books");
-    const books = booksResponse.data;
-    const bookInLibrary = books.find(
-      (b) => b["Название"] === bookToReturn.name
-    );
-
-    if (bookInLibrary) {
-      bookInLibrary["Количество"]++;
-      await axios.put(`/api/books/${bookInLibrary.id}`, bookInLibrary);
-    }
-
-    // Update UI
-    displayUserBooks(userBooksData.books);
-    showToast(`Книга "${bookToReturn.name}" успешно возвращена.`);
+  } catch (error) {
+    showToast("Произошла ошибка при загрузке данных.");
+    console.error(error);
     closeReturnModal();
-    bookToReturn = null;
-    updateBooksTable();
-  } else {
-    showToast("Ошибка: книга не выбрана.");
-    closeReturnModal();
+    return;
   }
 }
 
@@ -535,9 +555,8 @@ function closeTakeModal() {
 // Функция для подтверждения взятия книги
 async function confirmTakeBook() {
   if (bookToTake) {
-    let studentId = localStorage.getItem("currentStudentId");
-    studentId = parseInt(studentId, 10);
-
+    const studentId = await getStudentIdByEmail(studentEmail);
+    console.log("Student ID:", studentId);
     if (!studentId) {
       showToast("Ошибка: текущий студент не определен.");
       closeTakeModal();
@@ -606,8 +625,8 @@ document
 // Функция для добавления книги к списку взятых
 
 async function takeBook(book) {
-  const studentId = parseInt(localStorage.getItem("currentStudentId"), 10);
-  console.log("studentId в takeBook:", studentId, typeof studentId);
+  const studentId = await getStudentIdByEmail(studentEmail);
+  console.log("Student ID:", studentId);
   if (!studentId) {
     showToast("Ошибка: текущий студент не определен.");
     return;
@@ -702,8 +721,8 @@ async function updateBooksTable() {
 
   const takenBooksResponse = await axios.get("/api/taken-books");
   const takenBooks = takenBooksResponse.data;
-  const currentUserId = parseInt(localStorage.getItem("currentStudentId"), 10);
-
+  const studentId = await getStudentIdByEmail(studentEmail);
+  console.log("Student ID:", studentId);
   booksTableBody.innerHTML = ""; // Clear the table
 
   books.forEach((book) => {
@@ -763,8 +782,6 @@ async function updateBooksTable() {
   });
 }
 
-
-
 async function decreaseBookQuantity(book, studentId) {
   try {
     const response = await axios.post(`${API_URL}/decrease`, {
@@ -773,24 +790,24 @@ async function decreaseBookQuantity(book, studentId) {
     });
 
     if (response.data.success) {
-      console.log('Book quantity decreased:', response.data.book);
+      console.log("Book quantity decreased:", response.data.book);
 
       const librarianWindow = window.opener;
       if (librarianWindow) {
         librarianWindow.postMessage(
           {
-            type: 'updateBookQuantity',
+            type: "updateBookQuantity",
             bookTitle: book.Название,
             updatedBooks: response.data.book,
           },
-          '*'
+          "*"
         );
       }
     } else {
       console.error(response.data.message);
     }
   } catch (error) {
-    console.error('Error decreasing book quantity:', error);
+    console.error("Error decreasing book quantity:", error);
   }
 }
 
@@ -801,27 +818,26 @@ async function increaseBookQuantity(book) {
     });
 
     if (response.data.success) {
-      console.log('Book quantity increased:', response.data.book);
+      console.log("Book quantity increased:", response.data.book);
 
       const librarianWindow = window.opener;
       if (librarianWindow) {
         librarianWindow.postMessage(
           {
-            type: 'updateBookQuantity',
+            type: "updateBookQuantity",
             bookTitle: book.Название,
             updatedBooks: response.data.book,
           },
-          '*'
+          "*"
         );
       }
     } else {
       console.error(response.data.message);
     }
   } catch (error) {
-    console.error('Error increasing book quantity:', error);
+    console.error("Error increasing book quantity:", error);
   }
 }
-
 
 function updateLibrarianBookDisplay(bookTitle) {
   //  Новая функция

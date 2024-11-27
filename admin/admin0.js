@@ -5,8 +5,8 @@ let students = [];
 let isNotFoundMessageShown = false; // Флаг для отслеживания показа сообщения
 
 // Настройка axios для глобального использования
-axios.defaults.baseURL = 'http://localhost:3000'; // Базовый URL вашего Flask API
-axios.defaults.headers.common['Content-Type'] = 'application/json';
+axios.defaults.baseURL = "http://localhost:3000"; // Базовый URL вашего Flask API
+axios.defaults.headers.common["Content-Type"] = "application/json";
 
 function edit() {
   window.location.href = "admin.html";
@@ -18,20 +18,20 @@ function exit() {
 
 async function fetchBooks() {
   try {
-    const response = await axios.get('/books'); // Получение всех книг
+    const response = await axios.get("/books"); // Получение всех книг
     return response.data; // Предполагается, что сервер возвращает JSON с массивом книг
   } catch (error) {
-    console.error('Ошибка при загрузке книг:', error);
+    console.error("Ошибка при загрузке книг:", error);
     return [];
   }
 }
 
 async function fetchStudents() {
   try {
-    const response = await axios.get('/students'); // Получение всех студентов
+    const response = await axios.get("/students"); // Получение всех студентов
     return response.data;
   } catch (error) {
-    console.error('Ошибка при загрузке студентов:', error);
+    console.error("Ошибка при загрузке студентов:", error);
     return [];
   }
 }
@@ -70,7 +70,6 @@ function displayBooks(books) {
   }
 
   books.forEach((book) => {
-    // добавляем данные только если они есть в localStorage
     const row = table.insertRow();
     Object.entries(book).forEach(([key, value]) => {
       const cell = row.insertCell();
@@ -150,7 +149,10 @@ window.addEventListener("message", (event) => {
 async function searchBook() {
   clearPreviousResults();
   const books = await fetchBooks();
-  const query = document.getElementById("searchInput").value.trim().toLowerCase();
+  const query = document
+    .getElementById("searchInput")
+    .value.trim()
+    .toLowerCase();
 
   // Если поле ввода пустое, отображаем все книги
   if (!query) {
@@ -159,16 +161,20 @@ async function searchBook() {
     return;
   }
 
-  const filteredBooks = books.filter(book =>
-    book.Название.toLowerCase().includes(query) ||
-    book.Автор.toLowerCase().includes(query)
+  const filteredBooks = books.filter(
+    (book) =>
+      book.Название.toLowerCase().includes(query) ||
+      book.Автор.toLowerCase().includes(query)
   );
 
   if (filteredBooks.length) {
     displayBooks(filteredBooks);
     updateControlsMargin(true); // Устанавливаем маленький отступ
   } else {
-    displayMessage(`Книга с названием или автором "${query}" не найдена`, "searchForm");
+    displayMessage(
+      `Книга с названием или автором "${query}" не найдена`,
+      "searchForm"
+    );
     updateControlsMargin(false);
   }
 }
@@ -176,22 +182,29 @@ async function searchBook() {
 async function searchStudent() {
   clearPreviousResults();
   const students = await fetchStudents();
-  const query = document.getElementById("searchInput1").value.trim().toLowerCase();
+  const query = document
+    .getElementById("searchInput1")
+    .value.trim()
+    .toLowerCase();
 
   if (!query) {
     displayStudents(students);
     return;
   }
 
-  const filteredStudents = students.filter(student =>
-    student.ФИО.toLowerCase().includes(query) ||
-    student.Группа.toLowerCase().includes(query)
+  const filteredStudents = students.filter(
+    (student) =>
+      student.ФИО.toLowerCase().includes(query) ||
+      student.Группа.toLowerCase().includes(query)
   );
 
   if (filteredStudents.length) {
     displayStudents(filteredStudents);
   } else {
-    displayMessage(`Студент с ФИО или группой "${query}" не найден`, "searchStudentForm");
+    displayMessage(
+      `Студент с ФИО или группой "${query}" не найден`,
+      "searchStudentForm"
+    );
   }
 }
 
@@ -314,7 +327,8 @@ function updateControlsMargin(isDataExist) {
     controls.style.marginTop = "20px";
   } else {
     controls.style.marginTop = "200px";
-  }}
+  }
+}
 function updateCellColor(cell, value) {
   const numValue = parseInt(value, 10);
   if (numValue > 0) {
