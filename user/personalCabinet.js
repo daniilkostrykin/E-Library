@@ -763,53 +763,65 @@ async function updateBooksTable() {
   });
 }
 
-function decreaseBookQuantity(book, studentId) {
-  const books = JSON.parse(localStorage.getItem(BOOKS_KEY)) || [];
-  const bookToUpdate = books.find((b) => b.Название === book.Название);
-  console.log("decreaseBookQuantity called with studentId:", studentId);
 
-  if (bookToUpdate && bookToUpdate.Количество > 0) {
-    bookToUpdate.Количество--;
-    localStorage.setItem(BOOKS_KEY, JSON.stringify(books));
 
-    // Вызываем функцию для обновления таблицы книг у библиотекаря/админа
-    const librarianWindow = window.opener;
+async function decreaseBookQuantity(book, studentId) {
+  try {
+    const response = await axios.post(`${API_URL}/decrease`, {
+      Название: book.Название,
+      studentId: studentId,
+    });
 
-    if (librarianWindow) {
-      librarianWindow.postMessage(
-        {
-          type: "updateBookQuantity",
-          bookTitle: book.Название,
-          updatedBooks: books,
-        },
-        "*"
-      );
+    if (response.data.success) {
+      console.log('Book quantity decreased:', response.data.book);
+
+      const librarianWindow = window.opener;
+      if (librarianWindow) {
+        librarianWindow.postMessage(
+          {
+            type: 'updateBookQuantity',
+            bookTitle: book.Название,
+            updatedBooks: response.data.book,
+          },
+          '*'
+        );
+      }
+    } else {
+      console.error(response.data.message);
     }
+  } catch (error) {
+    console.error('Error decreasing book quantity:', error);
   }
 }
 
-function increaseBookQuantity(book) {
-  const books = JSON.parse(localStorage.getItem(BOOKS_KEY)) || [];
+async function increaseBookQuantity(book) {
+  try {
+    const response = await axios.post(`${API_URL}/increase`, {
+      Название: book.Название,
+    });
 
-  const bookToUpdate = books.find((b) => b.Название === book.name);
+    if (response.data.success) {
+      console.log('Book quantity increased:', response.data.book);
 
-  if (bookToUpdate) {
-    bookToUpdate.Количество++;
-
-    localStorage.setItem(BOOKS_KEY, JSON.stringify(books));
-
-    // Вызываем функцию  для  обновления  таблицы  книг  у библиотекаря/админа
-
-    const librarianWindow = window.opener;
-
-    if (librarianWindow) {
-      librarianWindow.postMessage(
-        { type: "updateBookQuantity", bookTitle: book.name },
-        "*"
-      );
+      const librarianWindow = window.opener;
+      if (librarianWindow) {
+        librarianWindow.postMessage(
+          {
+            type: 'updateBookQuantity',
+            bookTitle: book.Название,
+            updatedBooks: response.data.book,
+          },
+          '*'
+        );
+      }
+    } else {
+      console.error(response.data.message);
     }
+  } catch (error) {
+    console.error('Error increasing book quantity:', error);
   }
 }
+
 
 function updateLibrarianBookDisplay(bookTitle) {
   //  Новая функция

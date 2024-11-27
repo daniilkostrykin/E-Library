@@ -1,24 +1,50 @@
-//admin0.js
+// admin0.js
 const STUDENTS_KEY = "students";
 const BOOKS_KEY = "books";
 let students = [];
 let isNotFoundMessageShown = false; // Флаг для отслеживания показа сообщения
 
+// Настройка axios для глобального использования
+axios.defaults.baseURL = 'http://localhost:3000'; // Базовый URL вашего Flask API
+axios.defaults.headers.common['Content-Type'] = 'application/json';
+
 function edit() {
   window.location.href = "admin.html";
 }
+
 function exit() {
   window.location.href = "../index.html";
 }
-function displayBooks(books) {
-  //Удаляем предыдущую таблицу книг, если она существует
-  const oldTable = document.getElementById("bookTable"); //находим предыдущую
-  if (oldTable) {
-    oldTable.remove(); //если существует, удаляем её перед добавлением новой
+
+async function fetchBooks() {
+  try {
+    const response = await axios.get('/books'); // Получение всех книг
+    return response.data; // Предполагается, что сервер возвращает JSON с массивом книг
+  } catch (error) {
+    console.error('Ошибка при загрузке книг:', error);
+    return [];
   }
+}
+
+async function fetchStudents() {
+  try {
+    const response = await axios.get('/students'); // Получение всех студентов
+    return response.data;
+  } catch (error) {
+    console.error('Ошибка при загрузке студентов:', error);
+    return [];
+  }
+}
+
+function displayBooks(books) {
+  const oldTable = document.getElementById("bookTable"); // находим предыдущую
+  if (oldTable) {
+    oldTable.remove(); // если существует, удаляем её перед добавлением новой
+  }
+
   const adminPanel = document.getElementById("adminPanel");
 
-  //Создаем таблицу динамически
+  // Создаем таблицу динамически
   const table = document.createElement("table");
   table.id = "bookTable";
   adminPanel.appendChild(table);
@@ -38,7 +64,6 @@ function displayBooks(books) {
   });
 
   // Проверяем есть ли данные, чтобы не выводить пустую таблицу
-
   if (!books || books.length === 0) {
     updateControlsMargin(false);
     return; // Прерываем функцию, если нет данных
@@ -80,19 +105,17 @@ function displayBooks(books) {
           cell.appendChild(tooltipContainer);
         } else {
           cell.textContent = "Отсутствует";
-          cell.style.color = "gray"; // Серый цвет текста
+          cell.style.color = "gray";
         }
       } else if (key === "Количество") {
         cell.textContent = value;
-        // Установить цвет текста в зависимости от значения
         updateCellColor(cell, value);
       } else if (key === "Местоположение") {
         if (value) {
-          // Если значение не пустое
           cell.textContent = value;
         } else {
-          cell.textContent = "Неизвестно"; // Или любой другой текст-заполнитель
-          cell.style.color = "gray"; // Серый цвет текста
+          cell.textContent = "Неизвестно";
+          cell.style.color = "gray";
         }
       } else {
         cell.textContent = value;
@@ -105,93 +128,70 @@ function displayBooks(books) {
   updateControlsMargin(true);
   updateCellColor(cell, value);
 }
+
 window.addEventListener("message", (event) => {
   if (event.data && event.data.type === "updateBookList") {
-    //  Обрабатываем сообщение  от admin.js
-
-    displayBooks(event.data.books); //  Обновляем список  книг
+    displayBooks(event.data.books); // Обновляем список книг
   }
 });
-function updateBookTable() {
-  const updatedBooks = JSON.parse(localStorage.getItem(BOOKS_KEY)) || [];
-  displayBooks(updatedBooks);
+
+async function updateBookTable() {
+  const books = await fetchBooks();
+  displayBooks(books);
 }
+
 window.addEventListener("message", (event) => {
   console.log("Message from:", event.origin, event.data);
   if (event.data.type === "updateBookQuantity") {
-    updateBookTable(); //  Обновляем таблицу
+    updateBookTable(); // Обновляем таблицу
   }
 });
 
-function searchBook() {
-  clearPreviousResults(); // Удаляем предыдущие результаты
-  const books = JSON.parse(localStorage.getItem(BOOKS_KEY)) || [];
-  const query = document
-    .getElementById("searchInput")
-    .value.trim()
-    .toLowerCase();
+async function searchBook() {
+  clearPreviousResults();
+  const books = await fetchBooks();
+  const query = document.getElementById("searchInput").value.trim().toLowerCase();
 
   // Если поле ввода пустое, отображаем все книги
   if (!query) {
     displayBooks(books);
-    updateControlsMargin(true); // Устанавливаем маленький отступ
-    return; // Завершаем функцию
+    updateControlsMargin(true);
+    return;
   }
 
-  // Поиск книг
-  const filteredBooks = books.filter(
-    (book) =>
-      book.Название.toLowerCase().includes(query) ||
-      book.Автор.toLowerCase().includes(query)
+  const filteredBooks = books.filter(book =>
+    book.Название.toLowerCase().includes(query) ||
+    book.Автор.toLowerCase().includes(query)
   );
 
-  // Если найдены книги
   if (filteredBooks.length) {
     displayBooks(filteredBooks);
     updateControlsMargin(true); // Устанавливаем маленький отступ
   } else {
-    displayMessage(
-      `Книги с названием или автором "${query}" не найдено в системе`,
-      "searchForm"
-    ); // Передаем formId
-
-    updateControlsMargin(false); // Так как таблица не отображается
+    displayMessage(`Книга с названием или автором "${query}" не найдена`, "searchForm");
+    updateControlsMargin(false);
   }
 }
 
-function searchStudent() {
-  clearPreviousResults(); // Удаляем предыдущие результаты
-  const students = JSON.parse(localStorage.getItem(STUDENTS_KEY)) || [];
-  const query = document
-    .getElementById("searchInput1")
-    .value.toLowerCase()
-    .trim();
+async function searchStudent() {
+  clearPreviousResults();
+  const students = await fetchStudents();
+  const query = document.getElementById("searchInput1").value.trim().toLowerCase();
 
-  // Если запрос пустой, отображаем всех студентов
   if (!query) {
     displayStudents(students);
-    updateControlsMargin(true); // Устанавливаем маленький отступ
-    return; // Завершаем функцию
+    return;
   }
 
-  // Если есть запрос, выполняем фильтрацию
-  const filteredStudents = students.filter((student) => {
-    return (
-      student.ФИО.toLowerCase().includes(query) ||
-      student.Группа.toLowerCase().includes(query)
-    );
-  });
+  const filteredStudents = students.filter(student =>
+    student.ФИО.toLowerCase().includes(query) ||
+    student.Группа.toLowerCase().includes(query)
+  );
 
-  // Если найдены студенты
   if (filteredStudents.length) {
     displayStudents(filteredStudents);
-    updateControlsMargin(true);
   } else {
-    displayMessage(
-      `Студента с ФИО или группой "${query}" не найден в системе`,
-      "searchStudentForm"
-    ); // Передаем formId
-    updateControlsMargin(false); // Так как таблица не отображается
+    displayMessage(`Студент с ФИО или группой "${query}" не найден`, "searchStudentForm");
   }
 }
 
@@ -199,13 +199,14 @@ function displayStudents(students) {
   if (students.length === 0) {
     return;
   }
+
   const adminPanel = document.getElementById("adminPanel");
   const studentsTable = document.createElement("table");
   studentsTable.id = "studentsTable";
-  adminPanel.appendChild(studentsTable); // добавляем таблицу
+  adminPanel.appendChild(studentsTable);
 
   const headerRow = studentsTable.insertRow();
-  const headers = ["Фото", "ФИО", "Группа", "Действия"]; // Заголовки таблицы
+  const headers = ["Фото", "ФИО", "Группа", "Действия"];
   headers.forEach((headerText) => {
     const headerCell = headerRow.insertCell();
     headerCell.textContent = headerText;
@@ -213,13 +214,12 @@ function displayStudents(students) {
 
   students.forEach((student) => {
     const row = studentsTable.insertRow();
-
-    const photoCell = row.insertCell(); // ячейка для фото
+    const photoCell = row.insertCell();
 
     const img = document.createElement("img");
     img.src = student.Фото;
     img.alt = "Фото студента";
-    img.style.width = "50px"; // или любой другой нужный вам размер
+    img.style.width = "50px";
     img.style.height = "50px";
     photoCell.appendChild(img);
     photoCell.style.textAlign = "center";
@@ -241,21 +241,13 @@ function displayStudents(students) {
     openHistoryButton.style.width = "137px";
     openHistoryButton.style.cursor = "pointer";
 
-    // здесь будет обработчик открытия истории, пока пустой
-
     actionsCell.appendChild(openHistoryButton);
     actionsCell.style.textAlign = "center";
     openHistoryButton.addEventListener("click", () => {
-      //            const fio = student.ФИО;
-      // const group = student.Группа;
       goToPersonalCabinet(student);
     });
-    //      actionsCell.appendChild(openHistoryButton);
-
-    // ....
   });
 
-  //Удаляем предыдущую таблицу студентов, если она существует
   const oldTable = document.getElementById("studentsTable");
   if (oldTable) {
     oldTable.remove();
@@ -265,6 +257,7 @@ function displayStudents(students) {
   adminPanel.insertBefore(studentsTable, controls);
   updateControlsMargin(true);
 }
+
 function displayMessage(messageText, formId = null) {
   clearPreviousResults();
 
@@ -309,88 +302,19 @@ function clearPreviousResults() {
     studentsTable.remove();
   }
 
-  // Удаляем сообщение "не найдено"
-  const notFoundMessageContainer = document.getElementById(
-    "notFoundMessageContainer"
-  );
-  if (notFoundMessageContainer) {
-    notFoundMessageContainer.remove();
+  const messageContainer = document.getElementById("notFoundMessageContainer");
+  if (messageContainer) {
+    messageContainer.remove();
   }
-
-  isNotFoundMessageShown = false;
 }
 
-function handleSearchFormSubmit(formId, inputId) {
-  const form = document.getElementById(formId);
-
-  form.addEventListener("submit", (event) => {
-    event.preventDefault();
-    const input = document.getElementById(inputId);
-
-    if (formId === "searchForm") {
-      searchBook();
-    } else {
-      searchStudent();
-    }
-  });
-}
-function getRandomItem(array) {
-  return array[Math.floor(Math.random() * array.length)];
-}
-
-function getRandomFIO(id) {
-  const lastNames = [
-    "Иванов",
-    "Петров",
-    "Сидоров",
-    "Кузнецов",
-    "Смирнов",
-    "Попов",
-    "Лебедев",
-    "Козлов",
-    "Новиков",
-    "Морозов",
-  ];
-
-  const firstNames = [
-    "Александр",
-    "Алексей",
-    "Анастасия",
-    "Андрей",
-    "Анна",
-    "Дмитрий",
-    "Екатерина",
-    "Иван",
-    "Кирилл",
-    "Мария",
-  ];
-
-  const middleNames = [
-    "Александрович",
-    "Алексеевна",
-    "Иванович",
-    "Дмитриевна",
-    "Петрович",
-    "Андреевна",
-    "Сергеевич",
-    "Викторовна",
-    "Николаевич",
-    "Владимировна",
-  ];
-
-  const lastName = getRandomItem(lastNames);
-  const firstName = getRandomItem(firstNames);
-  const middleName = getRandomItem(middleNames);
-
-  return {
-    fio: `${lastName} ${firstName} ${middleName}`,
-    id: id, //  Возвращаем id вместе с ФИО
-  };
-}
-function updateControlsMargin(hasData) {
+function updateControlsMargin(isDataExist) {
   const controls = document.getElementById("controls");
-  controls.style.marginTop = hasData ? "40px" : "400px";
-}
+  if (isDataExist) {
+    controls.style.marginTop = "20px";
+  } else {
+    controls.style.marginTop = "200px";
+  }}
 function updateCellColor(cell, value) {
   const numValue = parseInt(value, 10);
   if (numValue > 0) {
@@ -407,83 +331,9 @@ function goToPersonalCabinet(student) {
     studentId
   )}`;
 }
-function fillStorage() {
-  // 2. Загружаем студентов из localStorage или создаем новых, если их нет
-  /* students = JSON.parse(localStorage.getItem(STUDENTS_KEY)) || [];
-
-  // ЕСЛИ В localStorage НЕТ СТУДЕНТОВ, СОЗДАЕМ ИХ И СОХРАНЯЕМ
-  if (students.length === 0) {
-    const groups = [
-      "ИБМ-101",
-      "ИБМ-102",
-      "ИСИТ-201",
-      "ИСИТ-202",
-      "ИВТ-301",
-      "ИВТ-302",
-    ];
-    const photoPlaceholder = "../assets/img-placeholder.png"; // Убедитесь, что путь правильный
-    console.log("Путь к изображению (admin0.js):", photoPlaceholder);
-
-    for (let i = 1; i <= 50; i++) {
-      const fullName = getRandomFIO();
-      const group = getRandomItem(groups);
-      students.push({
-        Фото: photoPlaceholder,
-        ФИО: fullName,
-        Группа: group,
-      });
-    }
-    localStorage.setItem(STUDENTS_KEY, JSON.stringify(students)); // Сохраняем студентов в localStorage
-  }*/
-  if (!localStorage.getItem(BOOKS_KEY)) {
-    // УДАЛИТЬ, КАК ТОЛЬКО БУДУТ РЕАЛЬНЫЕ ДАННЫЕ:
-    let initial_books = [
-      {
-        Название: "Мастер и Маргарита",
-        Автор: "Михаил Булгаков",
-        Количество: 5,
-        "Электронная версия": "https://example.com/master_margarita",
-        Местоположение: "Главная библиотека, зал 1, полка 5",
-      },
-      {
-        Название: "Преступление и наказание",
-        Автор: "Фёдор Достоевский",
-        Количество: 3,
-        "Электронная версия": "https://example.com/prestuplenie_nakazanie",
-        Местоположение: "Главная библиотека, зал 2, полка 10",
-      },
-      {
-        Название: "Война и мир",
-        Автор: "Лев Толстой",
-        Количество: 7,
-        "Электронная версия": "https://example.com/voina_mir",
-        Местоположение: "Главная библиотека, зал 3, полка 15",
-      },
-      {
-        Название: "Евгений Онегин",
-        Автор: "Александр Пушкин",
-        Количество: 10,
-        "Электронная версия": "", //  Нет электронной версии
-        Местоположение: "Главная библиотека, зал 1, полка 20",
-      },
-      {
-        Название: "Мертвые души",
-        Автор: "Николай Гоголь",
-        Количество: 2,
-        "Электронная версия": "https://example.com/mertvye_dushi",
-        Местоположение: "Главная библиотека, зал 2, полка 25",
-      },
-    ];
-    localStorage.setItem(BOOKS_KEY, JSON.stringify(initial_books)); // <--- Add this line !!!
-  }
-  originalBooks = JSON.parse(localStorage.getItem(BOOKS_KEY));
-}
-document.addEventListener("DOMContentLoaded", () => {
-  fillStorage();
-  const books = JSON.parse(localStorage.getItem(BOOKS_KEY)) || [];
-  originalBooks = JSON.parse(JSON.stringify(books));
-  handleSearchFormSubmit("searchForm", "searchInput"); // Для  книг
-  handleSearchFormSubmit("searchStudentForm", "searchInput1"); // Для  студентов
+document.addEventListener("DOMContentLoaded", async () => {
+  await updateBookTable(); // Загружаем книги с сервера и отображаем их
+  handleSearchFormSubmit("searchForm", "searchInput", searchBook); // Для поиска книг
+  handleSearchFormSubmit("searchStudentForm", "searchInput1", searchStudent); // Для поиска студентов
   document.getElementById("edit-book").addEventListener("click", edit);
-  displayBooks(books);
 });
