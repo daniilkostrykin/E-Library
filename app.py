@@ -3,13 +3,13 @@ from flask_cors import CORS
 from flask_bcrypt import Bcrypt
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
 import psycopg2
+from psycopg2.extras import DictCursor
 from db import init_db
-import db
 from models import get_student_by_id, register_user, get_user_by_email, return_book, search_books
 import json 
 
 app = Flask(__name__)
-CORS(app)  # Разрешает запросы с фронтенда
+CORS(app)
 bcrypt = Bcrypt(app)
 
 # Настройка JWT
@@ -50,10 +50,32 @@ def register():
 
     try:
         user_id = register_user(conn, name, group, email, hashed_password, role)
-        app.logger.debug(f"User registered with ID: {user_id}")  # Логируем ID нового пользователя
+        app.logger.debug(f"User registered with ID: {user_id}")
+        
+        # Если роль "user", добавляем в таблицу students
+        if role == "user":
+            with conn.cursor() as cur:
+                cur.execute(
+                    "INSERT INTO students (user_id, ФИО, группа, фото) VALUES (%s, %s, %s, %s)",
+                    (user_id, name, group, None)
+                )
+                conn.commit()
+                app.logger.debug(f"Student entry created for user ID: {user_id}")
+        
         return jsonify({"success": True, "userId": user_id}), 201
     except Exception as e:
-        app.logger.error(f"Error during registration: {e}")  # Логируем ошибку
+        app.logger.error(f"Error during registration: {e}")
+        return jsonify({"success": False, "message": str(e)}), 500
+
+@app.route("/api/students/<int:student_id>", methods=["GET"])
+@jwt_required()
+def get_student(student_id):
+    try:
+        student = get_student_by_id(conn, student_id)
+        if not student:
+            return jsonify({"success": False, "message": "Студент не найден"}), 404
+        return jsonify(student), 200
+    except Exception as e:
         return jsonify({"success": False, "message": str(e)}), 500
 
 @app.route("/api/auth/login", methods=["POST"])
@@ -68,52 +90,33 @@ def login():
 
     # Генерация JWT токена
     identity = {"id": user["id"], "role": user.get("role", "user")}
-    token = create_access_token(identity=json.dumps(identity))  # <--  Изменение здесь
+    token = create_access_token(identity=json.dumps(identity))
     return jsonify({"success": True, "token": token}), 200
-
 
 @app.route('/api/auth/user-info', methods=['GET'])
 @jwt_required()
 def user_info():
-
-  try:
-      current_user = get_jwt_identity()
-      user_data_dict = json.loads(current_user)  # Преобразование  обратно в  словарь
-      user_id = user_data_dict["id"]
-      app.logger.debug(f"user_id from JWT: {user_id}")  #<---  логируем id из jwt
-      with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
-          cur.execute("SELECT id, role, name, group_name FROM users WHERE id = %s", (user_id,))
-          user = cur.fetchone()
-
-
-          if user is None: 
-              return jsonify({"msg": "Пользователь не найден"}), 404 
-
-
-          user_data = {
-              "id": user["id"],
-              "role": user["role"],
-              "name": user["name"],
-              "group": user["group_name"]
-          }
-          app.logger.debug(f"User from DB: {user}") #<--- логируем результат запроса
-
-          return jsonify({"user": user_data})
-
-  except Exception as e: #  except  теперь  обрабатывает  все ошибки в try  блоке.
-      app.logger.error(e) # логируем для отладки backend
-      return jsonify({"msg": "Ошибка сервера"}), 500 #  Возвращаем  response 
-@app.route("/api/students/<int:student_id>", methods=["GET"])
-@jwt_required()
-def get_student(student_id):
     try:
-        student = get_student_by_id(conn, student_id)
-        if not student:
-            return jsonify({"success": False, "message": "Студент не найден"}), 404
-        return jsonify(student), 200
+        current_user = get_jwt_identity()
+        user_data_dict = json.loads(current_user)
+        user_id = user_data_dict["id"]
+        
+        with conn.cursor(cursor_factory=DictCursor) as cur:
+            cur.execute("SELECT id, role, name, group_name FROM users WHERE id = %s", (user_id,))
+            user = cur.fetchone()
+            if user is None:
+                return jsonify({"msg": "Пользователь не найден"}), 404
+            
+            user_data = {
+                "id": user["id"],
+                "role": user["role"],
+                "name": user["name"],
+                "group": user["group_name"]
+            }
+            return jsonify({"user": user_data})
     except Exception as e:
-        return jsonify({"success": False, "message": str(e)}), 500
-
+        app.logger.error(e)
+        return jsonify({"msg": "Ошибка сервера"}), 500
 
 @app.route("/api/books", methods=["GET"])
 @jwt_required()
@@ -124,7 +127,6 @@ def search_books_route():
         return jsonify(books), 200
     except Exception as e:
         return jsonify({"success": False, "message": str(e)}), 500
-
 
 @app.route("/api/taken-books", methods=["DELETE"])
 @jwt_required()
@@ -141,6 +143,7 @@ def return_book_route():
         return jsonify({"success": True, "message": "Книга успешно возвращена"}), 200
     except Exception as e:
         return jsonify({"success": False, "message": str(e)}), 500
+
 @app.before_request
 def handle_options_request():
     if request.method == "OPTIONS":

@@ -227,16 +227,6 @@ function displayStudents(students) {
 
   students.forEach((student) => {
     const row = studentsTable.insertRow();
-    const photoCell = row.insertCell();
-
-    const img = document.createElement("img");
-    img.src = student.Фото;
-    img.alt = "Фото студента";
-    img.style.width = "50px";
-    img.style.height = "50px";
-    photoCell.appendChild(img);
-    photoCell.style.textAlign = "center";
-
     const fioCell = row.insertCell();
     fioCell.textContent = student.ФИО;
 

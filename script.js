@@ -34,15 +34,17 @@ async function createAccount(event) {
 
   if (!validateRegistration(name, group, email, password, confirmPassword))
     return;
- // Проверка роли на основе имени
- let role = "user"; // роль по умолчанию
- if (name.toLowerCase().includes("librarian")) {
-   role = "librarian";
- }
- if (name.toLowerCase().includes("admin")) {
-  role = "admin";
-}
+
+  // Определение роли пользователя
+  let role = "user"; // роль по умолчанию
+  if (name.toLowerCase().includes("librarian")) {
+    role = "librarian";
+  } else if (name.toLowerCase().includes("admin")) {
+    role = "admin";
+  }
+
   try {
+    // Создаем запись в таблице users
     const response = await axios.post("/api/auth/register", {
       name,
       group,
@@ -52,6 +54,18 @@ async function createAccount(event) {
     });
 
     if (response.data.success) {
+      const userId = response.data.userId; // Получаем ID нового пользователя
+
+      // Если роль "user", добавляем запись в таблицу students
+      if (role === "user") {
+        await axios.post("/api/students", {
+          user_id: userId,
+          ФИО: name,
+          группа: group,
+          фото: null, // Можете заменить на URL фото или оставить пустым
+        });
+      }
+
       showToast("Аккаунт успешно создан!");
       regForm.reset();
       container.classList.remove("right-panel-active");
@@ -75,9 +89,7 @@ async function createAccount(event) {
 let students = [];
 function updateStudentsInLocalStorage(newStudentData) {
   if (newStudentData.role !== "admin" && newStudentData.role !== "librarian") {
-    const photoPlaceholder = "/assets/img-placeholder.png";
     let newStudent = {
-      Фото: photoPlaceholder,
       ФИО: newStudentData.name,
       Группа: newStudentData.group,
     };
@@ -310,7 +322,3 @@ function getLoggedInAccount() {
 }
 const regSubmitButton = document.getElementById("reg-submit");
 regSubmitButton.addEventListener("click", createAccount);
-/*автовход 
-document.addEventListener("DOMContentLoaded", () => {
-  checkRole();
-});*/

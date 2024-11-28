@@ -14,8 +14,8 @@ async function fetchBooks() {
     const books = response.data;
     displayBooks(books); // Отображение книг
   } catch (error) {
-    console.error('Ошибка загрузки данных книг:', error);
-    displayMessage('Не удалось загрузить книги. Попробуйте позже.');
+    console.error("Ошибка загрузки данных книг:", error);
+    displayMessage("Не удалось загрузить книги. Попробуйте позже.");
   }
 }
 
@@ -152,7 +152,6 @@ async function searchBook() {
   }
 }
 
-
 async function searchStudent() {
   clearPreviousResults();
   const students = await fetchStudents();
@@ -199,16 +198,6 @@ function displayStudents(students) {
 
   students.forEach((student) => {
     const row = studentsTable.insertRow();
-
-    const photoCell = row.insertCell(); // ячейка для фото
-
-    const img = document.createElement("img");
-    img.src = student.Фото;
-    img.alt = "Фото студента";
-    img.style.width = "50px"; // или любой другой нужный вам размер
-    img.style.height = "50px";
-    photoCell.appendChild(img);
-    photoCell.style.textAlign = "center";
 
     const fioCell = row.insertCell();
     fioCell.textContent = student.ФИО;
@@ -344,7 +333,7 @@ function goToPersonalCabinet(student) {
   )}`;
 }
 document.addEventListener("DOMContentLoaded", async () => {
-  await updateBookTable(); 
+  await updateBookTable();
   handleSearchFormSubmit("searchForm", "searchInput"); // Для  книг
   handleSearchFormSubmit("searchStudentForm", "searchInput1"); // Для  студентов
   displayBooks(books);
