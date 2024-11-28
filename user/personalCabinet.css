@@ -129,10 +129,6 @@ hr {
 .date {
   margin-right: -145px;
 }
-#user-photo {
-  /* Позволяет изменить изображение, добавив другой src */
-  content: url("");
-}
 
 #goToLibrary {
   background-color: green;
