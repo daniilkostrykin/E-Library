@@ -1,3 +1,4 @@
+#app.py
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from flask_bcrypt import Bcrypt
@@ -125,6 +126,25 @@ def search_books_route():
     try:
         books = search_books(conn, query)
         return jsonify(books), 200
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)}), 500
+
+@app.route("/api/students", methods=["GET"])
+@jwt_required()
+def search_students():
+    query = request.args.get("query", "")
+    try:
+        with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
+            cur.execute(
+                """
+                SELECT id, name AS ФИО, group_name AS Группа 
+                FROM users 
+                WHERE role = 'user' AND (LOWER(name) LIKE %s OR LOWER(group_name) LIKE %s)
+                """,
+                (f"%{query.lower()}%", f"%{query.lower()}%")
+            )
+            students = cur.fetchall()
+            return jsonify(students), 200
     except Exception as e:
         return jsonify({"success": False, "message": str(e)}), 500
 

@@ -16,19 +16,31 @@ function exit() {
   window.location.href = "../index.html";
 }
 
-async function fetchBooks() {
+async function fetchBooks(query = "") {
   try {
-    const response = await axios.get("/books"); // Получение всех книг
-    return response.data; // Предполагается, что сервер возвращает JSON с массивом книг
+    const token = localStorage.getItem("token"); // Получаем токен из localStorage
+    const response = await axios.get("/api/books", {
+      params: { query },
+      headers: {
+        Authorization: `Bearer ${token}`, // Добавляем заголовок авторизации
+      },
+    });
+    return response.data;
   } catch (error) {
     console.error("Ошибка при загрузке книг:", error);
     return [];
   }
 }
 
-async function fetchStudents() {
+async function fetchStudents(query = "") {
   try {
-    const response = await axios.get("/students"); // Получение всех студентов
+    const token = localStorage.getItem("token"); // Получите токен из локального хранилища
+    const response = await axios.get("/api/students", {
+      params: { query },
+      headers: {
+        Authorization: `Bearer ${token}`, // Передача токена в заголовке
+      },
+    });
     return response.data;
   } catch (error) {
     console.error("Ошибка при загрузке студентов:", error);
@@ -37,97 +49,106 @@ async function fetchStudents() {
 }
 
 function displayBooks(books) {
-  const oldTable = document.getElementById("bookTable"); // находим предыдущую
+  const oldTable = document.getElementById("bookTable");
   if (oldTable) {
-    oldTable.remove(); // если существует, удаляем её перед добавлением новой
+    oldTable.remove();
   }
 
   const adminPanel = document.getElementById("adminPanel");
-
-  // Создаем таблицу динамически
   const table = document.createElement("table");
   table.id = "bookTable";
   adminPanel.appendChild(table);
 
-  // Заголовок таблицы
   const headerRow = table.insertRow();
-  const headers = [
-    "Название",
-    "Автор",
-    "Количество",
-    "Электронная версия",
-    "Местоположение",
-  ];
+  const headers = ["Название", "Автор", "Количество", "Электронная версия", "Местоположение"];
   headers.forEach((headerText) => {
     const header = headerRow.insertCell();
     header.textContent = headerText;
   });
 
-  // Проверяем есть ли данные, чтобы не выводить пустую таблицу
   if (!books || books.length === 0) {
     updateControlsMargin(false);
-    return; // Прерываем функцию, если нет данных
+
+    // Отображаем сообщение, если книг нет
+    displayMessage("Книги не найдены"); // Вызываем функцию для отображения сообщения
+    return;
   }
 
+
   books.forEach((book) => {
-    const row = table.insertRow();
-    Object.entries(book).forEach(([key, value]) => {
-      const cell = row.insertCell();
-
-      if (key === "Электронная версия") {
-        if (value) {
-          const linkElement = document.createElement("a");
-          linkElement.href = value;
-          linkElement.target = "_blank"; // Открыть в новой вкладке
-
-          // Создаем элемент подсказки
-          const tooltipText = document.createElement("span");
-          tooltipText.classList.add("tooltiptext");
-          tooltipText.textContent = "Открыть ссылку в новой вкладке"; // Текст подсказки
-
-          // Создаем иконку книги
-          const bookIcon = document.createElement("ion-icon");
-          bookIcon.name = "book"; // Устанавливаем имя иконки книги
-          bookIcon.style.fontSize = "24px";
-          bookIcon.style.color = "#8000ff";
-
-          // Добавляем иконку в ссылку
-          linkElement.appendChild(bookIcon);
-
-          // Оборачиваем ссылку и подсказку в контейнер для стилизации
-          const tooltipContainer = document.createElement("div");
-          tooltipContainer.classList.add("tooltip-container");
-          tooltipContainer.appendChild(linkElement);
-          tooltipContainer.appendChild(tooltipText);
-
-          // Добавляем контейнер в ячейку таблицы
-          cell.appendChild(tooltipContainer);
-        } else {
-          cell.textContent = "Отсутствует";
-          cell.style.color = "gray";
-        }
-      } else if (key === "Количество") {
-        cell.textContent = value;
-        updateCellColor(cell, value);
-      } else if (key === "Местоположение") {
-        if (value) {
-          cell.textContent = value;
-        } else {
-          cell.textContent = "Неизвестно";
-          cell.style.color = "gray";
-        }
-      } else {
-        cell.textContent = value;
+      if (!Array.isArray(book)) {
+        console.error("Invalid book data:", book);
+        return; // Пропускаем некорректные данные
       }
-    });
-  });
+    const row = table.insertRow();
+
+
+    const titleCell = row.insertCell();
+    titleCell.textContent = book[0] || ""; // Название
+
+    const authorCell = row.insertCell();
+    authorCell.textContent = book[1] || ""; // Автор
+
+    const quantityCell = row.insertCell();
+    const quantity = book[2];
+    quantityCell.textContent = quantity !== null && quantity !== undefined ? quantity : ""; // Количество, обработка null и undefined
+    updateCellColor(quantityCell, quantity); 
+
+
+    const linkCell = row.insertCell();
+    const linkValue = book[3];
+
+    if (linkValue) {
+      const linkElement = document.createElement("a");
+      linkElement.href = linkValue;
+      linkElement.target = "_blank"; 
+
+      const tooltipText = document.createElement("span");
+      tooltipText.classList.add("tooltiptext");
+      tooltipText.textContent = "Открыть ссылку в новой вкладке"; 
+
+      const bookIcon = document.createElement("ion-icon");
+      bookIcon.name = "book"; 
+      bookIcon.style.fontSize = "24px";
+      bookIcon.style.color = "#8000ff";
+      linkElement.appendChild(bookIcon);
+
+      const tooltipContainer = document.createElement("div");
+      tooltipContainer.classList.add("tooltip-container");
+      tooltipContainer.appendChild(linkElement);
+      tooltipContainer.appendChild(tooltipText);
+      linkCell.appendChild(tooltipContainer);
+    } else {
+      linkCell.textContent = "Отсутствует";
+      linkCell.style.color = "gray";
+    }
+
+    const locationCell = row.insertCell();
+    locationCell.textContent = book[4] || "Неизвестно"; // Местоположение, обработка null/undefined
+});
+    
 
   const controls = document.getElementById("controls");
   adminPanel.insertBefore(table, controls);
   updateControlsMargin(true);
-  updateCellColor(cell, value);
 }
 
+function updateCellColor(cell, value) {
+    const numValue = parseInt(value, 10);
+
+    if (isNaN(numValue)) {
+        cell.style.color = "black";
+        return;
+    }
+
+    if (numValue > 0) {
+        cell.style.color = "rgb(102, 191, 102)";
+    } else if (numValue === 0) {
+        cell.style.color = "red";
+    } else {
+        cell.style.color = "blue"; 
+    }
+}
 window.addEventListener("message", (event) => {
   if (event.data && event.data.type === "updateBookList") {
     displayBooks(event.data.books); // Обновляем список книг
@@ -147,65 +168,21 @@ window.addEventListener("message", (event) => {
 });
 
 async function searchBook() {
-  clearPreviousResults();
-  const books = await fetchBooks();
   const query = document
     .getElementById("searchInput")
     .value.trim()
     .toLowerCase();
-
-  // Если поле ввода пустое, отображаем все книги
-  if (!query) {
-    displayBooks(books);
-    updateControlsMargin(true);
-    return;
-  }
-
-  const filteredBooks = books.filter(
-    (book) =>
-      book.Название.toLowerCase().includes(query) ||
-      book.Автор.toLowerCase().includes(query)
-  );
-
-  if (filteredBooks.length) {
-    displayBooks(filteredBooks);
-    updateControlsMargin(true); // Устанавливаем маленький отступ
-  } else {
-    displayMessage(
-      `Книга с названием или автором "${query}" не найдена`,
-      "searchForm"
-    );
-    updateControlsMargin(false);
-  }
+  const books = await fetchBooks(query);
+  displayBooks(books);
 }
 
 async function searchStudent() {
-  clearPreviousResults();
-  const students = await fetchStudents();
   const query = document
     .getElementById("searchInput1")
     .value.trim()
     .toLowerCase();
-
-  if (!query) {
-    displayStudents(students);
-    return;
-  }
-
-  const filteredStudents = students.filter(
-    (student) =>
-      student.ФИО.toLowerCase().includes(query) ||
-      student.Группа.toLowerCase().includes(query)
-  );
-
-  if (filteredStudents.length) {
-    displayStudents(filteredStudents);
-  } else {
-    displayMessage(
-      `Студент с ФИО или группой "${query}" не найден`,
-      "searchStudentForm"
-    );
-  }
+  const students = await fetchStudents(query);
+  displayStudents(students);
 }
 
 function displayStudents(students) {
@@ -320,11 +297,19 @@ function updateControlsMargin(isDataExist) {
   }
 }
 function updateCellColor(cell, value) {
-  const numValue = parseInt(value, 10);
+  const numValue = parseInt(value, 10); // Парсим в число
+
+  if (isNaN(numValue)) { // Проверяем на NaN
+    cell.style.color = "black"; // Или другой цвет по умолчанию
+    return; // Выходим из функции, если NaN
+  }
+
   if (numValue > 0) {
-    cell.style.color = "rgb(102, 191, 102)"; // Светлый пастельный зеленый
+    cell.style.color = "rgb(102, 191, 102)";
   } else if (numValue === 0) {
     cell.style.color = "red";
+  } else { // Добавлено условие для отрицательных чисел (если нужно)
+    cell.style.color = "blue"; // Или другой цвет для отрицательных значений
   }
 }
 function goToPersonalCabinet(student) {
@@ -335,6 +320,27 @@ function goToPersonalCabinet(student) {
     studentId
   )}`;
 }
+function handleSearchFormSubmit(formId, inputId, searchFunction) {
+  const form = document.getElementById(formId);
+  const input = document.getElementById(inputId);
+
+  if (!form || !input) {
+    console.error(`Form or input not found: ${formId}, ${inputId}`);
+    return;
+  }
+
+  form.addEventListener("submit", (event) => {
+    event.preventDefault(); // Отключаем стандартное поведение формы
+    searchFunction(); // Вызываем переданную функцию поиска
+  });
+
+  input.addEventListener("input", () => {
+    if (!input.value.trim()) {
+      searchFunction(); // Обновляем таблицу при очистке поля поиска
+    }
+  });
+}
+
 document.addEventListener("DOMContentLoaded", async () => {
   await updateBookTable(); // Загружаем книги с сервера и отображаем их
   handleSearchFormSubmit("searchForm", "searchInput", searchBook); // Для поиска книг

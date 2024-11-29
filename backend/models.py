@@ -1,3 +1,4 @@
+#models.py
 import psycopg2.extras
 
 def register_user(conn, name, group, email, password, role):
@@ -52,12 +53,13 @@ def search_books(conn, query):
     try:
         with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
             cur.execute(
-                "SELECT id, title FROM books WHERE LOWER(title) LIKE %s",
+                "SELECT title, author, quantity, online_version, location FROM books WHERE LOWER(title) LIKE %s",
                 (f"%{query.lower()}%",)
             )
             return cur.fetchall()
     except Exception as e:
         raise Exception(f"Ошибка при поиске книг: {e}")
+ 
 
 def return_book(conn, book_id, student_id):
     try:
