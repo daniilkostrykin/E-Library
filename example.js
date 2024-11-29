@@ -581,3 +581,38 @@ function searchBook(event) {
     booksTable.style.display = "table"; // Отображаем таблицу  после заполнения
   }
 }
+function searchBook() {
+  clearPreviousResults(); // Удаляем предыдущие результаты
+  const books = JSON.parse(localStorage.getItem(BOOKS_KEY)) || [];
+  const query = document
+    .getElementById("searchInput")
+    .value.trim()
+    .toLowerCase();
+
+  // Если поле ввода пустое, отображаем все книги
+  if (!query) {
+    displayBooks(books);
+    updateControlsMargin(true); // Устанавливаем маленький отступ
+    return; // Завершаем функцию
+  }
+
+  // Поиск книг
+  const filteredBooks = books.filter(
+    (book) =>
+      book.Название.toLowerCase().includes(query) ||
+      book.Автор.toLowerCase().includes(query)
+  );
+
+  // Если найдены книги
+  if (filteredBooks.length) {
+    displayBooks(filteredBooks);
+    updateControlsMargin(true); // Устанавливаем маленький отступ
+  } else {
+    displayMessage(
+      `Книги с названием или автором "${query}" не найдено в системе`,
+      "searchForm"
+    ); // Передаем formId
+
+    updateControlsMargin(false); // Так как таблица не отображается
+  }
+}

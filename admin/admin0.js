@@ -70,7 +70,7 @@ function displayBooks(books) {
     updateControlsMargin(false);
 
     // Отображаем сообщение, если книг нет
-    displayMessage("Книги не найдены"); // Вызываем функцию для отображения сообщения
+    displayMessage("Книга не найдена"); // Вызываем функцию для отображения сообщения
     return;
   }
 
@@ -168,15 +168,21 @@ window.addEventListener("message", (event) => {
 });
 
 async function searchBook() {
-  const query = document
-    .getElementById("searchInput")
-    .value.trim()
-    .toLowerCase();
-  const books = await fetchBooks(query);
-  displayBooks(books);
-}
+  clearPreviousResults();
+  const query = document.getElementById("searchInput").value.trim().toLowerCase();
 
+  if (query !== "") { // Если поле поиска НЕ пустое (содержит текст)
+    const books = await fetchBooks(query);
+    displayBooks(books);
+  } // Иначе (поле поиска пустое или содержит только пробелы) - ничего не делаем
+
+
+  // Обновляем margin в зависимости от наличия данных
+  const bookTable = document.getElementById("bookTable");
+  updateControlsMargin(bookTable !== null); 
+}
 async function searchStudent() {
+  clearPreviousResults();
   const query = document
     .getElementById("searchInput1")
     .value.trim()
@@ -186,9 +192,6 @@ async function searchStudent() {
 }
 
 function displayStudents(students) {
-  if (students.length === 0) {
-    return;
-  }
 
   const adminPanel = document.getElementById("adminPanel");
   const studentsTable = document.createElement("table");
@@ -201,6 +204,14 @@ function displayStudents(students) {
     const headerCell = headerRow.insertCell();
     headerCell.textContent = headerText;
   });
+
+  if (!students || students.length === 0) {
+    updateControlsMargin(false);
+
+    // Отображаем сообщение, если книг нет
+    displayMessage("Студент не найден"); // Вызываем функцию для отображения сообщения
+    return;
+  }
 
   students.forEach((student) => {
     const row = studentsTable.insertRow();
@@ -340,7 +351,17 @@ function handleSearchFormSubmit(formId, inputId, searchFunction) {
     }
   });
 }
+document.getElementById("searchForm").addEventListener("submit", async (event) => {
+  event.preventDefault(); // Предотвращаем стандартное поведение формы (перезагрузку страницы)
 
+  const query = document.getElementById("searchInput").value.trim().toLowerCase();
+  const books = await fetchBooks(query); // Выполняем запрос с учётом query
+  displayBooks(books);
+
+  // Обновляем margin
+  const bookTable = document.getElementById("bookTable");
+  updateControlsMargin(bookTable !== null);
+});
 document.addEventListener("DOMContentLoaded", async () => {
   await updateBookTable(); // Загружаем книги с сервера и отображаем их
   handleSearchFormSubmit("searchForm", "searchInput", searchBook); // Для поиска книг
