@@ -190,7 +190,7 @@ function displayStudents(students) {
   adminPanel.appendChild(studentsTable); // добавляем таблицу
 
   const headerRow = studentsTable.insertRow();
-  const headers = ["Фото", "ФИО", "Группа", "Действия"]; // Заголовки таблицы
+  const headers = [ "ФИО", "Группа", "Действия"]; // Заголовки таблицы
   headers.forEach((headerText) => {
     const headerCell = headerRow.insertCell();
     headerCell.textContent = headerText;
