@@ -615,4 +615,87 @@ function searchBook() {
 
     updateControlsMargin(false); // Так как таблица не отображается
   }
+}function displayBooks(books) {
+  const oldTable = document.getElementById("bookTable");
+  if (oldTable) {
+    oldTable.remove();
+  }
+
+  const adminPanel = document.getElementById("adminPanel");
+  const table = document.createElement("table");
+  table.id = "bookTable";
+  adminPanel.appendChild(table);
+
+  const headerRow = table.insertRow();
+  const headers = ["Название", "Автор", "Количество", "Электронная версия", "Местоположение"];
+  headers.forEach((headerText) => {
+    const header = headerRow.insertCell();
+    header.textContent = headerText;
+  });
+
+  if (!books || books.length === 0) {
+    updateControlsMargin(false);
+
+    // Отображаем сообщение, если книг нет
+    displayMessage("Книга не найдена"); // Вызываем функцию для отображения сообщения
+    return;
+  }
+
+
+  books.forEach((book) => {
+      if (!Array.isArray(book)) {
+        console.error("Invalid book data:", book);
+        return; // Пропускаем некорректные данные
+      }
+    const row = table.insertRow();
+
+
+    const titleCell = row.insertCell();
+    titleCell.textContent = book[0] || ""; // Название
+
+    const authorCell = row.insertCell();
+    authorCell.textContent = book[1] || ""; // Автор
+
+    const quantityCell = row.insertCell();
+    const quantity = book[2];
+    quantityCell.textContent = quantity !== null && quantity !== undefined ? quantity : ""; // Количество, обработка null и undefined
+    updateCellColor(quantityCell, quantity); 
+
+
+    const linkCell = row.insertCell();
+    const linkValue = book[3];
+
+    if (linkValue) {
+      const linkElement = document.createElement("a");
+      linkElement.href = linkValue;
+      linkElement.target = "_blank"; 
+
+      const tooltipText = document.createElement("span");
+      tooltipText.classList.add("tooltiptext");
+      tooltipText.textContent = "Открыть ссылку в новой вкладке"; 
+
+      const bookIcon = document.createElement("ion-icon");
+      bookIcon.name = "book"; 
+      bookIcon.style.fontSize = "24px";
+      bookIcon.style.color = "#8000ff";
+      linkElement.appendChild(bookIcon);
+
+      const tooltipContainer = document.createElement("div");
+      tooltipContainer.classList.add("tooltip-container");
+      tooltipContainer.appendChild(linkElement);
+      tooltipContainer.appendChild(tooltipText);
+      linkCell.appendChild(tooltipContainer);
+    } else {
+      linkCell.textContent = "Отсутствует";
+      linkCell.style.color = "gray";
+    }
+
+    const locationCell = row.insertCell();
+    locationCell.textContent = book[4] || "Неизвестно"; // Местоположение, обработка null/undefined
+});
+    
+
+  const controls = document.getElementById("controls");
+  adminPanel.insertBefore(table, controls);
+  updateControlsMargin(true);
 }

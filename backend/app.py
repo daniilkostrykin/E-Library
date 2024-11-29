@@ -57,8 +57,8 @@ def register():
         if role == "user":
             with conn.cursor() as cur:
                 cur.execute(
-                    "INSERT INTO students (user_id, ФИО, группа, фото) VALUES (%s, %s, %s, %s)",
-                    (user_id, name, group, None)
+                    "INSERT INTO students (user_id, ФИО, группа) VALUES (%s, %s, %s)",
+                    (user_id, name, group)
                 )
                 conn.commit()
                 app.logger.debug(f"Student entry created for user ID: {user_id}")
@@ -137,12 +137,13 @@ def search_students():
         with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
             cur.execute(
                 """
-                SELECT id, name AS ФИО, group_name AS Группа 
-                FROM users 
-                WHERE role = 'user' AND (LOWER(name) LIKE %s OR LOWER(group_name) LIKE %s)
+                SELECT name AS ФИО, group_name AS Группа 
+                FROM students WHERE
+                 (LOWER(name) LIKE %s OR LOWER(group_name) LIKE %s)
                 """,
                 (f"%{query.lower()}%", f"%{query.lower()}%")
             )
+
             students = cur.fetchall()
             return jsonify(students), 200
     except Exception as e:

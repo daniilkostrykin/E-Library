@@ -62,7 +62,6 @@ async function createAccount(event) {
           user_id: userId,
           ФИО: name,
           группа: group,
-          фото: null, // Можете заменить на URL фото или оставить пустым
         });
       }
 

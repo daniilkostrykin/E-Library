@@ -192,14 +192,19 @@ async function searchStudent() {
 }
 
 function displayStudents(students) {
+  const oldTable = document.getElementById("studentsTable");
+  if (oldTable) {
+    oldTable.remove();
+  }
 
   const adminPanel = document.getElementById("adminPanel");
   const studentsTable = document.createElement("table");
   studentsTable.id = "studentsTable";
   adminPanel.appendChild(studentsTable);
-
-  const headerRow = studentsTable.insertRow();
-  const headers = ["Фото", "ФИО", "Группа", "Действия"];
+  studentsTable.style.width = "80%"; // Устанавливаем ширину таблицы 80%
+  studentsTable.style.margin = "0 auto"; // Центрируем таблицу
+   const headerRow = studentsTable.insertRow();
+  const headers = ["ФИО", "Группа", "Действия"];
   headers.forEach((headerText) => {
     const headerCell = headerRow.insertCell();
     headerCell.textContent = headerText;
@@ -213,13 +218,20 @@ function displayStudents(students) {
     return;
   }
 
+ 
   students.forEach((student) => {
-    const row = studentsTable.insertRow();
+    if (!Array.isArray(student)) {
+      console.error("Invalid student data:", student);
+      return; // Пропускаем некорректные данные
+    }
+  const row = studentsTable.insertRow();
+
+
     const fioCell = row.insertCell();
-    fioCell.textContent = student.ФИО;
+    fioCell.textContent = student[0]||"";
 
     const groupCell = row.insertCell();
-    groupCell.textContent = student.Группа;
+    groupCell.textContent = student[1]||"";
 
     const actionsCell = row.insertCell();
     const openHistoryButton = document.createElement("button");
@@ -239,11 +251,7 @@ function displayStudents(students) {
     });
   });
 
-  const oldTable = document.getElementById("studentsTable");
-  if (oldTable) {
-    oldTable.remove();
-  }
-
+ 
   const controls = document.getElementById("controls");
   adminPanel.insertBefore(studentsTable, controls);
   updateControlsMargin(true);
@@ -363,7 +371,8 @@ document.getElementById("searchForm").addEventListener("submit", async (event) =
   updateControlsMargin(bookTable !== null);
 });
 document.addEventListener("DOMContentLoaded", async () => {
-  await updateBookTable(); // Загружаем книги с сервера и отображаем их
+  displayStudents(await fetchStudents()); // Отображаем студентов
+ // await updateBookTable(); // Загружаем книги с сервера и отображаем их
   handleSearchFormSubmit("searchForm", "searchInput", searchBook); // Для поиска книг
   handleSearchFormSubmit("searchStudentForm", "searchInput1", searchStudent); // Для поиска студентов
   document.getElementById("edit-book").addEventListener("click", edit);
