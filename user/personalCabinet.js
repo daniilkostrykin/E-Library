@@ -39,17 +39,20 @@ document.addEventListener("DOMContentLoaded", async () => {
     return;
   }
 
-  let account = null;
 
   try {
+    const account = await getLoggedInAccount();  
+
     if (urlParams.id) {
       const studentId = parseInt(urlParams.id, 10);
       console.log("ID студента:", studentId);
       console.log("Account:", account); // проверь  account  перед использованием
-      await displayStudentInfo(studentId); // Получаем и отображаем данные студента
+      displayUserInfo({ name: urlParams.fio, group: urlParams.group, role: 'student' }); // Получаем и отображаем данные студента
     } else {
       console.log("Загружаем текущий аккаунт...");
       account = await getLoggedInAccount();
+      console.log("Account after getLoggedInAccount:", account); // !!!
+
       if (!account) {
         throw new Error("Данные аккаунта не найдены.");
       }
@@ -87,16 +90,10 @@ async function displayStudentInfo(studentId) {
 
 function getURLParams() {
   const params = new URLSearchParams(window.location.search);
-
   return {
-    fio:
-      params.get("fio") === "undefined"
-        ? null
-        : decodeURIComponent(params.get("fio")),
-    group:
-      params.get("group") === "undefined"
-        ? null
-        : decodeURIComponent(params.get("group")),
+    fio: params.get("fio"),  //  Без проверки на undefined и decodeURIComponent
+    group: params.get("group"), //  Без проверки на undefined и decodeURIComponent
+    id: params.get("id")      //  Добавляем id
   };
 }
 function displayUserInfo(account) {
@@ -116,52 +113,20 @@ function displayUserInfo(account) {
 }
 async function getLoggedInAccount() {
   try {
-    const token = localStorage.getItem("token");
-    console.log("Token:", token); // добавлено.  Проверь, есть ли токен.
-    const decodedToken = jwt_decode(token); // если 'jwt-decode' установлен
-    console.log("Decoded Token:", decodedToken);
-    const userIdFromToken = decodedToken?.id; // пример для decodedToken, если парсится, иначе возьми из response
-    if (!token) {
-      console.warn("JWT токен отсутствует. Пользователь не залогинен.");
-      return null;
-    }
-    /*   if (token) {
-      try {
-        const decoded = jwt_decode(token);
-        console.log(decoded);
-        //  например decoded.id, decoded.role
-      } catch (error) {
-        console.error("Ошибка декодирования JWT:", error);
-      }
-    }*/
+      const token = localStorage.getItem("token");
+      if (!token) return null;
 
-    try {
-      const sub = JSON.parse(decodedToken.sub); // <-  распарсить строку в объект
-      const userIdFromToken = sub.id;
-      console.log("userIdFromToken:", userIdFromToken, typeof userIdFromToken);
-    } catch (err) {
-      console.error(
-        "Failed  to  parse  'sub'  from JWT: ",
-        err,
-        decodedToken.sub
-      ); // обработай как-то, верни null  например.
+      const response = await axios.get("/api/auth/user-info", {
+          headers: { Authorization: `Bearer ${token}` },
+      });
 
-      return null; // например
-    }
-    const response = await axios.get("/api/auth/user-info", {
-      headers: {
-        Authorization: `Bearer ${token}`, // Добавляем токен в заголовок
-      },
-    });
-
-    console.log("Данные пользователя из API:", response.data.user);
-    return response.data.user; // Возвращаем данные пользователя
+      console.log("User info response:", response.data); // !!!
+      return response.data.user;
   } catch (error) {
-    console.error("Ошибка API при получении данных пользователя:", error);
-    return null; // Если ошибка, возвращаем null
+      console.error("Ошибка получения данных пользователя:", error);
+      return null;
   }
 }
-
 async function loadUserBooks(userId) {
   try {
     const response = await axios.get(`/api/taken-books?userId=${userId}`);
@@ -455,79 +420,94 @@ function searchBookSetup() {
 }
 
 async function searchBook() {
-  document.getElementById("booksTable").style.display = "none"; // изначально  скрываем  таблицу
-  const searchInput = document
-    .getElementById("searchInput")
-    .value.trim()
-    .toLowerCase();
+  clearPreviousResults(); // Очищаем предыдущие результаты
+  const query = document.getElementById("searchInput").value.trim().toLowerCase(); // Получаем запрос из поля
 
-  const booksTable = document.getElementById("booksTable");
-  const resultContainer = document.getElementById("result");
-  const booksTableBody = document.getElementById("booksTableBody");
+  const bookTable = document.getElementById("bookTable"); // Ссылка на таблицу книг
+  const resultContainer = document.getElementById("result"); // Контейнер для сообщений
 
-  booksTableBody.innerHTML = "";
+  // Если поле поиска НЕ пустое
+  if (query !== "") {
+    try {
+      const books = await fetchBooks(query); // Получаем книги, соответствующие запросу
+      displayBooks(books); // Отображаем эти книги
+      resultContainer.innerHTML = ""; // Очищаем сообщение об отсутствии книг
+    } catch (error) {
+      console.error("Ошибка при поиске книг:", error);
+      resultContainer.innerHTML = "<p>Ошибка при поиске книг. Попробуйте позже.</p>";
+    }
+  } else {
+    // Если запрос пустой, отображаем всю таблицу
+    try {
+      const books = await fetchBooks(""); // Получаем все книги
+      displayBooks(books); // Отображаем все книги
+      resultContainer.innerHTML = ""; // Очищаем сообщение об отсутствии книг
+    } catch (error) {
+      console.error("Ошибка при получении всех книг:", error);
+      resultContainer.innerHTML = "<p>Ошибка при загрузке всех книг. Попробуйте позже.</p>";
+    }
+  }
+
+  // Обновляем margin в зависимости от наличия данных в таблице
+  updateControlsMargin(bookTable !== null);
+}
+
+// Функция для получения книг с сервера
+async function fetchBooks(query = "") {
   try {
-    const response = await axios.get("/api/books", {
-      params: { query: searchInput }, // Передаем поисковый запрос на сервер
-    });
-
-    let filteredBooks = response.data;
-    // если нужно, фильтруйте  book.Количество на клиенте
-    if (searchInput && !isNaN(parseInt(searchInput))) {
-      const num = parseInt(searchInput);
-      filteredBooks = filteredBooks.filter((book) => book.Количество === num);
-    }
-
-    if (filteredBooks.length === 0) {
-      resultContainer.innerHTML = "<p>Книги не найдены</p>";
-      booksTable.style.display = "none"; // Скрываем, если ничего  не  найдено
-    } else {
-      resultContainer.innerHTML = ""; //  Очищаем  сообщение,  если  книги  найдены
-      booksTable.style.display = "table";
-      //!!!  Здесь добавляем строки в таблицу  !!!
-      filteredBooks.forEach((book) => {
-        const row = booksTableBody.insertRow(); // Создаем строку
-
-        // Создаем  ячейки  и добавляем  их  в  строку
-        const titleCell = row.insertCell();
-        titleCell.textContent = book.Название;
-
-        const authorCell = row.insertCell();
-        authorCell.textContent = book.Автор;
-
-        const countCell = row.insertCell();
-        countCell.textContent = book.Количество;
-        countCell.style.color = "rgb(102, 191, 102)";
-        // Кнопка "Взять книгу"
-        const actionCell = row.insertCell();
-        actionCell.style.display = "flex";
-        actionCell.style.justifyContent = "center";
-        actionCell.style.alignItems = "center";
-
-        const takeButton = document.createElement("button");
-        takeButton.textContent = "Взять книгу";
-        takeButton.style.backgroundColor = "rgb(41, 128, 185)";
-        takeButton.style.color = "white";
-        takeButton.style.border = "none";
-        takeButton.style.padding = "8px 16px";
-        takeButton.style.borderRadius = "10px";
-        takeButton.style.fontFamily = "Montserrat, sans-serif";
-
-        takeButton.addEventListener("click", () => {
-          openTakeModal(book);
-        });
-        actionCell.appendChild(takeButton); // Добавляем  кнопку в ячейку
-      });
-
-      booksTable.style.display = "table"; // Отображаем таблицу  после заполнения
-    }
+    const response = await axios.get("/api/books", { params: { query } });
+    return response.data; // Возвращаем данные книг
   } catch (error) {
-    console.error("Ошибка при поиске книг:", error);
-    resultContainer.innerHTML =
-      "<p>Ошибка при поиске книг. Попробуйте позже.</p>";
-    showToast("Ошибка при поиске книг"); //  вызывайте showToast для всплывающих сообщений
+    console.error("Ошибка при получении книг:", error);
+    return [];
   }
 }
+
+// Функция для отображения списка книг
+function displayBooks(books) {
+  const booksTableBody = document.getElementById("booksTableBody"); // Ссылка на тело таблицы
+  booksTableBody.innerHTML = ""; // Очищаем предыдущие строки таблицы
+
+  if (books.length === 0) {
+    // Если книги не найдены, показываем сообщение
+    document.getElementById("result").innerHTML = "<p>Книги не найдены</p>";
+  } else {
+    books.forEach((book) => {
+      const row = booksTableBody.insertRow(); // Создаем строку
+
+      // Заполняем ячейки строк
+      const titleCell = row.insertCell();
+      titleCell.textContent = book.title;
+
+      const authorCell = row.insertCell();
+      authorCell.textContent = book.author;
+
+      const countCell = row.insertCell();
+      countCell.textContent = book.quantity;
+      countCell.style.color = "rgb(102, 191, 102)";
+
+      const actionCell = row.insertCell();
+      actionCell.style.display = "flex";
+      actionCell.style.justifyContent = "center";
+      actionCell.style.alignItems = "center";
+
+      const takeButton = document.createElement("button");
+      takeButton.textContent = "Взять книгу";
+      takeButton.style.backgroundColor = "rgb(41, 128, 185)";
+      takeButton.style.color = "white";
+      takeButton.style.border = "none";
+      takeButton.style.padding = "8px 16px";
+      takeButton.style.borderRadius = "10px";
+      takeButton.style.fontFamily = "Montserrat, sans-serif";
+
+      takeButton.addEventListener("click", () => {
+        openTakeModal(book);
+      });
+      actionCell.appendChild(takeButton); // Добавляем кнопку "Взять книгу"
+    });
+  }
+}
+
 let bookToTake = null;
 let isTakeModalOpen = false;
 

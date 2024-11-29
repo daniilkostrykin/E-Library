@@ -228,10 +228,10 @@ function displayStudents(students) {
 
 
     const fioCell = row.insertCell();
-    fioCell.textContent = student[0]||"";
+    fioCell.textContent = student[1]||"";
 
     const groupCell = row.insertCell();
-    groupCell.textContent = student[1]||"";
+    groupCell.textContent = student[2]||"";
 
     const actionsCell = row.insertCell();
     const openHistoryButton = document.createElement("button");
@@ -332,12 +332,12 @@ function updateCellColor(cell, value) {
   }
 }
 function goToPersonalCabinet(student) {
-  const studentId = student.id; //  Именно id
-  window.location.href = `../user/personalCabinet.html?fio=${encodeURIComponent(
-    student.ФИО
-  )}&group=${encodeURIComponent(student.Группа)}&id=${encodeURIComponent(
-    studentId
-  )}`;
+  const studentId = student[0];
+  const fio = student[1];
+  const group = student[2];
+
+  // Добавляем ФИО и группу в URL
+  window.location.href = `../user/personalCabinet.html?fio=${encodeURIComponent(fio)}&group=${encodeURIComponent(group)}&id=${encodeURIComponent(studentId)}`;
 }
 function handleSearchFormSubmit(formId, inputId, searchFunction) {
   const form = document.getElementById(formId);

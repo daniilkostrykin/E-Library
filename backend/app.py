@@ -137,7 +137,7 @@ def search_students():
         with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
             cur.execute(
                 """
-                SELECT name AS ФИО, group_name AS Группа 
+                SELECT user_id, name AS ФИО, group_name AS Группа 
                 FROM students WHERE
                  (LOWER(name) LIKE %s OR LOWER(group_name) LIKE %s)
                 """,
