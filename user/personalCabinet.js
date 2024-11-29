@@ -4,6 +4,10 @@ axios.defaults.baseURL = "http://localhost:3000";
 const BOOKS_KEY = "books";
 const STUDENTS_KEY = "students"; //  Ключ для студентов
 const TAKEN_BOOKS_KEY = "takenBooks"; //  Ключ для взятых книг
+
+let studentEmail = null; // Объявляем studentEmail глобально
+let currentUserId = null; // Объявляем currentUserId глобально
+
 function goToLibrary() {
   window.location.href = "../library/library.html";
 }
@@ -25,50 +29,82 @@ document.addEventListener("DOMContentLoaded", () => {
   searchBookSetup(); // Инициализация поиска
 });*/
 document.addEventListener("DOMContentLoaded", async () => {
+  handleSearchFormSubmit("searchForm", "searchInput", searchBook); // Для поиска книг
   console.log("Страница загружена. Инициализация...");
   console.log("Текущий URL:", window.location.href);
 
   const urlParams = getURLParams();
   console.log("URL Params:", urlParams);
-  console.log("Axios base URL:", axios.defaults.baseURL);
 
   const token = localStorage.getItem("token");
   if (!token) {
     console.warn("JWT токен отсутствует. Редирект на страницу входа.");
-    // window.location.href = "../index.html";
     return;
   }
 
-
   try {
-    const account = await getLoggedInAccount();  
+    const account = await getLoggedInAccount();
+    console.log("Полученные данные аккаунта:", account);
 
     if (urlParams.id) {
       const studentId = parseInt(urlParams.id, 10);
       console.log("ID студента:", studentId);
-      console.log("Account:", account); // проверь  account  перед использованием
-      displayUserInfo({ name: urlParams.fio, group: urlParams.group, role: 'student' }); // Получаем и отображаем данные студента
+      displayUserInfo({ name: urlParams.fio, group: urlParams.group });
+      const searchForm = document.getElementById("searchForm");
+      if (account.role === "user") {
+        console.log("Роль пользователя - 'user'. Скрываем форму поиска.");
+        searchForm.style.display = "none";
+      } else {
+        console.log("Роль пользователя - не 'user'. Показываем форму поиска.");
+        searchForm.style.display = "block";
+      }
     } else {
       console.log("Загружаем текущий аккаунт...");
-      account = await getLoggedInAccount();
-      console.log("Account after getLoggedInAccount:", account); // !!!
+      console.log("Account после получения данных:", account);
 
       if (!account) {
         throw new Error("Данные аккаунта не найдены.");
       }
+
       console.log("Текущий аккаунт:", account);
-      displayUserInfo(account); // Отображаем информацию о текущем пользователе
+      displayUserInfo(account);
     }
-    console.log("Токен из localStorage:", token);
-    console.log("URL Parameters:", urlParams);
-    console.log("Полученный аккаунт:", account);
   } catch (error) {
     console.error("Ошибка при загрузке данных:", error);
     showToast("Ошибка загрузки данных.");
-    // window.location.href = "../index.html"; // Редирект на главную при ошибке
   }
 });
+function handleSearchFormSubmit(formId, inputId, searchFunction) {
+  const form = document.getElementById(formId);
+  const input = document.getElementById(inputId);
 
+  if (!form || !input) {
+    console.error(`Form or input not found: ${formId}, ${inputId}`);
+    return;
+  }
+
+  form.addEventListener("submit", (event) => {
+    event.preventDefault(); // Отключаем стандартное поведение формы
+    searchFunction(); // Вызываем переданную функцию поиска
+  });
+
+  input.addEventListener("input", () => {
+    if (!input.value.trim()) {
+      searchFunction(); // Обновляем таблицу при очистке поля поиска
+    }
+  });
+}
+document.getElementById("searchForm").addEventListener("submit", async (event) => {
+  event.preventDefault(); // Предотвращаем стандартное поведение формы (перезагрузку страницы)
+
+  const query = document.getElementById("searchInput").value.trim().toLowerCase();
+  const books = await fetchBooks(query); // Выполняем запрос с учётом query
+  displayBooks(books);
+
+  // Обновляем margin
+  const bookTable = document.getElementById("bookTable");
+  updateControlsMargin(bookTable !== null);
+});
 async function displayStudentInfo(studentId) {
   try {
     const response = await axios.get(`/api/students/${studentId}`);
@@ -91,9 +127,9 @@ async function displayStudentInfo(studentId) {
 function getURLParams() {
   const params = new URLSearchParams(window.location.search);
   return {
-    fio: params.get("fio"),  //  Без проверки на undefined и decodeURIComponent
+    fio: params.get("fio"), //  Без проверки на undefined и decodeURIComponent
     group: params.get("group"), //  Без проверки на undefined и decodeURIComponent
-    id: params.get("id")      //  Добавляем id
+    id: params.get("id"), //  Добавляем id
   };
 }
 function displayUserInfo(account) {
@@ -113,18 +149,18 @@ function displayUserInfo(account) {
 }
 async function getLoggedInAccount() {
   try {
-      const token = localStorage.getItem("token");
-      if (!token) return null;
+    const token = localStorage.getItem("token");
+    if (!token) return null;
 
-      const response = await axios.get("/api/auth/user-info", {
-          headers: { Authorization: `Bearer ${token}` },
-      });
+    const response = await axios.get("/api/auth/user-info", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
 
-      console.log("User info response:", response.data); // !!!
-      return response.data.user;
+    console.log("Данные аккаунта:", response.data);
+    return response.data.user;
   } catch (error) {
-      console.error("Ошибка получения данных пользователя:", error);
-      return null;
+    console.error("Ошибка получения данных пользователя:", error);
+    return null;
   }
 }
 async function loadUserBooks(userId) {
@@ -311,8 +347,10 @@ function closeReturnModal() {
 async function getStudentIdByEmail(email) {
   try {
     // Отправляем запрос на сервер для поиска студента по email
-    const response = await axios.get(`/api/students/findByEmail?email=${email}`);
-    
+    const response = await axios.get(
+      `/api/students/findByEmail?email=${email}`
+    );
+
     // Проверяем, если студент найден
     if (response.data && response.data.id) {
       return response.data.id;
@@ -420,36 +458,42 @@ function searchBookSetup() {
 }
 
 async function searchBook() {
-  clearPreviousResults(); // Очищаем предыдущие результаты
-  const query = document.getElementById("searchInput").value.trim().toLowerCase(); // Получаем запрос из поля
+  const query = document.getElementById("searchInput").value.trim().toLowerCase();
+  const booksTable = document.getElementById("booksTable"); // Правильный ID таблицы
+  const booksTableBody = document.getElementById("booksTableBody");
+  const resultContainer = document.getElementById("result"); // Контейнер для сообщения
 
-  const bookTable = document.getElementById("bookTable"); // Ссылка на таблицу книг
-  const resultContainer = document.getElementById("result"); // Контейнер для сообщений
+  try {
+    const books = await fetchBooks(query);
+    console.log("Books from server:", books); // Добавьте эту строку для отладки
+    booksTableBody.innerHTML = ""; // Очищаем таблицу перед каждым поиском
+    // Всегда очищаем таблицу и resultContainer перед отображением результатов
+    booksTableBody.innerHTML = ""; 
+    resultContainer.innerHTML = "";
+    if (books.length === 0) {
+      // Если книги не найдены
+      resultContainer.innerHTML = "<p>Книги не найдены</p>"; // Сообщение в resultContainer
+      booksTable.style.display = "none"; // Скрываем таблицу
+      resultContainer.style.display = "block"; // Показываем сообщение
+    } else {
+      resultContainer.innerHTML = ""; // Очищаем resultContainer, если книги найдены
+      booksTable.style.display = "table"; // Показываем таблицу, если книги найдены
+      resultContainer.style.display = "none"; // Скрываем сообщение
 
-  // Если поле поиска НЕ пустое
-  if (query !== "") {
-    try {
-      const books = await fetchBooks(query); // Получаем книги, соответствующие запросу
-      displayBooks(books); // Отображаем эти книги
-      resultContainer.innerHTML = ""; // Очищаем сообщение об отсутствии книг
-    } catch (error) {
-      console.error("Ошибка при поиске книг:", error);
-      resultContainer.innerHTML = "<p>Ошибка при поиске книг. Попробуйте позже.</p>";
+      displayBooks(books); // Отображаем найденные книги
     }
-  } else {
-    // Если запрос пустой, отображаем всю таблицу
-    try {
-      const books = await fetchBooks(""); // Получаем все книги
-      displayBooks(books); // Отображаем все книги
-      resultContainer.innerHTML = ""; // Очищаем сообщение об отсутствии книг
-    } catch (error) {
-      console.error("Ошибка при получении всех книг:", error);
-      resultContainer.innerHTML = "<p>Ошибка при загрузке всех книг. Попробуйте позже.</p>";
-    }
+
+    // Обновляем margin в зависимости от наличия данных
+    updateControlsMargin(books.length > 0);
+  } catch (error) {
+    console.error("Ошибка при поиске книг:", error);
+    resultContainer.innerHTML = "<p>Ошибка при поиске книг. Попробуйте позже.</p>"; // Сообщение об ошибке
+    booksTable.style.display = "none"; // Скрываем таблицу в случае ошибки
+    resultContainer.style.display = "block"; // Показываем сообщение об ошибке
+
+    // Обновляем margin в зависимости от наличия данных
+    updateControlsMargin(false);
   }
-
-  // Обновляем margin в зависимости от наличия данных в таблице
-  updateControlsMargin(bookTable !== null);
 }
 
 // Функция для получения книг с сервера
@@ -468,45 +512,41 @@ function displayBooks(books) {
   const booksTableBody = document.getElementById("booksTableBody"); // Ссылка на тело таблицы
   booksTableBody.innerHTML = ""; // Очищаем предыдущие строки таблицы
 
-  if (books.length === 0) {
-    // Если книги не найдены, показываем сообщение
-    document.getElementById("result").innerHTML = "<p>Книги не найдены</p>";
-  } else {
-    books.forEach((book) => {
+
+  books.forEach((book) => {
       const row = booksTableBody.insertRow(); // Создаем строку
 
       // Заполняем ячейки строк
-      const titleCell = row.insertCell();
+    const titleCell = row.insertCell();
       titleCell.textContent = book.title;
 
-      const authorCell = row.insertCell();
+    const authorCell = row.insertCell();
       authorCell.textContent = book.author;
 
       const countCell = row.insertCell();
       countCell.textContent = book.quantity;
       countCell.style.color = "rgb(102, 191, 102)";
 
-      const actionCell = row.insertCell();
-      actionCell.style.display = "flex";
-      actionCell.style.justifyContent = "center";
-      actionCell.style.alignItems = "center";
+    const actionCell = row.insertCell();
+    actionCell.style.display = "flex";
+    actionCell.style.justifyContent = "center";
+    actionCell.style.alignItems = "center";
 
-      const takeButton = document.createElement("button");
-      takeButton.textContent = "Взять книгу";
-      takeButton.style.backgroundColor = "rgb(41, 128, 185)";
-      takeButton.style.color = "white";
-      takeButton.style.border = "none";
-      takeButton.style.padding = "8px 16px";
-      takeButton.style.borderRadius = "10px";
-      takeButton.style.fontFamily = "Montserrat, sans-serif";
+    const takeButton = document.createElement("button");
+    takeButton.textContent = "Взять книгу";
+    takeButton.style.backgroundColor = "rgb(41, 128, 185)";
+    takeButton.style.color = "white";
+    takeButton.style.border = "none";
+    takeButton.style.padding = "8px 16px";
+    takeButton.style.borderRadius = "10px";
+    takeButton.style.fontFamily = "Montserrat, sans-serif";
 
-      takeButton.addEventListener("click", () => {
+    takeButton.addEventListener("click", () => {
         openTakeModal(book);
-      });
-      actionCell.appendChild(takeButton); // Добавляем кнопку "Взять книгу"
     });
+      actionCell.appendChild(takeButton); // Добавляем кнопку "Взять книгу"
+  });
   }
-}
 
 let bookToTake = null;
 let isTakeModalOpen = false;
@@ -531,7 +571,14 @@ function closeTakeModal() {
   document.getElementById("takeBookModal").style.display = "none";
   isTakeModalOpen = false; // Устанавливаем флаг
 }
-
+function updateControlsMargin(isDataExist) {
+  const controls = document.getElementById("controls");
+  if (isDataExist) {
+    controls.style.marginTop = "20px";
+  } else {
+    controls.style.marginTop = "200px";
+  }
+}
 // Функция для подтверждения взятия книги
 async function confirmTakeBook() {
   if (bookToTake) {
