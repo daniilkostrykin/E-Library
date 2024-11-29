@@ -52,14 +52,15 @@ def get_student_by_id(conn, student_id):
 def search_books(conn, query):
     try:
         with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
+            # Передаем два параметра: для title и для author
             cur.execute(
-                "SELECT title, author, quantity, online_version, location FROM books WHERE LOWER(title) LIKE %s",
-                (f"%{query.lower()}%",)
+                "SELECT title, author, quantity, online_version, location FROM books WHERE LOWER(title) LIKE %s OR LOWER(author) LIKE %s",
+                (f"%{query.lower()}%", f"%{query.lower()}%")  # Два параметра для title и author
             )
             return cur.fetchall()
     except Exception as e:
         raise Exception(f"Ошибка при поиске книг: {e}")
- 
+
 
 def return_book(conn, book_id, student_id):
     try:
