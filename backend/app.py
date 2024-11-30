@@ -15,6 +15,12 @@ import json
 
 app = Flask(__name__)
 CORS(app)
+from flask_cors import CORS
+
+app = Flask(__name__)
+CORS(app, resources={r"/api/*": {"origins": "http://127.0.0.1:5500", "allow_headers": ["Authorization"]}})  # origins - твой адрес фронтенда
+
+# ... rest of your app.py
 bcrypt = Bcrypt(app)
 
 # Настройка JWT
@@ -218,14 +224,13 @@ def get_taken_books_by_student_route(student_id):
         return jsonify({"success": False, "message": str(e)}), 500
 
 
-@app.route('/api/taken_books/<int:student_id>', methods=['PUT'])
+@app.route('/api/taken_books/<int:student_id>', methods=['POST'])
 @jwt_required()
 def update_taken_books_route(student_id):
     data = request.get_json()
     books = data.get('books')
     try:
         with conn.cursor() as cur:
-            cur.execute('DELETE FROM taken_books WHERE student_id = %s', (student_id,))
 
             if books:  # Check if books is not empty
                 for book in books:
@@ -272,10 +277,14 @@ def check_if_book_taken_route():
         print(f"Ошибка при проверке взятия книги: {e}")
         return jsonify({'success': False, 'message': 'Ошибка при проверке взятия книги'}), 500
 
-@app.route("/api/books/<int:book_id>", methods=["PUT"])
+@app.route("/api/books/<int:book_id>", methods=["POST"])
 @jwt_required()
 def update_book_route(book_id):
     data = request.get_json()  # Получаем данные из тела запроса
+    
+    if isinstance(data, list):  # Если это список, сообщаем об ошибке
+        return jsonify({"success": False, "message": "Ожидается объект, а не список"}), 400
+
     title = data.get("title")
     author = data.get("author")
     quantity = data.get("quantity")
@@ -296,14 +305,14 @@ def update_book_route(book_id):
         with conn.cursor() as cur:
             cur.execute(
                 """
-                UPDATE books
-                SET title = %s, author = %s, quantity = %s, online_version = %s, location = %s
-                WHERE id = %s
+                 UPDATE books
+                 SET title = %s, author = %s, quantity = %s, online_version = %s, location = %s
+                 WHERE id = %s
                 """,
                 (title, author, quantity, online_version, location, book_id)
             )
         conn.commit()
-        
+
         # Логируем успешное обновление
         app.logger.debug(f"Данные о книге с ID {book_id} успешно обновлены")
 
@@ -313,9 +322,6 @@ def update_book_route(book_id):
         app.logger.error(f"Ошибка при обновлении книги с ID {book_id}: {str(e)}")
         conn.rollback()
         return jsonify({"success": False, "message": str(e)}), 500
-
-
-
 
 
 
