@@ -209,7 +209,7 @@ def get_taken_books_route(user_id):
         return jsonify({"success": False, "message": str(e)}), 500
 
 
-@app.route("/api/taken-books/student/<int:student_id>", methods=["GET"])
+@app.route("/api/taken_books/student/<int:student_id>", methods=["GET"])
 @jwt_required()
 def get_taken_books_by_student_route(student_id):
     try:
@@ -321,6 +321,18 @@ def decrease_book_quantity(book_id):
 
 
 
+@app.route("/api/taken_books", methods=["GET"])
+@jwt_required()
+def get_all_taken_books_route():
+    try:
+        with conn.cursor() as cur:
+            cur.execute("SELECT * FROM taken_books")
+            taken_books = cur.fetchall()
+
+        return jsonify(taken_books), 200
+    except Exception as e:
+        app.logger.error(f"Ошибка при получении всех взятых книг: {e}")
+        return jsonify({"success": False, "message": str(e)}), 500
 
 
 
