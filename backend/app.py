@@ -14,12 +14,7 @@ from models import (
 import json 
 
 app = Flask(__name__)
-CORS(app)
-from flask_cors import CORS
-
-app = Flask(__name__)
-CORS(app, resources={r"/api/*": {"origins": "http://127.0.0.1:5500", "allow_headers": ["Authorization"]}})  # origins - твой адрес фронтенда
-
+CORS(app, resources={r"/api/*": {"origins": "http://127.0.0.1:5500", "supports_credentials": True}})
 # ... rest of your app.py
 bcrypt = Bcrypt(app)
 
@@ -279,53 +274,50 @@ def check_if_book_taken_route():
 
 @app.route("/api/books/<int:book_id>", methods=["POST"])
 @jwt_required()
-def update_book_route(book_id):
-    data = request.get_json()  # Получаем данные из тела запроса
-    
-    if isinstance(data, list):  # Если это список, сообщаем об ошибке
-        return jsonify({"success": False, "message": "Ожидается объект, а не список"}), 400
+def decrease_book_quantity(book_id):
+    # Получаем данные из тела запроса
+    data = request.get_json()
 
-    title = data.get("title")
-    author = data.get("author")
-    quantity = data.get("quantity")
-    online_version = data.get("online_version")
-    location = data.get("location")
+    # Проверяем, что данные пришли как массив и их длина правильная
+    if isinstance(data, list) and len(data) >= 3:
+        # Извлекаем информацию из массива
+        book_id_from_request = data[0]  # ID книги
+        title = data[1]  # Название книги
+        author = data[2]  # Автор книги
 
-    # Логируем полученные данные
-    app.logger.debug(f"Получены данные для обновления книги: {data}")
+        # Получаем текущую информацию о книге по ID
+        try:
+            with conn.cursor() as cur:
+                cur.execute("SELECT quantity FROM books WHERE id = %s", (book_id,))
+                result = cur.fetchone()
 
-    if not all([title, author, quantity, online_version, location]):
-        app.logger.error("Не все обязательные поля были переданы")
-        return jsonify({"success": False, "message": "Все поля обязательны"}), 400
+            if result is None:
+                return jsonify({"success": False, "message": "Книга не найдена"}), 404
 
-    try:
-        # Логируем начало запроса на обновление
-        app.logger.debug(f"Обновляем книгу с ID: {book_id}")
+            current_quantity = result[0]
 
-        with conn.cursor() as cur:
-            cur.execute(
-                """
-                 UPDATE books
-                 SET title = %s, author = %s, quantity = %s, online_version = %s, location = %s
-                 WHERE id = %s
-                """,
-                (title, author, quantity, online_version, location, book_id)
-            )
-        conn.commit()
+            # Проверяем, что количество для уменьшения не меньше 1
+            if current_quantity <= 0:
+                return jsonify({"success": False, "message": "Недостаточно экземпляров для уменьшения"}), 400
 
-        # Логируем успешное обновление
-        app.logger.debug(f"Данные о книге с ID {book_id} успешно обновлены")
+            # Уменьшаем количество книг на 1
+            new_quantity = current_quantity - 1
 
-        return jsonify({"success": True, "message": "Данные о книге успешно обновлены"}), 200
-    except Exception as e:
-        # Логируем ошибку на сервере
-        app.logger.error(f"Ошибка при обновлении книги с ID {book_id}: {str(e)}")
-        conn.rollback()
-        return jsonify({"success": False, "message": str(e)}), 500
+            with conn.cursor() as cur:
+                cur.execute(
+                    "UPDATE books SET quantity = %s WHERE id = %s",
+                    (new_quantity, book_id)
+                )
+            conn.commit()
 
+            return jsonify({"success": True, "message": f"Количество книги '{title}' (ID: {book_id}) уменьшено на 1"}), 200
 
+        except Exception as e:
+            app.logger.error(f"Ошибка при уменьшении количества книги с ID {book_id}: {str(e)}")
+            return jsonify({"success": False, "message": str(e)}), 500
 
-
+    else:
+        return jsonify({"success": False, "message": "Ожидается массив с данными о книге"}), 400
 
 
 
