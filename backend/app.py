@@ -214,7 +214,7 @@ def get_taken_books_route(user_id):
 def get_taken_books_by_student_route(student_id):
     try:
         books = get_taken_books_by_user_id(conn, student_id)
-        return jsonify(books), 200  # Return books without JSON wrapper
+        return jsonify(books), 200
     except Exception as e:
         return jsonify({"success": False, "message": str(e)}), 500
 

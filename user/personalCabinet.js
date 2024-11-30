@@ -462,9 +462,44 @@ async function fetchBooks(query = "") {
 }
 
 // Функция для отображения списка книг
-function displayBooks(books) {
-  const booksTableBody = document.getElementById("booksTableBody"); // Ссылка на тело таблицы
-  booksTableBody.innerHTML = ""; // Очищаем предыдущие строки таблицы
+async function displayBooks(books) {
+  const token = localStorage.getItem("token"); // Получаем токен
+
+  if (!token) {
+    alert("Необходима авторизация.");
+    window.location.href = "/login"; // Перенаправление на страницу входа
+    return;
+  }
+
+  // Получаем параметры URL
+  const urlParams = getURLParams();
+  console.log("URL Params:", urlParams);
+
+  let studentId;
+
+  if (urlParams.id) {
+    studentId = parseInt(urlParams.id, 10);
+    console.log("Student ID:", studentId);
+  } else {
+    alert("Не указан studentId в URL.");
+    return;
+  }
+
+    // Получаем список книг, уже взятых указанным студентом
+    const takenBooksResponse = await axios.get(`/api/taken_books/student/${studentId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    console.log("Ответ от сервера:", takenBooksResponse.data);
+
+    const takenBooks = takenBooksResponse.data.map((book) => book.name); // Имена взятых книг
+console.log("Взятые книги:", takenBooks);
+    // Сортируем книги по ID
+    books.sort((a, b) => a[1].localeCompare(b[1]));
+    // Сортируем книги по ID
+   // books.sort((a, b) => a[0] - b[0]);
+
+    const booksTableBody = document.getElementById("booksTableBody");
+    booksTableBody.innerHTML = ""; // Очистка таблицы
 
   books.forEach((book) => {
     if (!Array.isArray(book)) {
@@ -500,9 +535,15 @@ function displayBooks(books) {
     takeButton.style.borderRadius = "10px";
     takeButton.style.fontFamily = "Montserrat, sans-serif";
 
-    takeButton.addEventListener("click", () => {
-      openTakeModal(book);
-    });
+   
+      // Проверяем, есть ли книга в списке взятых
+      if (takenBooks.includes(book[1])) {
+        takeButton.disabled = true; // Отключаем кнопку
+        takeButton.style.backgroundColor = "grey"; // Меняем цвет
+        takeButton.textContent = "Уже взята"; // Текст кнопки
+      } else {
+        takeButton.addEventListener("click", () => openTakeModal(book, studentId)); // Передаем studentId в модальное окно
+      }
     actionCell.appendChild(takeButton); // Добавляем кнопку "Взять книгу"
   });
 }
@@ -693,7 +734,7 @@ async function confirmTakeBook() {
     
     // Обновляем UI
    // displayUserBooks(userBooksData.books);
-    updateBooksTable(books);
+    updateBooksTable();
 
     showToast(`Книга "${bookToTake[1]}" успешно взята.`);
     closeTakeModal();
@@ -784,10 +825,12 @@ async function updateBooksTable() {
     const takenBooksResponse = await axios.get(`/api/taken_books/student/${studentId}`, {
       headers: { Authorization: `Bearer ${token}` },
     });
-    const takenBooks = takenBooksResponse.data.map((book) => book.name); // Имена взятых книг
+    console.log("Ответ от сервера:", takenBooksResponse.data);
 
+    const takenBooks = takenBooksResponse.data.map((book) => book.name); // Имена взятых книг
+console.log("Взятые книги:", takenBooks);
     // Сортируем книги по ID
-    books.sort((a, b) => a[0] - b[0]);
+    books.sort((a, b) => a[1].localeCompare(b[1]));
 
     const booksTableBody = document.getElementById("booksTableBody");
     booksTableBody.innerHTML = ""; // Очистка таблицы
