@@ -179,3 +179,15 @@ def search_students(conn, query):
   except Exception as e:
         raise
 
+def get_user_debt_count(conn, student_id):
+    try:
+        with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
+            cur.execute("""
+                SELECT COUNT(*) AS debt_count
+                FROM taken_books
+                WHERE student_id = %s
+            """, (student_id,))
+            result = cur.fetchone()
+            return result['debt_count'] or 0
+    except Exception as e:
+        raise Exception(f"Ошибка при получении задолженности пользователя: {e}")

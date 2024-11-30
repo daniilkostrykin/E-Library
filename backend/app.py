@@ -7,7 +7,7 @@ import psycopg2
 from psycopg2.extras import DictCursor
 from db import init_db
 from models import (
-    get_student_by_id, register_user, get_user_by_email, 
+    get_student_by_id, get_user_debt_count, register_user, get_user_by_email, 
     return_book, search_books, take_book, get_taken_books_by_user_id,
     get_user_by_id, search_students, delete_taken_books_for_student, check_if_book_taken, 
 )
@@ -334,6 +334,14 @@ def get_all_taken_books_route():
         app.logger.error(f"Ошибка при получении всех взятых книг: {e}")
         return jsonify({"success": False, "message": str(e)}), 500
 
+@app.route("/api/user/<int:student_id>/debt", methods=["GET"])
+@jwt_required()
+def get_user_debt_count_route(student_id):
+    try:
+        debt_count = get_user_debt_count(conn, student_id)
+        return jsonify({"debt_count": debt_count}), 200
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)}), 500
 
 
 
