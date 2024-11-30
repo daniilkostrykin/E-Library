@@ -103,14 +103,18 @@ def get_taken_books_by_user_id(conn, user_id):
         with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
             cur.execute(
                 """
-                SELECT b.title as name, b.author, tb.due_date
+                SELECT json_build_object(
+                    'name', b.title,
+                    'author', b.author,
+                    'due_date', tb.due_date
+                ) AS book
                 FROM taken_books tb
                 JOIN books b ON tb.book_id = b.id
                 WHERE tb.student_id = %s
                 """,
                 (user_id,)
             )
-            return cur.fetchall()
+            return [row['book'] for row in cur.fetchall()]
     except Exception as e:
         raise Exception(f"Ошибка при получении взятых книг: {e}")
 
