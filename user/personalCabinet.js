@@ -692,8 +692,8 @@ async function confirmTakeBook() {
     }
     
     // Обновляем UI
-  //  displayUserBooks(userBooksData.books);
-  //  updateBooksTable(books);
+   // displayUserBooks(userBooksData.books);
+    updateBooksTable(books);
 
     showToast(`Книга "${bookToTake[1]}" успешно взята.`);
     closeTakeModal();
@@ -751,72 +751,112 @@ function removeBookRow(book) {
 }
 
 async function updateBooksTable() {
-  const booksResponse = await axios.get("/api/books");
-  const books = booksResponse.data;
-  const booksTableBody = document.getElementById("booksTableBody");
+  try {
+    const token = localStorage.getItem("token"); // Получаем токен
 
-  const takenBooksResponse = await axios.get("/api/taken_books");
-  const takenBooks = takenBooksResponse.data;
-  const studentId = await getStudentIdByEmail(studentEmail);
-  console.log("Student ID:", studentId);
-  booksTableBody.innerHTML = ""; // Clear the table
-
-  books.forEach((book) => {
-    if (book["Количество"] === 0) return;
-    const row = document.createElement("tr");
-
-    const nameCell = row.insertCell();
-    nameCell.textContent = book["Название"];
-
-    const authorCell = row.insertCell();
-    authorCell.textContent = book["Автор"];
-
-    const quantityCell = row.insertCell();
-    quantityCell.textContent = book["Количество"];
-    quantityCell.style.color = "rgb(102, 191, 102)";
-
-    const actionCell = row.insertCell();
-    actionCell.style.display = "flex";
-    actionCell.style.justifyContent = "center";
-    actionCell.style.alignItems = "center";
-
-    const takeButton = document.createElement("button");
-    takeButton.classList.add("action-button");
-    takeButton.textContent = "Взять книгу";
-    takeButton.style.backgroundColor = "rgb(41, 128, 185)";
-    takeButton.style.color = "white";
-    takeButton.style.border = "none";
-    takeButton.style.padding = "8px 16px";
-    takeButton.style.borderRadius = "10px";
-    takeButton.style.fontFamily = "Montserrat, sans-serif";
-
-    const userTakenBooks = takenBooks.find(
-      (entry) => entry.userId === currentUserId
-    );
-    const isBookTaken =
-      userTakenBooks &&
-      userTakenBooks.books.some(
-        (takenBook) => takenBook.name === book["Название"]
-      );
-
-    if (isBookTaken) {
-      takeButton.disabled = true;
-      takeButton.style.backgroundColor = "gray";
-      takeButton.style.cursor = "not-allowed";
-      takeButton.textContent = "Книга взята";
-    } else {
-      takeButton.addEventListener("click", () => openTakeModal(book));
+    if (!token) {
+      alert("Необходима авторизация.");
+      window.location.href = "/login"; // Перенаправление на страницу входа
+      return;
     }
-    actionCell.appendChild(takeButton);
 
-    row.appendChild(nameCell);
-    row.appendChild(authorCell);
-    row.appendChild(quantityCell);
-    row.appendChild(actionCell);
+    // Получаем параметры URL
+    const urlParams = getURLParams();
+    console.log("URL Params:", urlParams);
 
-    booksTableBody.appendChild(row);
-  });
+    let studentId;
+
+    if (urlParams.id) {
+      studentId = parseInt(urlParams.id, 10);
+      console.log("Student ID:", studentId);
+    } else {
+      alert("Не указан studentId в URL.");
+      return;
+    }
+
+    // Получаем список всех книг
+    const booksResponse = await axios.get("/api/books", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    let books = booksResponse.data;
+
+    // Получаем список книг, уже взятых указанным студентом
+    const takenBooksResponse = await axios.get(`/api/taken_books/student/${studentId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const takenBooks = takenBooksResponse.data.map((book) => book.name); // Имена взятых книг
+
+    // Сортируем книги по ID
+    books.sort((a, b) => a[0] - b[0]);
+
+    const booksTableBody = document.getElementById("booksTableBody");
+    booksTableBody.innerHTML = ""; // Очистка таблицы
+
+    books.forEach((book) => {
+      if (book[3] === 0) return; // Пропускаем книги с нулевым количеством
+
+      const row = document.createElement("tr");
+
+      const nameCell = row.insertCell();
+      nameCell.textContent = book[1]; // Название книги
+
+      const authorCell = row.insertCell();
+      authorCell.textContent = book[2]; // Автор
+
+      const quantityCell = row.insertCell();
+      quantityCell.textContent = book[3]; // Количество
+      quantityCell.style.color = book[3] > 5 ? "rgb(102, 191, 102)" : "rgb(255, 94, 94)"; // Цвет в зависимости от количества
+
+      const locationCell = row.insertCell();
+      locationCell.textContent = book[5]; // Полка
+
+      const actionCell = row.insertCell();
+      actionCell.style.display = "flex";
+      actionCell.style.justifyContent = "center";
+      actionCell.style.alignItems = "center";
+
+      // Кнопка для взятия книги
+      const takeButton = document.createElement("button");
+      takeButton.classList.add("action-button");
+      takeButton.textContent = "Взять книгу";
+      takeButton.style.backgroundColor = "rgb(41, 128, 185)";
+      takeButton.style.color = "white";
+      takeButton.style.border = "none";
+      takeButton.style.padding = "8px 16px";
+      takeButton.style.borderRadius = "10px";
+      takeButton.style.fontFamily = "Montserrat, sans-serif";
+
+      // Проверяем, есть ли книга в списке взятых
+      if (takenBooks.includes(book[1])) {
+        takeButton.disabled = true; // Отключаем кнопку
+        takeButton.style.backgroundColor = "grey"; // Меняем цвет
+        takeButton.textContent = "Уже взята"; // Текст кнопки
+      } else {
+        takeButton.addEventListener("click", () => openTakeModal(book, studentId)); // Передаем studentId в модальное окно
+      }
+
+      actionCell.appendChild(takeButton);
+      row.appendChild(nameCell);
+      row.appendChild(authorCell);
+      row.appendChild(quantityCell);
+      row.appendChild(locationCell);
+      row.appendChild(actionCell);
+
+      booksTableBody.appendChild(row);
+    });
+  } catch (error) {
+    console.error("Ошибка при обновлении таблицы книг:", error);
+    if (error.response && error.response.status === 401) {
+      alert("Сессия истекла. Пожалуйста, выполните вход снова.");
+      window.location.href = "/login"; // Перенаправление на страницу входа
+    } else {
+      alert("Произошла ошибка при загрузке данных. Пожалуйста, попробуйте позже.");
+    }
+  }
 }
+
+
+
 
 async function decreaseBookQuantity(book, studentId) {
   try {
