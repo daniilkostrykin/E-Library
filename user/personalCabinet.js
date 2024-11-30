@@ -73,7 +73,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       displayUserInfo(account);
       loadTakenBooks(account.id); // This will trigger everything for you
 
-      updateBooksTable();
+      //updateBooksTable();
     }
   } catch (error) {
     console.error("Ошибка при загрузке данных:", error);
@@ -146,22 +146,28 @@ function getURLParams() {
 async function displayUserInfo(account) {
   document.getElementById("user-name").textContent = account.name || "";
   document.getElementById("user-group").textContent = account.group || "";
-  
+
   // Устанавливаем начальное значение задолженности
   const userDebtElement = document.getElementById("user-debt");
   userDebtElement.textContent = "Загрузка...";
 
-  try {
-    // Получаем ID студента из параметров URL
-    const urlParams = getURLParams();
-    const studentId = urlParams.id; // Получаем ID студента из URL параметров
+  // Получаем ID студента из параметров URL
+  const urlParams = getURLParams();
+  const studentId = urlParams.id; // Получаем ID студента из URL параметров
+  await updateUserDebtDisplay(studentId);
+}
+async function updateUserDebtDisplay(studentId) {
+  const userDebtElement = document.getElementById("user-debt");
+  userDebtElement.textContent = "Загрузка..."; // Устанавливаем начальное значение
 
-    // Запрашиваем задолженность пользователя
+  try {
+    // Получаем токен из localStorage
     const token = localStorage.getItem("token");
     if (!token) {
       throw new Error("Токен отсутствует. Необходима авторизация.");
     }
 
+    // Запрашиваем задолженность пользователя
     const response = await axios.get(`/api/user/${studentId}/debt`, {
       headers: { Authorization: `Bearer ${token}` },
     });
@@ -170,15 +176,13 @@ async function displayUserInfo(account) {
     const totalDebt = debtData.debt_count || 0; // Предполагаем, что API возвращает количество задолженности
 
     // Обновляем текстовое содержимое элемента для задолженности
-    userDebtElement.textContent = totalDebt > 0 ? `${totalDebt}` : "Нет задолженностей";
+    userDebtElement.textContent =
+      totalDebt > 0 ? `${totalDebt}` : "Нет задолженностей";
   } catch (error) {
     console.error("Ошибка при загрузке задолженности:", error);
     userDebtElement.textContent = "Ошибка загрузки";
   }
-
-
 }
-
 
 async function getLoggedInAccount() {
   try {
@@ -227,7 +231,7 @@ async function displayUserBooks() {
     (loggedInAccount.role === "librarian" || loggedInAccount.role === "admin");
 
   // Получаем книги из базы данных для текущего пользователя
-  const books = await getUserBooksFromDB(loggedInAccount.id); // Получаем книги с сервера по ID пользователя
+  //const books = await getUserBooksFromDB(loggedInAccount.id); // Получаем книги с сервера по ID пользователя
   const bookList = document.querySelector(".book-list");
   bookList.innerHTML = ""; // Очищаем список
 
@@ -558,6 +562,8 @@ async function displayBooks(books) {
     quantityCell.textContent =
       quantity !== null && quantity !== undefined ? quantity : ""; // Количество, обработка null и undefined
     quantityCell.style.color = "rgb(102, 191, 102)";
+    const locationCell = row.insertCell();
+    locationCell.textContent = book[5] || ""; // Автор
 
     const actionCell = row.insertCell();
     actionCell.style.display = "flex";
@@ -783,7 +789,7 @@ async function confirmTakeBook() {
     }
 
     // Обновляем UI
-    displayUserBooks(userBooksData.books);
+    // displayUserBooks(userBooksData.books);
     updateBooksTable();
 
     showToast(`Книга "${bookToTake[1]}" успешно взята.`);
@@ -886,11 +892,33 @@ async function updateBooksTable() {
 
     const takenBooks = takenBooksResponse.data.map((book) => book.name); // Имена взятых книг
     console.log("Взятые книги:", takenBooks);
+
     // Сортируем книги по ID
     books.sort((a, b) => a[1].localeCompare(b[1]));
 
     const booksTableBody = document.getElementById("booksTableBody");
     booksTableBody.innerHTML = ""; // Очистка таблицы
+
+    // Заголовки таблицы
+    const tableHeader = document.getElementById("booksTableHeader");
+    tableHeader.innerHTML = ""; // Очистка заголовков
+
+    const headers = [
+      "Название",
+      "Автор",
+      "Количество",
+      "Местоположение",
+      "Действие",
+    ];
+    const headerRow = document.createElement("tr");
+
+    headers.forEach((header) => {
+      const headerCell = document.createElement("th");
+      headerCell.textContent = header;
+      headerRow.appendChild(headerCell);
+    });
+
+    tableHeader.appendChild(headerRow); // Добавляем строку с заголовками в таблицу
 
     books.forEach((book) => {
       if (book[3] === 0) return; // Пропускаем книги с нулевым количеством
