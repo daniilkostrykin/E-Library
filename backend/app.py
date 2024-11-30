@@ -62,7 +62,7 @@ def register():
         if role == "user":
             with conn.cursor() as cur:
                 cur.execute(
-                    "INSERT INTO students (user_id, ФИО, группа) VALUES (%s, %s, %s)",
+                    "INSERT INTO students (user_id, name, group_name) VALUES (%s, %s, %s)",
                     (user_id, name, group)
                 )
                 conn.commit()
