@@ -56,15 +56,6 @@ async function createAccount(event) {
     if (response.data.success) {
       const userId = response.data.userId; // Получаем ID нового пользователя
 
-      // Если роль "user", добавляем запись в таблицу students
-      if (role === "user") {
-        await axios.post("/api/students", {
-          user_id: userId,
-          ФИО: name,
-          группа: group,
-        });
-      }
-
       showToast("Аккаунт успешно создан!");
       regForm.reset();
       container.classList.remove("right-panel-active");

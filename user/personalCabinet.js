@@ -61,6 +61,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         console.log("Роль пользователя - не 'user'. Показываем форму поиска.");
         searchForm.style.display = "block";
       }
+      updateBooksTable();
     } else {
       console.log("Загружаем текущий аккаунт...");
       console.log("Account после получения данных:", account);
@@ -155,6 +156,10 @@ async function displayUserInfo(account) {
   const urlParams = getURLParams();
   const studentId = urlParams.id; // Получаем ID студента из URL параметров
   await updateUserDebtDisplay(studentId);
+  displayUserBooks(studentId)
+  console.log("Student ID:", studentId);
+
+
 }
 async function updateUserDebtDisplay(studentId) {
   const userDebtElement = document.getElementById("user-debt");
@@ -224,120 +229,143 @@ async function returnBook(bookId, studentId) {
   }
 }
 
-async function displayUserBooks() {
+async function displayUserBooks(studentId) {
   const loggedInAccount = await getLoggedInAccount(); // Получаем данные о пользователе
   const isLibrarian =
     loggedInAccount &&
     (loggedInAccount.role === "librarian" || loggedInAccount.role === "admin");
 
-  // Получаем книги из базы данных для текущего пользователя
-  //const books = await getUserBooksFromDB(loggedInAccount.id); // Получаем книги с сервера по ID пользователя
-  const bookList = document.querySelector(".book-list");
-  bookList.innerHTML = ""; // Очищаем список
-
-  // Проверка на пустой список книг
-  if (books.length === 0) {
-    const noBooksMessage = document.createElement("p");
-    noBooksMessage.textContent = "Нет взятых книг";
-    noBooksMessage.classList.add("no-books-message");
-    bookList.appendChild(noBooksMessage);
-    document.getElementById("user-debt").textContent = "0";
-    document.getElementById("user-debt").style.color = "#41a0ff";
-    return;
-  }
-
-  // Заголовок таблицы
-  const header = document.createElement("div");
-  header.classList.add("book-header");
-  if (!isLibrarian) header.classList.add("no-return");
-
-  const nameHeader = document.createElement("span");
-  nameHeader.classList.add("book-title");
-  nameHeader.textContent = "Название";
-
-  const authorHeader = document.createElement("span");
-  authorHeader.classList.add("book-author-title");
-  authorHeader.textContent = "Автор";
-
-  const dateHeader = document.createElement("span");
-  dateHeader.classList.add("book-date-title");
-  dateHeader.textContent = "Срок сдачи";
-
-  header.appendChild(nameHeader);
-  header.appendChild(authorHeader);
-  header.appendChild(dateHeader);
-
-  if (isLibrarian) {
-    // Если библиотекарь, добавляем заголовок "Сдача"
-    const returnHeader = document.createElement("span");
-    returnHeader.classList.add("book-return-title");
-    returnHeader.textContent = "Сдача";
-    header.appendChild(returnHeader);
-  }
-
-  bookList.appendChild(header);
-
-  // Строки таблицы для каждой книги
-  books.forEach((book) => {
-    const bookItem = document.createElement("div");
-    bookItem.classList.add("book-item");
-    if (!isLibrarian) bookItem.classList.add("no-return");
-
-    const bookName = document.createElement("span");
-    bookName.classList.add("book-name");
-    bookName.textContent = book.name;
-
-    const bookAuthor = document.createElement("span");
-    bookAuthor.classList.add("book-author");
-    bookAuthor.textContent = book.author;
-
-    const bookDate = document.createElement("span");
-    bookDate.classList.add("book-date");
-    bookDate.textContent = book.dueDate;
-
-    const returnButtonContainer = document.createElement("div");
-    if (isLibrarian) {
-      // Создаем кнопку "Вернуть книгу"
-      const returnButton = document.createElement("button");
-      returnButton.classList.add("book-return");
-      returnButton.textContent = "Вернуть книгу";
-
-      // Стили для кнопки
-      returnButton.style.backgroundColor = " #41a0ff"; // Зеленый
-      returnButton.style.border = "none";
-      returnButton.style.color = "white";
-      returnButton.style.padding = "8px 16px"; // Увеличил padding для кнопки
-      returnButton.style.textAlign = "center";
-      returnButton.style.textDecoration = "none";
-      returnButton.style.display = "inline-block";
-      returnButton.style.fontSize = "16px"; // Увеличил размер шрифта
-      returnButton.style.margin = "0 2px"; // Добавил margin
-      returnButton.style.cursor = "pointer"; // Указатель мыши при наведении
-
-      returnButton.addEventListener("click", () => {
-        console.log("Клик на кнопку");
-        openReturnModal(book); // Открываем модальное окно возврата книги
-      });
-
-      returnButtonContainer.style.textAlign = "right"; // Выравнивание по правому краю
-
-      returnButtonContainer.appendChild(returnButton);
+  try {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      throw new Error("Необходима авторизация.");
     }
-    bookItem.appendChild(bookName);
-    bookItem.appendChild(bookAuthor);
-    bookItem.appendChild(bookDate);
-    if (isLibrarian) {
-      bookItem.appendChild(returnButtonContainer); // Добавляем контейнер с кнопкой
-    }
-    bookList.appendChild(bookItem);
-  });
 
-  // Обновляем задолженности
-  let debtCount = books.length;
-  const userDebtElement = document.getElementById("user-debt");
-  userDebtElement.textContent = `${debtCount}`;
-  userDebtElement.style.color = debtCount > 0 ? "#ea242e" : "#41a0ff";
+    // Запрос книг с сервера для данного студента
+    const booksResponse = await axios.get(`/api/taken_books/student/${studentId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    const books = booksResponse.data;
+    console.log("Books data from server:", books); // Логирование данных с сервера
+
+    if (!Array.isArray(books)) {
+      throw new Error("Ответ от сервера не является массивом.");
+    }
+
+    const bookList = document.querySelector(".book-list");
+    if (!bookList) {
+      throw new Error("Элемент '.book-list' не найден.");
+    }
+
+    bookList.innerHTML = ""; // Очищаем список
+
+    // Если книг нет
+    if (books.length === 0) {
+      const noBooksMessage = document.createElement("p");
+      noBooksMessage.textContent = "Нет взятых книг";
+      noBooksMessage.classList.add("no-books-message");
+      bookList.appendChild(noBooksMessage);
+
+      // Обновляем задолженность
+      const userDebtElement = document.getElementById("user-debt");
+      userDebtElement.textContent = "0";
+      userDebtElement.style.color = "#41a0ff"; // Цвет для без задолженности
+      return;
+    }
+
+    // Создание заголовков
+    const header = document.createElement("div");
+    header.classList.add("book-header");
+    if (!isLibrarian) header.classList.add("no-return");
+
+    const nameHeader = document.createElement("span");
+    nameHeader.classList.add("book-title");
+    nameHeader.textContent = "Название";
+
+    const authorHeader = document.createElement("span");
+    authorHeader.classList.add("book-author-title");
+    authorHeader.textContent = "Автор";
+
+    const dateHeader = document.createElement("span");
+    dateHeader.classList.add("book-date-title");
+    dateHeader.textContent = "Срок сдачи";
+
+    header.appendChild(nameHeader);
+    header.appendChild(authorHeader);
+    header.appendChild(dateHeader);
+
+    if (isLibrarian) {
+      const returnHeader = document.createElement("span");
+      returnHeader.classList.add("book-return-title");
+      returnHeader.textContent = "Сдача";
+      header.appendChild(returnHeader);
+    }
+
+    bookList.appendChild(header);
+
+    // Добавляем каждую книгу в список
+    books.forEach((book) => {
+      const bookItem = document.createElement("div");
+      bookItem.classList.add("book-item");
+      if (!isLibrarian) bookItem.classList.add("no-return");
+
+      const bookName = document.createElement("span");
+      bookName.classList.add("book-name");
+      bookName.textContent = book.name;
+
+      const bookAuthor = document.createElement("span");
+      bookAuthor.classList.add("book-author");
+      bookAuthor.textContent = book.author;
+
+      const bookDate = document.createElement("span");
+      bookDate.classList.add("book-date");
+      bookDate.textContent = book.due_date; // Используем due_date
+
+      const returnButtonContainer = document.createElement("div");
+      if (isLibrarian) {
+        const returnButton = document.createElement("button");
+        returnButton.classList.add("book-return");
+        returnButton.textContent = "Вернуть книгу";
+
+        returnButton.style.backgroundColor = "#41a0ff"; // Цвет кнопки
+        returnButton.style.border = "none";
+        returnButton.style.color = "white";
+        returnButton.style.padding = "8px 16px"; // Размер кнопки
+        returnButton.style.fontSize = "16px"; // Размер шрифта кнопки
+        returnButton.style.cursor = "pointer";
+
+        returnButton.addEventListener("click", () => {
+          openReturnModal(book); // Открываем модальное окно для возврата книги
+        });
+
+        returnButtonContainer.style.textAlign = "right";
+        returnButtonContainer.appendChild(returnButton);
+      }
+
+      bookItem.appendChild(bookName);
+      bookItem.appendChild(bookAuthor);
+      bookItem.appendChild(bookDate);
+      if (isLibrarian) {
+        bookItem.appendChild(returnButtonContainer);
+      }
+
+      bookList.appendChild(bookItem);
+    });
+
+    // Обновляем задолженность
+    let debtCount = books.length;
+    const userDebtElement = document.getElementById("user-debt");
+    userDebtElement.textContent = `${debtCount}`;
+    userDebtElement.style.color = debtCount > 0 ? "#ea242e" : "#41a0ff";
+  } catch (error) {
+    console.error("Ошибка при отображении книг:", error);
+    const bookList = document.querySelector(".book-list");
+    bookList.innerHTML = `<p>Произошла ошибка при загрузке книг. Попробуйте позже.</p>`;
+  }
 }
+
+
 
 // Функция для получения книг пользователя из базы данных
 async function getUserBooksFromDB(studentId) {
@@ -425,8 +453,46 @@ function searchBookSetup() {
     }
   });
 }
+function clearPreviousResults() {
+  // Удаляем таблицу книг (если она существует)
+  const bookList = document.querySelector(".book-list");
+  if (bookList) {
+    bookList.innerHTML = ""; // Очищаем список книг
+  }
+
+  // Удаляем таблицу студентов (если она существует)
+  const booksTable = document.getElementById("booksTable");
+  if (booksTable) {
+    booksTable.style.display = "none"; // Скрываем таблицу, а не удаляем
+  }
+
+  // Удаляем сообщения об отсутствии результатов (если есть)
+  const resultContainer = document.getElementById("result");
+  if (resultContainer) {
+    resultContainer.innerHTML = ""; // Очищаем контейнер с результатами
+  }
+
+  // Скрываем сообщения о том, что ничего не найдено
+  const messageContainer = document.getElementById("notFoundMessageContainer");
+  if (messageContainer) {
+    messageContainer.remove(); // Удаляем контейнер с сообщением
+  }
+
+  // Скрываем модальные окна (если они открыты)
+  const takeBookModal = document.getElementById("takeBookModal");
+  const returnBookModal = document.getElementById("returnBookModal");
+
+  if (takeBookModal && takeBookModal.style.display !== "none") {
+    takeBookModal.style.display = "none"; // Скрыть модальное окно для взятия книги
+  }
+
+  if (returnBookModal && returnBookModal.style.display !== "none") {
+    returnBookModal.style.display = "none"; // Скрыть модальное окно для возврата книги
+  }
+}
 
 async function searchBook() {
+  clearPreviousResults(); // Очищаем предыдущие результаты поиска
   const query = document
     .getElementById("searchInput")
     .value.trim()
@@ -626,7 +692,7 @@ async function loadTakenBooks(userId) {
 
     const userTakenBooks = response.data; // Get  books list  AFTER
 
-    displayUserBooks(response.data.books);
+    displayUserInfo(account, response.data); // Get  books list AFTER, pass student id
   } catch (error) {
     if (error.response && error.response.status === 401) {
       console.error("Сессия истекла.");
