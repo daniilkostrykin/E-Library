@@ -6,7 +6,11 @@ from flask_jwt_extended import JWTManager, create_access_token, jwt_required, ge
 import psycopg2
 from psycopg2.extras import DictCursor
 from db import init_db
-from models import get_student_by_id, register_user, get_user_by_email, return_book, search_books
+from models import (
+    get_student_by_id, register_user, get_user_by_email, 
+    return_book, search_books, take_book, get_taken_books_by_user_id,
+    get_user_by_id, search_students, delete_taken_books_for_student, check_if_book_taken, 
+)
 import json 
 
 app = Flask(__name__)
@@ -174,6 +178,161 @@ def handle_options_request():
         response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
         response.headers["Access-Control-Allow-Credentials"] = "true"
         return response, 200
+
+@app.route("/api/taken_books", methods=["POST"])
+@jwt_required()
+def take_book_route():
+    data = request.get_json()
+    student_id = data.get("studentId")
+    book_id = data.get("bookId")  # Use bookId instead of bookTitle for consistency
+    due_date = data.get("dueDate")
+
+    if not all([student_id, book_id, due_date]):
+        return jsonify({"success": False, "message": "Отсутствуют необходимые данные"}), 400
+
+    try:
+        take_book(conn, book_id, student_id, due_date)
+        return jsonify({"success": True, "message": "Книга успешно взята"}), 201
+    except Exception as e:
+        app.logger.error(f"Ошибка при взятии книги: {e}")
+        return jsonify({"success": False, "message": str(e)}), 500
+
+@app.route("/api/taken_books/<int:user_id>", methods=["GET"])
+@jwt_required()
+def get_taken_books_route(user_id):
+    try:
+        books = get_taken_books_by_user_id(conn, user_id)
+        return jsonify({"books": books}), 200
+    except Exception as e:
+        app.logger.error(f"Error getting taken books: {str(e)}")
+        return jsonify({"success": False, "message": str(e)}), 500
+
+
+@app.route("/api/taken-books/student/<int:student_id>", methods=["GET"])
+@jwt_required()
+def get_taken_books_by_student_route(student_id):
+    try:
+        books = get_taken_books_by_user_id(conn, student_id)
+        return jsonify(books), 200  # Return books without JSON wrapper
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)}), 500
+
+
+@app.route('/api/taken_books/<int:student_id>', methods=['PUT'])
+@jwt_required()
+def update_taken_books_route(student_id):
+    data = request.get_json()
+    books = data.get('books')
+    try:
+        with conn.cursor() as cur:
+            cur.execute('DELETE FROM taken_books WHERE student_id = %s', (student_id,))
+
+            if books:  # Check if books is not empty
+                for book in books:
+                    cur.execute(
+                        'INSERT INTO taken_books (book_id, student_id, due_date) VALUES (%s, %s, %s)',
+                        (book.get('id'), student_id, book.get('dueDate'))
+                    )
+
+        conn.commit()
+        return jsonify({'success': True, 'message': 'Данные о книгах обновлены'}), 200
+    except Exception as e:
+        conn.rollback()
+        print(f"Error updating taken books: {str(e)}")
+        return jsonify({'success': False, 'message': 'Ошибка обновления данных о книгах'}), 500
+
+
+
+
+
+@app.route("/api/taken-books/<int:student_id>", methods=["DELETE"])
+@jwt_required()
+def delete_taken_books_route(student_id):
+    try:
+        delete_taken_books_for_student(conn, student_id)
+        return jsonify({"success": True, "message": "Данные о книгах удалены"}), 200
+    except Exception as e:
+        print(f"Error deleting taken books for student {student_id}: {str(e)}")
+        return jsonify({"success": False, "message": "Ошибка удаления данных о книгах"}), 500
+
+@app.route('/api/check_if_book_taken', methods=['POST'])
+@jwt_required()
+def check_if_book_taken_route():
+    data = request.get_json()
+    student_id = data.get('student_id')
+    book_title = data.get('book_title')
+
+    if not student_id or not book_title:
+        return jsonify({'success': False, 'message': 'Не указаны student_id или book_title'}), 400
+
+    try:
+        book_taken = check_if_book_taken(conn, student_id, book_title)
+        return jsonify({'success': book_taken}), 200
+    except Exception as e:
+        print(f"Ошибка при проверке взятия книги: {e}")
+        return jsonify({'success': False, 'message': 'Ошибка при проверке взятия книги'}), 500
+
+@app.route("/api/books/<int:book_id>", methods=["PUT"])
+@jwt_required()
+def update_book_route(book_id):
+    data = request.get_json()  # Получаем данные из тела запроса
+    title = data.get("title")
+    author = data.get("author")
+    quantity = data.get("quantity")
+    online_version = data.get("online_version")
+    location = data.get("location")
+
+    # Логируем полученные данные
+    app.logger.debug(f"Получены данные для обновления книги: {data}")
+
+    if not all([title, author, quantity, online_version, location]):
+        app.logger.error("Не все обязательные поля были переданы")
+        return jsonify({"success": False, "message": "Все поля обязательны"}), 400
+
+    try:
+        # Логируем начало запроса на обновление
+        app.logger.debug(f"Обновляем книгу с ID: {book_id}")
+
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                UPDATE books
+                SET title = %s, author = %s, quantity = %s, online_version = %s, location = %s
+                WHERE id = %s
+                """,
+                (title, author, quantity, online_version, location, book_id)
+            )
+        conn.commit()
+        
+        # Логируем успешное обновление
+        app.logger.debug(f"Данные о книге с ID {book_id} успешно обновлены")
+
+        return jsonify({"success": True, "message": "Данные о книге успешно обновлены"}), 200
+    except Exception as e:
+        # Логируем ошибку на сервере
+        app.logger.error(f"Ошибка при обновлении книги с ID {book_id}: {str(e)}")
+        conn.rollback()
+        return jsonify({"success": False, "message": str(e)}), 500
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=3000, debug=True)

@@ -8,6 +8,9 @@ const TAKEN_BOOKS_KEY = "takenBooks"; //  Ключ для взятых книг
 let studentEmail = null; // Объявляем studentEmail глобально
 let currentUserId = null; // Объявляем currentUserId глобально
 
+let bookToTake = null;
+let isTakeModalOpen = false;
+
 function goToLibrary() {
   window.location.href = "../library/library.html";
 }
@@ -368,84 +371,6 @@ async function getStudentIdByEmail(email) {
   }
 }
 
-// Функция для подтверждения взятия книги
-async function confirmReturnBook() {
-  console.log("Клик на кнопку confirm");
-  try {
-    if (bookToReturn) {
-      const studentId = await getStudentIdByEmail(studentEmail);
-      console.log("Student ID:", studentId);
-      if (!studentId) {
-        showToast("Ошибка: текущий студент не определен.");
-        closeReturnModal();
-        return;
-      }
-
-      // Fetch the user's books from the database
-      const response = await axios.get(`/api/taken_books/${studentId}`);
-      const userBooksData = response.data;
-
-      if (!userBooksData || userBooksData.books.length === 0) {
-        showToast("У вас нет взятых книг.");
-        closeReturnModal();
-        return;
-      }
-
-      // Find the book to return
-      const bookIndex = userBooksData.books.findIndex(
-        (b) => b.name === bookToReturn.name
-      );
-
-      if (bookIndex === -1) {
-        showToast("У вас нет этой книги.");
-        closeReturnModal();
-        return;
-      }
-
-      // Remove the book from user's borrowed books
-      userBooksData.books.splice(bookIndex, 1);
-
-      // If user has no more books, remove their record
-      if (userBooksData.books.length === 0) {
-        await axios.delete(`/api/taken_books/${studentId}`);
-      } else {
-        await axios.put(`/api/taken_books/${studentId}`, userBooksData);
-      }
-
-      // Return the book to the library (update book count)
-      const booksResponse = await axios.get("/api/books");
-      const books = booksResponse.data;
-      const bookInLibrary = books.find(
-        (b) => b["Название"] === bookToReturn.name
-      );
-
-      if (bookInLibrary) {
-        bookInLibrary["Количество"]++;
-        await axios.put(`/api/books/${bookInLibrary.id}`, bookInLibrary);
-      }
-
-      // Update UI
-      displayUserBooks(userBooksData.books);
-      showToast(`Книга "${bookToReturn.name}" успешно возвращена.`);
-      closeReturnModal();
-      bookToReturn = null;
-      updateBooksTable();
-    } else {
-      showToast("Ошибка: книга не выбрана.");
-      closeReturnModal();
-    }
-  } catch (error) {
-    showToast("Произошла ошибка при загрузке данных.");
-    console.error(error);
-    closeReturnModal();
-    return;
-  }
-}
-
-document
-  .getElementById("confirmReturnBtn")
-  .addEventListener("click", confirmReturnBook);
-
 function searchBookSetup() {
   const searchInput = document.getElementById("searchInput");
   searchInput.addEventListener("input", async () => {
@@ -550,13 +475,13 @@ function displayBooks(books) {
 
     // Заполняем ячейки строк
     const titleCell = row.insertCell();
-    titleCell.textContent = book[0] || ""; // Название
+    titleCell.textContent = book[1] || ""; // Название
 
     const authorCell = row.insertCell();
-    authorCell.textContent = book[1] || ""; // Автор
+    authorCell.textContent = book[2] || ""; // Автор
 
     const quantityCell = row.insertCell();
-    const quantity = book[2];
+    const quantity = book[3];
     quantityCell.textContent =
       quantity !== null && quantity !== undefined ? quantity : ""; // Количество, обработка null и undefined
     quantityCell.style.color = "rgb(102, 191, 102)";
@@ -582,20 +507,16 @@ function displayBooks(books) {
   });
 }
 
-let bookToTake = null;
-let isTakeModalOpen = false;
-
 // Функция для открытия модального окна
 function openTakeModal(book) {
   if (isTakeModalOpen) {
-    // Проверка, открыто ли уже модальное окно
     showToast("Вы уже пытаетесь взять книгу.");
     return;
   }
   bookToTake = book;
   document.getElementById(
     "takeBookMessage"
-  ).textContent = `Вы уверены, что хотите взять книгу "${book[0]}"?`;
+  ).textContent = `Вы уверены, что хотите взять книгу "${book[1]}"?`;
   document.getElementById("takeBookModal").style.display = "block";
   isTakeModalOpen = true; // Устанавливаем флаг
 }
@@ -613,6 +534,23 @@ function updateControlsMargin(isDataExist) {
     controls.style.marginTop = "200px";
   }
 }
+async function loadTakenBooks(userId) {
+  try {
+    const response = await axios.get(`/api/taken_books/${userId}`);
+    if (response.data && response.data.books) {
+      displayUserBooks(response.data.books);
+      updateBooksTable();
+    }
+  } catch (error) {
+    if (error.response && error.response.status === 401) {
+      console.error("Сессия истекла.");
+      showToast("Сессия истекла. Пожалуйста, войдите снова.");
+      logout();
+    }
+    console.error("Ошибка при получении взятых книг:", error);
+  }
+}
+
 // Функция для подтверждения взятия книги
 async function confirmTakeBook() {
   const urlParams = getURLParams();
@@ -626,89 +564,164 @@ async function confirmTakeBook() {
     console.log("Student ID:", studentId);
   }
 
-  if (bookToTake) {
-    if (!studentId) {
-      showToast("Ошибка: текущий студент не определен.");
+  if (!bookToTake) {
+    showToast("Ошибка: книга не выбрана.");
+    closeTakeModal();
+    return;
+  }
+
+  if (!studentId) {
+    showToast("Ошибка: текущий студент не определен.");
+    closeTakeModal();
+    return;
+  }
+
+  console.log("Объект bookToTake:", bookToTake);
+
+  try {
+    // Получаем токен из localStorage
+    const token = localStorage.getItem("token");
+    if (!token) {
+      showToast("Ошибка авторизации. Войдите в систему.");
       closeTakeModal();
       return;
     }
 
-    try {
-      // Получаем токен из localStorage
-      const token = localStorage.getItem("token");
-      if (!token) {
-        showToast("Ошибка авторизации. Войдите в систему.");
-        closeTakeModal();
-        return;
-      }
-
-      // Fetch available books and the user's current borrowed books from the DB
-      const [booksResponse, takenBooksResponse] = await Promise.all([
-        axios.get("/api/books", {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-        axios.get(`/api/taken_books/${studentId}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-      ]);
-
-      const books = booksResponse.data;
-      const userBooksData = takenBooksResponse.data;
-
-      const bookInLibrary = books.find(
-        (b) => b.Название === bookToTake.Название
-      );
-
-      if (!bookInLibrary || bookInLibrary.Количество === 0) {
-        showToast("Эта книга в данный момент отсутствует.");
-        closeTakeModal();
-        return;
-      }
-
-      if (userBooksData.books.some((b) => b.name === bookToTake.Название)) {
-        showToast("Вы уже взяли эту книгу!");
-        closeTakeModal();
-        return;
-      }
-
-      // Calculate the due date and add the book to the user's list
-      const dueDate = new Date();
-      dueDate.setDate(dueDate.getDate() + 14);
-      const formattedDueDate = formatDate(dueDate);
-
-      userBooksData.books.push({
-        name: bookToTake.Название,
-        author: bookToTake.Автор,
-        dueDate: formattedDueDate,
-      });
-
-      await axios.put(`/api/taken_books/${studentId}`, userBooksData, {
+    // Fetch available books and the user's current borrowed books from the DB
+    const [booksResponse, takenBooksResponse] = await Promise.all([
+      axios.get("/api/books", {
         headers: { Authorization: `Bearer ${token}` },
-      });
-
-      // Decrease the book quantity in the library
-      bookInLibrary.Количество--;
-      await axios.put(`/api/books/${bookInLibrary.id}`, bookInLibrary, {
+      }),
+      axios.get(`/api/taken_books/${studentId}`, {
         headers: { Authorization: `Bearer ${token}` },
-      });
+      }),
+    ]);
 
-      // Update UI
-      displayUserBooks(userBooksData.books);
-      updateBooksTable(books);
+    const books = booksResponse.data;
+    const userBooksData = takenBooksResponse.data;
 
-      showToast(`Книга "${bookToTake.Название}" успешно взята.`);
+    // Ищем книгу в библиотеке по названию, используя индексы
+    const bookInLibrary = books.find(
+      (b) => b[1] === bookToTake[1]  // bookToTake[0] - это название книги
+    );
+    console.log(bookInLibrary);
+
+    if (!bookInLibrary || bookInLibrary[3] === 0) {  // bookInLibrary[2] - это ID книги, если количество равно 0
+      showToast("Эта книга в данный момент отсутствует.");
       closeTakeModal();
-      bookToTake = null;
-    } catch (error) {
-      console.error("Ошибка при подтверждении взятия книги:", error);
-      showToast("Произошла ошибка при взятии книги.");
-      closeTakeModal();
+      return;
     }
-  } else {
-    showToast("Ошибка: книга не выбрана.");
+
+    // Проверяем, взял ли студент уже эту книгу
+    const bookAlreadyTaken = await checkIfBookTaken(studentId, bookToTake[1], token);
+    if (bookAlreadyTaken) {
+      showToast("Вы уже взяли эту книгу!");
+      closeTakeModal();
+      return;
+    }
+
+    // Рассчитываем дату возврата книги
+    const dueDate = new Date();
+    dueDate.setDate(dueDate.getDate() + 14);
+    const formattedDueDate = dueDate.toISOString().split('T')[0]; // ISO формат даты
+
+    // Добавляем книгу в список взятых книг студента
+    userBooksData.books.push({
+      id: bookInLibrary[0],  // ID книги
+      name: bookToTake[1],  // Название книги
+      author: bookToTake[2],  // Автор книги
+      dueDate: formattedDueDate,  // Дата возврата
+    });
+
+    // Удаляем некорректные данные
+    userBooksData.books = userBooksData.books.filter(
+      (book) => book.name && book.author && book.dueDate
+    );
+
+    if (userBooksData.books.length === 0) {
+      showToast("Нет корректных данных для отправки.");
+      return;
+    }
+
+    // Отправляем обновленные данные о взятых книгах на сервер
+    console.log("Отправка данных на сервер:", userBooksData);
+    const response = await axios.put(
+      `/api/taken_books/${studentId}`,
+      userBooksData,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+    console.log("Ответ сервера:", response.data);
+
+    // Уменьшаем количество книги в библиотеке
+    bookInLibrary[3]--;  // Уменьшаем количество книги
+    console.log("Обновление количества книг:", bookInLibrary);
+
+    try {
+      // Логируем данные перед отправкой запроса
+      console.log("Отправка запроса на обновление книги. Данные:", bookInLibrary);
+      
+      // Отправляем PUT-запрос для обновления данных о книге
+      const bookResponse = await axios.put(
+        `/api/books/${bookInLibrary[1]}`,  // ID книги, который мы передаем
+        bookInLibrary,  // Данные о книге
+        {
+          headers: { Authorization: `Bearer ${token}` },  // Добавляем токен авторизации
+        }
+      );
+    
+      // Логируем успешный ответ
+      console.log("Ответ сервера при обновлении книги:", bookResponse.data);
+    } catch (error) {
+      // Логируем ошибку, если что-то пошло не так
+      console.error("Ошибка при обновлении книги:", error);
+    
+      // Дополнительный вывод ошибок
+      if (error.response) {
+        // Сервер вернул ответ с ошибкой
+        console.error("Ответ от сервера:", error.response.data);
+        console.error("Статус ответа:", error.response.status);
+      } else if (error.request) {
+        // Запрос был отправлен, но ответа не было
+        console.error("Запрос был отправлен, но не получен ответ:", error.request);
+      } else {
+        // Ошибка при настройке запроса
+        console.error("Ошибка настройки запроса:", error.message);
+      }
+    }
+    
+    // Обновляем UI
+    displayUserBooks(userBooksData.books);
+    updateBooksTable(books);
+
+    showToast(`Книга "${bookToTake[1]}" успешно взята.`);
+    closeTakeModal();
+    bookToTake = null;
+  } catch (error) {
+    console.error("Ошибка при подтверждении взятия книги:", error.response?.data || error.message);
+    showToast("Произошла ошибка при взятии книги.");
     closeTakeModal();
   }
 }
+
+async function checkIfBookTaken(studentId, bookTitle, token) {
+  try {
+    const response = await axios.post('/api/check_if_book_taken', {
+      student_id: studentId,
+      book_title: bookTitle
+    }, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    return response.data.success;
+  } catch (error) {
+    console.error("Ошибка при проверке взятия книги:", error);
+    return false;
+  }
+}
+
+
+
 
 // Привязываем событие к кнопке подтверждения
 document
