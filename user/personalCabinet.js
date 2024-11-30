@@ -645,7 +645,7 @@ async function confirmTakeBook() {
 
     // Отправляем обновленные данные о взятых книгах на сервер
     console.log("Отправка данных на сервер:", userBooksData);
-    const response = await axios.put(
+    const response = await axios.post(
       `/api/taken_books/${studentId}`,
       userBooksData,
       {
@@ -663,8 +663,8 @@ async function confirmTakeBook() {
       console.log("Отправка запроса на обновление книги. Данные:", bookInLibrary);
       
       // Отправляем PUT-запрос для обновления данных о книге
-      const bookResponse = await axios.put(
-        `/api/books/${bookInLibrary[1]}`,  // ID книги, который мы передаем
+      const bookResponse = await axios.post(
+        `/api/books/${bookInLibrary[0]}`,  // ID книги, который мы передаем
         bookInLibrary,  // Данные о книге
         {
           headers: { Authorization: `Bearer ${token}` },  // Добавляем токен авторизации
@@ -692,8 +692,8 @@ async function confirmTakeBook() {
     }
     
     // Обновляем UI
-    displayUserBooks(userBooksData.books);
-    updateBooksTable(books);
+  //  displayUserBooks(userBooksData.books);
+  //  updateBooksTable(books);
 
     showToast(`Книга "${bookToTake[1]}" успешно взята.`);
     closeTakeModal();
