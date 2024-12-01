@@ -18,17 +18,21 @@
       <h2>Панель администратора</h2>
 
       <table id="bookTable">
-        <tr>
-          <th>Название книги</th>
-          <th>Автор</th>
-          <th>Количество</th>
-          <th>Электронная версия</th>
-          <th>Местоположение</th>
-          <th>Удаление</th>
-        </tr>
+        <thead id="bookTableHeader">
+          <tr>
+            <th>Название</th>
+            <th>Автор</th>
+            <th>Количество</th>
+            <th>Местоположение</th>
+            <th id="takeBook">Действие</th>
+          </tr>
+        </thead>
+        <tbody id="bookTableBody"></tbody>
       </table>
 
       <div id="controls">
+        
+      <div id="result"></div>
         <form id="searchForm">
           <ion-icon name="search-outline" id="search-outline"></ion-icon>
           <input type="text" id="searchInput" placeholder="Поиск книги..." />
@@ -91,6 +95,7 @@
       nomodule
       src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"
     ></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script src="admin.js"></script>
   </body>
 </html>
