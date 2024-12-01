@@ -1,14 +1,15 @@
 //admin.js
-const BOOKS_KEY = "books";
+axios.defaults.baseURL = "http://localhost:3000";
+
 let addBookFormVisible = false; // Флаг для отслеживания видимости формы
 let originalBooks = [];
 document.addEventListener("DOMContentLoaded", async () => {
   // Загружаем книги с сервера и сохраняем их в originalBooks
-  await updateBookTable();
-
+  // await updateBookTable();
+  const books = await fetchBooks(); // Выполняем запрос с учётом query
+  displayBooks(books);
   document.getElementById("save-changes").disabled = true;
   document.getElementById("cancel").disabled = true;
-  displayBooks(originalBooks);
 
   document.getElementById("searchForm").addEventListener("submit", (event) => {
     event.preventDefault();
@@ -70,7 +71,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 // Обновление таблицы с книгами
 async function updateBookTable() {
   try {
-    const response = await axios.get('/api/books'); // Предполагаемый эндпоинт
+    const response = await axios.get("/api/books"); // Предполагаемый эндпоинт
     originalBooks = response.data;
     displayBooks(originalBooks);
   } catch (error) {
@@ -158,7 +159,13 @@ function handleArrowNavigation(event, rowIndex, colIndex, table) {
     }
   }
 }
-async function processAddBook(title, author, quantity, onlineVersion, location) {
+async function processAddBook(
+  title,
+  author,
+  quantity,
+  onlineVersion,
+  location
+) {
   // Проверка обязательных полей
   if (!title) {
     showToast("Введите название книги.");
@@ -195,7 +202,7 @@ async function processAddBook(title, author, quantity, onlineVersion, location) 
   };
 
   try {
-    await axios.post('/api/books', newBook); // Эндпоинт для добавления
+    await axios.post("/api/books", newBook); // Эндпоинт для добавления
     await updateBookTable();
     showToast("Книга успешно добавлена!");
     return true;
@@ -231,14 +238,73 @@ function isValidURL(url) {
 function back() {
   window.location.href = "admin0.html";
 }
+document
+  .getElementById("searchForm")
+  .addEventListener("submit", async (event) => {
+    event.preventDefault(); // Предотвращаем стандартное поведение формы (перезагрузку страницы)
 
-function displayBooks(books) {
+    const query = document
+      .getElementById("searchInput")
+      .value.trim()
+      .toLowerCase();
+    const books = await fetchBooks(query); // Выполняем запрос с учётом query
+    displayBooks(books);
+  });
+async function fetchBooks(query = "") {
+  try {
+    const token = localStorage.getItem("token"); // Получаем токен из localStorage
+
+    const response = await axios.get("/api/books", {
+      params: { query },
+      headers: {
+        Authorization: `Bearer ${token}`,  // Исправлено
+    },
+    });
+    return response.data;
+  } catch (error) {
+    // Обработка ошибок, если сервер вернет ошибку, даже с токеном
+    console.error("Ошибка при получении книг:", error);
+
+    if (error.response && error.response.status === 401) {
+      showToast("Сессия истекла. Пожалуйста, войдите снова.");
+
+      logout(); //  Вызываем функцию logout для перенаправления
+    }
+
+    throw error;
+  }
+}
+async function displayBooks(books) {
   const table = document.getElementById("bookTable");
   table.innerHTML = ""; // Очищаем таблицу
+  const token = localStorage.getItem("token"); // Получаем токен
 
+  if (!token) {
+    alert("Необходима авторизация.");
+    window.location.href = "/login"; // Перенаправление на страницу входа
+    return;
+  }
+
+  console.log("Books from server:", books); // Добавьте эту строку для отладки
+  // Всегда очищаем таблицу и resultContainer перед отображением результатов
+  const resultContainer = document.getElementById("result"); // Контейнер для сообщения
+  resultContainer.innerHTML = "";
+  if (books.length === 0) {
+    // Если книги не найдены
+    resultContainer.innerHTML = "<p>Книги не найдены</p>"; // Сообщение в resultContainer
+    booksTable.style.display = "none"; // Скрываем таблицу
+    resultContainer.style.display = "block"; // Показываем сообщение
+  } else {
+    resultContainer.innerHTML = ""; // Очищаем resultContainer, если книги найдены
+    resultContainer.style.display = "none"; // Скрываем сообщение
+
+  }
+
+  // Обновляем margin в зависимости от наличия данных
+  updateControlsMargin(books.length > 0);
   // Заголовок таблицы
   const headerRow = table.insertRow();
-  const headers = [
+  const headers = ["ID",
     "Название",
     "Автор",
     "Количество",
@@ -254,9 +320,13 @@ function displayBooks(books) {
     }
   });
 
-  // Данные книг
+
   books.forEach((book, rowIndex) => {
-    const row = table.insertRow();
+    if (!Array.isArray(book)) {
+      console.error("Invalid book data:", book);
+      return; // Пропускаем некорректные данные
+    }
+    const row = table.insertRow(); // Создаем строку
 
     Object.entries(book).forEach(([key, value], colIndex) => {
       const cell = row.insertCell();
@@ -406,7 +476,6 @@ function closeDeleteModal() {
   bookToDelete = null; // Очищаем переменную
 }
 
-
 // Удаление книги
 async function confirmDeleteBook() {
   if (!bookToDelete) return;
@@ -436,7 +505,6 @@ function updateCellColor(cell, value) {
     cell.style.color = "red";
   }
 }
-
 
 // Сохранение изменений
 async function saveEditBook() {
@@ -492,7 +560,7 @@ async function saveEditBook() {
   }
 
   try {
-    await axios.put('/api/books', updatedBooks); // Эндпоинт для обновления
+    await axios.put("/api/books", updatedBooks); // Эндпоинт для обновления
     await updateBookTable();
     showToast("Изменения успешно сохранены.");
   } catch (error) {
@@ -504,7 +572,7 @@ async function saveEditBook() {
 async function cancelEditBook() {
   try {
     // Загружаем актуальный список книг с сервера
-    const response = await axios.get('/api/books'); // Эндпоинт для получения всех книг
+    const response = await axios.get("/api/books"); // Эндпоинт для получения всех книг
     const books = response.data;
 
     originalBooks = books.map((book) => ({ ...book })); // Обновляем оригинал
@@ -523,7 +591,9 @@ async function searchBook() {
   const query = document.getElementById("searchInput").value.toLowerCase();
 
   try {
-    const response = await axios.get('/api/books/search', { params: { query } }); // Предполагаемый эндпоинт поиска
+    const response = await axios.get("/api/books/search", {
+      params: { query },
+    }); // Предполагаемый эндпоинт поиска
     const books = response.data;
 
     if (books.length) {
@@ -557,3 +627,11 @@ document.addEventListener("keydown", (event) => {
     closeModal();
   }
 });
+function updateControlsMargin(isDataExist) {
+  const controls = document.getElementById("controls");
+  if (isDataExist) {
+    controls.style.marginTop = "20px";
+  } else {
+    controls.style.marginTop = "200px";
+  }
+}
