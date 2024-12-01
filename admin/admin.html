@@ -18,21 +18,11 @@
       <h2>Панель администратора</h2>
 
       <table id="bookTable">
-        <thead id="bookTableHeader">
-          <tr>
-            <th>Название</th>
-            <th>Автор</th>
-            <th>Количество</th>
-            <th>Местоположение</th>
-            <th id="takeBook">Действие</th>
-          </tr>
-        </thead>
         <tbody id="bookTableBody"></tbody>
       </table>
 
       <div id="controls">
-        
-      <div id="result"></div>
+        <div id="result"></div>
         <form id="searchForm">
           <ion-icon name="search-outline" id="search-outline"></ion-icon>
           <input type="text" id="searchInput" placeholder="Поиск книги..." />
@@ -47,14 +37,18 @@
       <div id="deleteBookModal" class="modal">
         <div class="modal-content1">
           <h2>Удалить книгу</h2>
-          <p id="deleteBookMessage">Вы уверены, что хотите удалить эту книгу?</p>
+          <p id="deleteBookMessage">
+            Вы уверены, что хотите удалить эту книгу?
+          </p>
           <div class="modal-actions">
             <button id="confirmDeleteBtn" class="save-btn">Удалить</button>
-            <button class="cancel-btn" onclick="closeDeleteModal()">Отмена</button>
+            <button class="cancel-btn" onclick="closeDeleteModal()">
+              Отмена
+            </button>
           </div>
         </div>
-      </div>      
-          <div id="addBookModal" class="modal">
+      </div>
+      <div id="addBookModal" class="modal">
         <div class="modal-content">
           <span class="close-btn" onclick="closeModal()">×</span>
           <h2>Добавление книги</h2>
@@ -72,7 +66,9 @@
               min="0"
             /><br /><br />
 
-            <label for="onlineVersion">Электронная версия (URL) (опционально):</label><br />
+            <label for="onlineVersion"
+              >Электронная версия (URL) (опционально):</label
+            ><br />
             <input
               type="url"
               id="onlineVersion"
