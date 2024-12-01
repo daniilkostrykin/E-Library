@@ -13,7 +13,7 @@ body {
 
 #adminPanel {
   position: relative;
-  width: 1080px;
+  width: 1142px;
   max-width: 90%;
   background-color: white;
   padding: 20px;
@@ -42,8 +42,7 @@ body {
 #controls {
   display: flex;
   flex-wrap: wrap; /* <-- Добавлена эта строка */
-  justify-content: flex-start;
-  align-items: center;
+  justify-content: space-between;   align-items: center;
   margin-top: 400px;
   width: 100%;
   gap: 20px;
@@ -132,15 +131,16 @@ input[type="text"] {
 }
 #searchForm,
 #searchForm1 {
+  flex: 1; /* Расширяем форму до доступной ширины */
   display: flex;
-  justify-content: center;
+  justify-content: flex-start;
   align-items: center;
-  gap: 30px;
-}
+  gap: 10px; /* Отступ между полем и кнопкой */}
 #searchInput {
   border-radius: 10px;
   padding: 5px 10px;
   box-sizing: border-box;
+  width: 138px;
 }
 #searchInput1 {
   border-radius: 10px;
@@ -148,17 +148,19 @@ input[type="text"] {
   box-sizing: border-box;
   width: 360px;
 }
-
-.find {
+#searchInput,
+#searchInput1 {
+  flex: 1; /* Устанавливает гибкую ширину полей поиска */
+  min-width: 100px; /* Убираем сильные разрывы при сжатии */
+}
+#bookSearchButton, #studentSearchButton {
   background-color: #a5dca7;
   border-radius: 0 10px 10px 0;
   border-left: 1px solid #ddd;
 }
-
 #edit-book {
   background-color: #a09cf6;
-  position: relative;
-  left: 32px;
+  
 }
 
 #search-outline,

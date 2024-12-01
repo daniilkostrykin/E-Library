@@ -8,6 +8,28 @@ let isNotFoundMessageShown = false; // Флаг для отслеживания 
 axios.defaults.baseURL = "http://localhost:3000"; // Базовый URL вашего Flask API
 axios.defaults.headers.common["Content-Type"] = "application/json";
 
+document.addEventListener("DOMContentLoaded", async () => {
+   //displayStudents(await fetchStudents()); // Отображаем студентов
+  // await updateBookTable(); // Загружаем книги с сервера и отображаем их
+  handleSearchFormSubmit("searchForm", "searchInput", searchBook); // Для поиска книг
+  handleSearchFormSubmit("searchStudentForm", "searchInput1", searchStudent); // Для поиска студентов
+  
+  const bookSearchInput = document.getElementById("searchInput");
+  const studentSearchInput = document.getElementById("searchInput1");
+  const bookSearchButton = document.getElementById("bookSearchButton");
+  const studentSearchButton = document.getElementById("studentSearchButton");
+
+  bookSearchInput.addEventListener("input", () => {
+    bookSearchButton.value = bookSearchInput.value.trim() ? "Найти" : "Показать книги";
+  });
+
+  studentSearchInput.addEventListener("input", () => {
+    studentSearchButton.value = studentSearchInput.value.trim() ? "Найти" : "Показать студентов";
+  });
+ 
+  document.getElementById("edit-book").addEventListener("click", edit);
+});
+
 function edit() {
   window.location.href = "admin.html";
 }
@@ -88,19 +110,19 @@ function displayBooks(books) {
     const row = table.insertRow();
 
     const titleCell = row.insertCell();
-    titleCell.textContent = book[0] || ""; // Название
+    titleCell.textContent = book[1] || ""; // Название
 
     const authorCell = row.insertCell();
-    authorCell.textContent = book[1] || ""; // Автор
+    authorCell.textContent = book[2] || ""; // Автор
 
     const quantityCell = row.insertCell();
-    const quantity = book[2];
+    const quantity = book[3];
     quantityCell.textContent =
       quantity !== null && quantity !== undefined ? quantity : ""; // Количество, обработка null и undefined
     updateCellColor(quantityCell, quantity);
 
     const linkCell = row.insertCell();
-    const linkValue = book[3];
+    const linkValue = book[4];
 
     if (linkValue) {
       const linkElement = document.createElement("a");
@@ -267,7 +289,7 @@ function displayStudents(students) {
 
 function displayMessage(messageText, formId = null) {
   clearPreviousResults();
-
+  updateControlsMargin(false);
   const adminPanel = document.getElementById("adminPanel");
 
   // Создаем контейнер для сообщения
@@ -320,7 +342,7 @@ function updateControlsMargin(isDataExist) {
   if (isDataExist) {
     controls.style.marginTop = "20px";
   } else {
-    controls.style.marginTop = "200px";
+    controls.style.marginTop = "400px";
   }
 }
 function updateCellColor(cell, value) {
@@ -387,10 +409,3 @@ document
     const bookTable = document.getElementById("bookTable");
     updateControlsMargin(bookTable !== null);
   });
-document.addEventListener("DOMContentLoaded", async () => {
-  //displayStudents(await fetchStudents()); // Отображаем студентов
-  // await updateBookTable(); // Загружаем книги с сервера и отображаем их
-  handleSearchFormSubmit("searchForm", "searchInput", searchBook); // Для поиска книг
-  handleSearchFormSubmit("searchStudentForm", "searchInput1", searchStudent); // Для поиска студентов
-  document.getElementById("edit-book").addEventListener("click", edit);
-});

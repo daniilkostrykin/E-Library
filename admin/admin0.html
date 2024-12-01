@@ -19,7 +19,7 @@
         <form id="searchForm">
           <ion-icon name="search-outline" class="search-outline"></ion-icon>
           <input type="text" id="searchInput" placeholder="Поиск книги..." />
-          <input type="submit" class="find" value="Найти" />
+          <input type="submit" id="bookSearchButton" value="Показать книги" />
         </form>
         <form id="searchStudentForm">
           <ion-icon name="search-outline" class="search-outline"></ion-icon>
@@ -28,8 +28,7 @@
             id="searchInput1"
             placeholder="Поиск студента по номеру или ФИО..."
           />
-          <input type="submit" class="find" value="Найти" />
-        </form>
+          <input type="submit" id="studentSearchButton" value="Показать студентов" />        </form>
         <button onclick="edit()" id="edit-book">Редактировать</button>
         <button onclick="exit()" id="exit">Выйти</button>
       </div>
