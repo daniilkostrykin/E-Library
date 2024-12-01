@@ -320,7 +320,6 @@ def decrease_book_quantity(book_id):
         return jsonify({"success": False, "message": "Ожидается массив с данными о книге"}), 400
 
 
-
 @app.route("/api/taken_books", methods=["GET"])
 @jwt_required()
 def get_all_taken_books_route():
@@ -343,6 +342,44 @@ def get_user_debt_count_route(student_id):
     except Exception as e:
         return jsonify({"success": False, "message": str(e)}), 500
 
+@app.route("/api/books", methods=["PUT"])
+@jwt_required()
+def update_books():
+    data = request.get_json()
+
+    if not isinstance(data, list):
+        return jsonify({"success": False, "message": "Ожидается список книг для обновления"}), 400
+
+    try:
+        with conn.cursor() as cur:
+            for book in data:
+                book_id = book.get("id")
+                title = book.get("Название")
+                author = book.get("Автор")
+                quantity = book.get("Количество")
+                online_version = book.get("Электронная версия")
+                location = book.get("Местоположение")
+
+                if not book_id:
+                    return jsonify({"success": False, "message": "ID книги обязателен для обновления"}), 400
+
+                cur.execute(
+                    """
+                    UPDATE books
+                    SET title = %s, author = %s, quantity = %s, 
+                        online_version = %s, location = %s
+                    WHERE id = %s
+                    """,
+                    (title, author, quantity, online_version, location, book_id)
+                )
+
+        conn.commit()
+        return jsonify({"success": True, "message": "Книги успешно обновлены"}), 200
+
+    except Exception as e:
+        conn.rollback()
+        app.logger.error(f"Ошибка при обновлении книг: {e}")
+        return jsonify({"success": False, "message": str(e)}), 500
 
 
 
