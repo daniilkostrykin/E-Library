@@ -8,28 +8,6 @@ let isNotFoundMessageShown = false; // Флаг для отслеживания 
 axios.defaults.baseURL = "http://localhost:3000"; // Базовый URL вашего Flask API
 axios.defaults.headers.common["Content-Type"] = "application/json";
 
-document.addEventListener("DOMContentLoaded", async () => {
-   //displayStudents(await fetchStudents()); // Отображаем студентов
-  // await updateBookTable(); // Загружаем книги с сервера и отображаем их
-  handleSearchFormSubmit("searchForm", "searchInput", searchBook); // Для поиска книг
-  handleSearchFormSubmit("searchStudentForm", "searchInput1", searchStudent); // Для поиска студентов
-  
-  const bookSearchInput = document.getElementById("searchInput");
-  const studentSearchInput = document.getElementById("searchInput1");
-  const bookSearchButton = document.getElementById("bookSearchButton");
-  const studentSearchButton = document.getElementById("studentSearchButton");
-
-  bookSearchInput.addEventListener("input", () => {
-    bookSearchButton.value = bookSearchInput.value.trim() ? "Найти" : "Показать книги";
-  });
-
-  studentSearchInput.addEventListener("input", () => {
-    studentSearchButton.value = studentSearchInput.value.trim() ? "Найти" : "Показать студентов";
-  });
- 
-  document.getElementById("edit-book").addEventListener("click", edit);
-});
-
 function edit() {
   window.location.href = "admin.html";
 }
@@ -82,13 +60,7 @@ function displayBooks(books) {
   adminPanel.appendChild(table);
 
   const headerRow = table.insertRow();
-  const headers = [
-    "Название",
-    "Автор",
-    "Количество",
-    "Электронная версия",
-    "Местоположение",
-  ];
+  const headers = ["Название", "Автор", "Количество", "Электронная версия", "Местоположение"];
   headers.forEach((headerText) => {
     const header = headerRow.insertCell();
     header.textContent = headerText;
@@ -102,39 +74,41 @@ function displayBooks(books) {
     return;
   }
 
+
   books.forEach((book) => {
-    if (!Array.isArray(book)) {
-      console.error("Invalid book data:", book);
-      return; // Пропускаем некорректные данные
-    }
+      if (!Array.isArray(book)) {
+        console.error("Invalid book data:", book);
+        return; // Пропускаем некорректные данные
+      }
     const row = table.insertRow();
 
+
     const titleCell = row.insertCell();
-    titleCell.textContent = book[1] || ""; // Название
+    titleCell.textContent = book[0] || ""; // Название
 
     const authorCell = row.insertCell();
-    authorCell.textContent = book[2] || ""; // Автор
+    authorCell.textContent = book[1] || ""; // Автор
 
     const quantityCell = row.insertCell();
-    const quantity = book[3];
-    quantityCell.textContent =
-      quantity !== null && quantity !== undefined ? quantity : ""; // Количество, обработка null и undefined
-    updateCellColor(quantityCell, quantity);
+    const quantity = book[2];
+    quantityCell.textContent = quantity !== null && quantity !== undefined ? quantity : ""; // Количество, обработка null и undefined
+    updateCellColor(quantityCell, quantity); 
+
 
     const linkCell = row.insertCell();
-    const linkValue = book[4];
+    const linkValue = book[3];
 
     if (linkValue) {
       const linkElement = document.createElement("a");
       linkElement.href = linkValue;
-      linkElement.target = "_blank";
+      linkElement.target = "_blank"; 
 
       const tooltipText = document.createElement("span");
       tooltipText.classList.add("tooltiptext");
-      tooltipText.textContent = "Открыть ссылку в новой вкладке";
+      tooltipText.textContent = "Открыть ссылку в новой вкладке"; 
 
       const bookIcon = document.createElement("ion-icon");
-      bookIcon.name = "book";
+      bookIcon.name = "book"; 
       bookIcon.style.fontSize = "24px";
       bookIcon.style.color = "#8000ff";
       linkElement.appendChild(bookIcon);
@@ -151,7 +125,8 @@ function displayBooks(books) {
 
     const locationCell = row.insertCell();
     locationCell.textContent = book[4] || "Неизвестно"; // Местоположение, обработка null/undefined
-  });
+});
+    
 
   const controls = document.getElementById("controls");
   adminPanel.insertBefore(table, controls);
@@ -159,20 +134,20 @@ function displayBooks(books) {
 }
 
 function updateCellColor(cell, value) {
-  const numValue = parseInt(value, 10);
+    const numValue = parseInt(value, 10);
 
-  if (isNaN(numValue)) {
-    cell.style.color = "black";
-    return;
-  }
+    if (isNaN(numValue)) {
+        cell.style.color = "black";
+        return;
+    }
 
-  if (numValue > 0) {
-    cell.style.color = "rgb(102, 191, 102)";
-  } else if (numValue === 0) {
-    cell.style.color = "red";
-  } else {
-    cell.style.color = "blue";
-  }
+    if (numValue > 0) {
+        cell.style.color = "rgb(102, 191, 102)";
+    } else if (numValue === 0) {
+        cell.style.color = "red";
+    } else {
+        cell.style.color = "blue"; 
+    }
 }
 window.addEventListener("message", (event) => {
   if (event.data && event.data.type === "updateBookList") {
@@ -194,20 +169,17 @@ window.addEventListener("message", (event) => {
 
 async function searchBook() {
   clearPreviousResults();
-  const query = document
-    .getElementById("searchInput")
-    .value.trim()
-    .toLowerCase();
+  const query = document.getElementById("searchInput").value.trim().toLowerCase();
 
-  if (query !== "") {
-    // Если поле поиска НЕ пустое (содержит текст)
+  if (query !== "") { // Если поле поиска НЕ пустое (содержит текст)
     const books = await fetchBooks(query);
     displayBooks(books);
   } // Иначе (поле поиска пустое или содержит только пробелы) - ничего не делаем
 
+
   // Обновляем margin в зависимости от наличия данных
   const bookTable = document.getElementById("bookTable");
-  updateControlsMargin(bookTable !== null);
+  updateControlsMargin(bookTable !== null); 
 }
 async function searchStudent() {
   clearPreviousResults();
@@ -215,13 +187,8 @@ async function searchStudent() {
     .getElementById("searchInput1")
     .value.trim()
     .toLowerCase();
-  
-    const students = await fetchStudents(query);
-    displayStudents(students);
-  
-    // Обновляем margin в зависимости от наличия данных
-    const studentsTable = document.getElementById("studentsTable");
-    updateControlsMargin(studentsTable !== null); 
+  const students = await fetchStudents(query);
+  displayStudents(students);
 }
 
 function displayStudents(students) {
@@ -236,7 +203,7 @@ function displayStudents(students) {
   adminPanel.appendChild(studentsTable);
   studentsTable.style.width = "80%"; // Устанавливаем ширину таблицы 80%
   studentsTable.style.margin = "0 auto"; // Центрируем таблицу
-  const headerRow = studentsTable.insertRow();
+   const headerRow = studentsTable.insertRow();
   const headers = ["ФИО", "Группа", "Действия"];
   headers.forEach((headerText) => {
     const headerCell = headerRow.insertCell();
@@ -251,18 +218,20 @@ function displayStudents(students) {
     return;
   }
 
+ 
   students.forEach((student) => {
     if (!Array.isArray(student)) {
       console.error("Invalid student data:", student);
       return; // Пропускаем некорректные данные
     }
-    const row = studentsTable.insertRow();
+  const row = studentsTable.insertRow();
+
 
     const fioCell = row.insertCell();
-    fioCell.textContent = student[1] || "";
+    fioCell.textContent = student[1]||"";
 
     const groupCell = row.insertCell();
-    groupCell.textContent = student[2] || "";
+    groupCell.textContent = student[2]||"";
 
     const actionsCell = row.insertCell();
     const openHistoryButton = document.createElement("button");
@@ -282,6 +251,7 @@ function displayStudents(students) {
     });
   });
 
+ 
   const controls = document.getElementById("controls");
   adminPanel.insertBefore(studentsTable, controls);
   updateControlsMargin(true);
@@ -289,7 +259,7 @@ function displayStudents(students) {
 
 function displayMessage(messageText, formId = null) {
   clearPreviousResults();
-  updateControlsMargin(false);
+
   const adminPanel = document.getElementById("adminPanel");
 
   // Создаем контейнер для сообщения
@@ -342,14 +312,13 @@ function updateControlsMargin(isDataExist) {
   if (isDataExist) {
     controls.style.marginTop = "20px";
   } else {
-    controls.style.marginTop = "400px";
+    controls.style.marginTop = "200px";
   }
 }
 function updateCellColor(cell, value) {
   const numValue = parseInt(value, 10); // Парсим в число
 
-  if (isNaN(numValue)) {
-    // Проверяем на NaN
+  if (isNaN(numValue)) { // Проверяем на NaN
     cell.style.color = "black"; // Или другой цвет по умолчанию
     return; // Выходим из функции, если NaN
   }
@@ -358,8 +327,7 @@ function updateCellColor(cell, value) {
     cell.style.color = "rgb(102, 191, 102)";
   } else if (numValue === 0) {
     cell.style.color = "red";
-  } else {
-    // Добавлено условие для отрицательных чисел (если нужно)
+  } else { // Добавлено условие для отрицательных чисел (если нужно)
     cell.style.color = "blue"; // Или другой цвет для отрицательных значений
   }
 }
@@ -369,9 +337,7 @@ function goToPersonalCabinet(student) {
   const group = student[2];
 
   // Добавляем ФИО и группу в URL
-  window.location.href = `../user/personalCabinet.html?fio=${encodeURIComponent(
-    fio
-  )}&group=${encodeURIComponent(group)}&id=${encodeURIComponent(studentId)}`;
+  window.location.href = `../user/personalCabinet.html?fio=${encodeURIComponent(fio)}&group=${encodeURIComponent(group)}&id=${encodeURIComponent(studentId)}`;
 }
 function handleSearchFormSubmit(formId, inputId, searchFunction) {
   const form = document.getElementById(formId);
@@ -393,19 +359,21 @@ function handleSearchFormSubmit(formId, inputId, searchFunction) {
     }
   });
 }
-document
-  .getElementById("searchForm")
-  .addEventListener("submit", async (event) => {
-    event.preventDefault(); // Предотвращаем стандартное поведение формы (перезагрузку страницы)
+document.getElementById("searchForm").addEventListener("submit", async (event) => {
+  event.preventDefault(); // Предотвращаем стандартное поведение формы (перезагрузку страницы)
 
-    const query = document
-      .getElementById("searchInput")
-      .value.trim()
-      .toLowerCase();
-    const books = await fetchBooks(query); // Выполняем запрос с учётом query
-    displayBooks(books);
+  const query = document.getElementById("searchInput").value.trim().toLowerCase();
+  const books = await fetchBooks(query); // Выполняем запрос с учётом query
+  displayBooks(books);
 
-    // Обновляем margin
-    const bookTable = document.getElementById("bookTable");
-    updateControlsMargin(bookTable !== null);
-  });
+  // Обновляем margin
+  const bookTable = document.getElementById("bookTable");
+  updateControlsMargin(bookTable !== null);
+});
+document.addEventListener("DOMContentLoaded", async () => {
+  displayStudents(await fetchStudents()); // Отображаем студентов
+ // await updateBookTable(); // Загружаем книги с сервера и отображаем их
+  handleSearchFormSubmit("searchForm", "searchInput", searchBook); // Для поиска книг
+  handleSearchFormSubmit("searchStudentForm", "searchInput1", searchStudent); // Для поиска студентов
+  document.getElementById("edit-book").addEventListener("click", edit);
+});
