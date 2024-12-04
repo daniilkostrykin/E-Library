@@ -440,7 +440,7 @@ function searchBookSetup() {
       const response = await axios.get(`/api/books`, {
         params: { query },
       });
-      displayBooks(response.data);
+      updateBooksTable(response.data);
     } catch (error) {
       console.error("Error fetching books:", error);
       showToast("Ошибка поиска книг.");
@@ -512,7 +512,7 @@ async function searchBook() {
       resultContainer.style.display = "block"; // Показываем сообщение
     } else {
       // Показываем таблицу и заполняем её
-      displayBooks(books, account);
+      updateBooksTable(books, account);
       booksTable.style.display = "table";
       resultContainer.style.display = "none"; // Скрываем сообщение
     }
