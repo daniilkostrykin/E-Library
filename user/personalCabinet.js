@@ -7,7 +7,7 @@ const TAKEN_BOOKS_KEY = "takenBooks"; //  Ключ для взятых книг
 
 let studentEmail = null; // Объявляем studentEmail глобально
 let currentUserId = null; // Объявляем currentUserId глобально
-
+let studentId;
 let bookToTake = null;
 let isTakeModalOpen = false;
 
@@ -50,7 +50,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     console.log("Полученные данные аккаунта:", account);
 
     if (urlParams.id) {
-      const studentId = parseInt(urlParams.id, 10);
+      studentId = parseInt(urlParams.id, 10);
       console.log("ID студента:", studentId);
       displayUserInfo({ name: urlParams.fio, group: urlParams.group });
       const searchForm = document.getElementById("searchForm");
@@ -77,8 +77,13 @@ document.addEventListener("DOMContentLoaded", async () => {
       //updateBooksTable();
     }
   } catch (error) {
-    console.error("Ошибка при загрузке данных:", error);
-    showToast("Ошибка загрузки данных.");
+    if (error.response && error.response.status === 401) {
+      showToast("Сессия истекла. Пожалуйста, войдите снова.");
+      logout(); // Вызываем функцию logout для перенаправления
+    } else {
+      console.error("Ошибка при загрузке данных:", error);
+      showToast("Ошибка загрузки данных.");
+    }
   }
 });
 function handleSearchFormSubmit(formId, inputId, searchFunction) {
@@ -101,22 +106,7 @@ function handleSearchFormSubmit(formId, inputId, searchFunction) {
     }
   });
 }
-document
-  .getElementById("searchForm")
-  .addEventListener("submit", async (event) => {
-    event.preventDefault(); // Предотвращаем стандартное поведение формы (перезагрузку страницы)
 
-    const query = document
-      .getElementById("searchInput")
-      .value.trim()
-      .toLowerCase();
-    const books = await fetchBooks(query); // Выполняем запрос с учётом query
-    displayBooks(books);
-
-    // Обновляем margin
-    const bookTable = document.getElementById("bookTable");
-    updateControlsMargin(bookTable !== null);
-  });
 async function displayStudentInfo(studentId) {
   try {
     const response = await axios.get(`/api/students/${studentId}`);
@@ -156,10 +146,8 @@ async function displayUserInfo(account) {
   const urlParams = getURLParams();
   const studentId = urlParams.id; // Получаем ID студента из URL параметров
   await updateUserDebtDisplay(studentId);
-  displayUserBooks(studentId)
+  displayUserBooks(studentId);
   console.log("Student ID:", studentId);
-
-
 }
 async function updateUserDebtDisplay(studentId) {
   const userDebtElement = document.getElementById("user-debt");
@@ -242,9 +230,12 @@ async function displayUserBooks(studentId) {
     }
 
     // Запрос книг с сервера для данного студента
-    const booksResponse = await axios.get(`/api/taken_books/student/${studentId}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    const booksResponse = await axios.get(
+      `/api/taken_books/student/${studentId}`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
 
     const books = booksResponse.data;
     console.log("Books data from server:", books); // Логирование данных с сервера
@@ -328,12 +319,17 @@ async function displayUserBooks(studentId) {
         returnButton.classList.add("book-return");
         returnButton.textContent = "Вернуть книгу";
 
-        returnButton.style.backgroundColor = "#41a0ff"; // Цвет кнопки
+
+        returnButton.style.backgroundColor = " #41a0ff"; // Зеленый
         returnButton.style.border = "none";
         returnButton.style.color = "white";
-        returnButton.style.padding = "8px 16px"; // Размер кнопки
-        returnButton.style.fontSize = "16px"; // Размер шрифта кнопки
-        returnButton.style.cursor = "pointer";
+        returnButton.style.padding = "8px 16px"; //  Увеличил padding для  кнопки
+        returnButton.style.textAlign = "center";
+        returnButton.style.textDecoration = "none";
+        returnButton.style.display = "inline-block";
+        returnButton.style.fontSize = "16px"; // Увеличил  размер  шрифта
+        returnButton.style.margin = "0 2px"; // Добавил margin
+        returnButton.style.cursor = "pointer"; //  Указатель  мыши  при  наведении
 
         returnButton.addEventListener("click", () => {
           openReturnModal(book); // Открываем модальное окно для возврата книги
@@ -364,8 +360,6 @@ async function displayUserBooks(studentId) {
     bookList.innerHTML = `<p>Произошла ошибка при загрузке книг. Попробуйте позже.</p>`;
   }
 }
-
-
 
 // Функция для получения книг пользователя из базы данных
 async function getUserBooksFromDB(studentId) {
@@ -458,6 +452,7 @@ function clearPreviousResults() {
   const bookList = document.querySelector(".book-list");
   if (bookList) {
     bookList.innerHTML = ""; // Очищаем список книг
+    bookList.style.display = "none"; // Скрыть полностью
   }
 
   // Удаляем таблицу студентов (если она существует)
@@ -497,44 +492,41 @@ async function searchBook() {
     .getElementById("searchInput")
     .value.trim()
     .toLowerCase();
-  const booksTable = document.getElementById("booksTable"); // Правильный ID таблицы
+  const booksTable = document.getElementById("booksTable");
   const booksTableBody = document.getElementById("booksTableBody");
-  const resultContainer = document.getElementById("result"); // Контейнер для сообщения
-  const account = await getLoggedInAccount(); // Получаем информацию о текущем пользователе
+  const resultContainer = document.getElementById("result");
+  const account = await getLoggedInAccount();
 
   try {
-    const books = await fetchBooks(query);
-    console.log("Books from server:", books); // Добавьте эту строку для отладки
-    // Всегда очищаем таблицу и resultContainer перед отображением результатов
+    // Если запрос пустой, загружаем все книги
+    const books = query === "" ? await fetchBooks() : await fetchBooks(query);
+
+    // Очищаем тело таблицы и контейнер результата
     booksTableBody.innerHTML = "";
     resultContainer.innerHTML = "";
+
     if (books.length === 0) {
       // Если книги не найдены
-      resultContainer.innerHTML = "<p>Книги не найдены</p>"; // Сообщение в resultContainer
+      resultContainer.innerHTML = "<p>Книги не найдены</p>";
       booksTable.style.display = "none"; // Скрываем таблицу
       resultContainer.style.display = "block"; // Показываем сообщение
     } else {
-      resultContainer.innerHTML = ""; // Очищаем resultContainer, если книги найдены
-      booksTable.style.display = "table"; // Показываем таблицу, если книги найдены
+      // Показываем таблицу и заполняем её
+      displayBooks(books, account);
+      booksTable.style.display = "table";
       resultContainer.style.display = "none"; // Скрываем сообщение
-
-      displayBooks(books, account); // Отображаем найденные книги
     }
 
-    // Обновляем margin в зависимости от наличия данных
-    updateControlsMargin(books.length > 0);
+    updateControlsMargin(books.length > 0); // Обновляем марджины
   } catch (error) {
     console.error("Ошибка при поиске книг:", error);
     resultContainer.innerHTML =
-      "<p>Ошибка при поиске книг. Попробуйте позже.</p>"; // Сообщение об ошибке
-    booksTable.style.display = "none"; // Скрываем таблицу в случае ошибки
-    resultContainer.style.display = "block"; // Показываем сообщение об ошибке
+      "<p>Ошибка при поиске книг. Попробуйте позже.</p>";
+    booksTable.style.display = "none";
+    resultContainer.style.display = "block";
 
-    // Обновляем margin в зависимости от наличия данных
-    updateControlsMargin(false);
     if (error.response && error.response.status === 401) {
-      showToast("Сессия истекла.  Пожалуйста, войдите снова.");
-
+      showToast("Сессия истекла. Пожалуйста, войдите снова.");
       logout();
     }
   }
@@ -855,8 +847,16 @@ async function confirmTakeBook() {
     }
 
     // Обновляем UI
-    // displayUserBooks(userBooksData.books);
+    // Обновляем UI
+    console.log(studentId);
+    const bookList = document.querySelector(".book-list");
+    bookList.style.display = "block"; // Показываем список книг
+    if (!bookList) {
+      throw new Error("Элемент '.book-list' не найден.");
+    }
+    await displayUserBooks(studentId); // Используйте studentId, чтобы UI обновился корректно
     updateBooksTable();
+    updateUserDebtDisplay(studentId);
 
     showToast(`Книга "${bookToTake[1]}" успешно взята.`);
     closeTakeModal();

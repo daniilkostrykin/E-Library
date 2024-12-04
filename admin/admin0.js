@@ -9,24 +9,50 @@ axios.defaults.baseURL = "http://localhost:3000"; // Базовый URL ваше
 axios.defaults.headers.common["Content-Type"] = "application/json";
 
 document.addEventListener("DOMContentLoaded", async () => {
-   //displayStudents(await fetchStudents()); // Отображаем студентов
+  //displayStudents(await fetchStudents()); // Отображаем студентов
   // await updateBookTable(); // Загружаем книги с сервера и отображаем их
+  const role = getUserRole(); // Получаем роль пользователя
+  const searchForms = [document.getElementById("searchForm"), document.getElementById("searchStudentForm")];
+
+  if (role === "admin") {
+    searchForms.forEach((form) => {
+      if (form) {
+        form.style.flex = "unset"; // Убираем flex: 1
+      }
+    });
+    const editBookButton = document.getElementById("edit-book");
+
+  
+    if (editBookButton) {
+      editBookButton.style.display = "none"; // Скрываем кнопку "Редактировать"
+    }
+
+    // Пример изменения содержимого
+    const panelHeader = document.getElementById("panel");
+    if (panelHeader) {
+      panelHeader.textContent = "Панель библиотекаря"; // Изменяем текст заголовка
+    }
+  }
   handleSearchFormSubmit("searchForm", "searchInput", searchBook); // Для поиска книг
   handleSearchFormSubmit("searchStudentForm", "searchInput1", searchStudent); // Для поиска студентов
-  
+
   const bookSearchInput = document.getElementById("searchInput");
   const studentSearchInput = document.getElementById("searchInput1");
   const bookSearchButton = document.getElementById("bookSearchButton");
   const studentSearchButton = document.getElementById("studentSearchButton");
 
   bookSearchInput.addEventListener("input", () => {
-    bookSearchButton.value = bookSearchInput.value.trim() ? "Найти" : "Показать книги";
+    bookSearchButton.value = bookSearchInput.value.trim()
+      ? "Найти"
+      : "Показать книги";
   });
 
   studentSearchInput.addEventListener("input", () => {
-    studentSearchButton.value = studentSearchInput.value.trim() ? "Найти" : "Показать студентов";
+    studentSearchButton.value = studentSearchInput.value.trim()
+      ? "Найти"
+      : "Показать студентов";
   });
- 
+
   document.getElementById("edit-book").addEventListener("click", edit);
 });
 
@@ -215,13 +241,13 @@ async function searchStudent() {
     .getElementById("searchInput1")
     .value.trim()
     .toLowerCase();
-  
-    const students = await fetchStudents(query);
-    displayStudents(students);
-  
-    // Обновляем margin в зависимости от наличия данных
-    const studentsTable = document.getElementById("studentsTable");
-    updateControlsMargin(studentsTable !== null); 
+
+  const students = await fetchStudents(query);
+  displayStudents(students);
+
+  // Обновляем margin в зависимости от наличия данных
+  const studentsTable = document.getElementById("studentsTable");
+  updateControlsMargin(studentsTable !== null);
 }
 
 function displayStudents(students) {
@@ -409,3 +435,21 @@ document
     const bookTable = document.getElementById("bookTable");
     updateControlsMargin(bookTable !== null);
   });
+  function getUserRole() {
+    const userData = localStorage.getItem("userData");
+  
+    if (!userData) {
+      console.warn("Данные пользователя отсутствуют в локальном хранилище.");
+      return null;
+    }
+  
+    try {
+      const parsedData = JSON.parse(userData);
+      const role = parsedData.user?.role; // Предполагаем, что роль хранится внутри user
+      return role || null; // Возвращаем роль или null, если её нет
+    } catch (error) {
+      console.error("Ошибка при парсинге данных пользователя:", error);
+      return null;
+    }
+  }
+  
