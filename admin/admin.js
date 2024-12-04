@@ -538,7 +538,7 @@ async function saveEditBook() {
     } else {
       cells[1].classList.remove("error-cell");
     }
-
+/*
     // Проверка URL
     if (onlineVersion && !isValidURL(onlineVersion)) {
       showToast("Электронная версия должна иметь корректный URL.");
@@ -549,7 +549,7 @@ async function saveEditBook() {
     } else {
       cells[3]?.firstChild?.classList.remove("invalid-url"); // Убираем ошибку, если URL корректный
     }
-
+*/
     const newBook = {
       Название: title,
       Автор: author,
