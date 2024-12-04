@@ -12,7 +12,8 @@ body {
 }
 
 #adminPanel {
-  width: 1080px;
+  position: relative;
+  width: 1142px;
   max-width: 90%;
   background-color: white;
   padding: 20px;
@@ -25,6 +26,80 @@ body {
   border-collapse: collapse;
   margin-top: 20px;
   box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+}
+
+#adminPanel th,
+#adminPanel td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: center;
+  vertical-align: middle;
+}
+#adminPanel table tr th {
+  background-color: rgb(237, 240, 245);
+}
+
+#controls {
+  display: flex;
+  flex-wrap: wrap; /* <-- Добавлена эта строка */
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 400px;
+  width: 100%;
+  gap: 20px;
+}
+#controls button,
+#controls input[type="submit"],
+#controls input[type="text"],
+.cancel-button {
+  font-family: "Montserrat", sans-serif;
+  cursor: pointer;
+}
+#exit {
+  position: absolute; /* Позволяет разместить кнопку в любом месте */
+  top: 31px; /* Отступ сверху */
+  right: 20px; /* Отступ справа */
+  background-color: #c61d1de7;
+  padding: 10px 20px;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-family: "Montserrat", sans-serif;
+  font-size: 16px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+#exit:hover {
+  background-color: #a31414; /* Темнее при наведении */
+}
+
+#exit:active {
+  background-color: #7f1010; /* Еще темнее при клике */
+}
+
+#controls input[type="submit"]:hover {
+  background-color: #5cff7a;
+}
+#controls input[type="submit"]:active {
+  background-color: #1ff346;
+}
+#edit-book:hover {
+  background-color: #8c88e0; /* Более темный оттенок при наведении */
+  transform: translateY(-2px); /* Небольшой эффект поднятия */
+}
+
+#edit-book:active {
+  background-color: #736cbf; /* Еще темнее при клике */
+  transform: translateY(2px); /* Легкое "нажатие" */
+}
+#controls button,
+#controls input[type="submit"],
+.cancel-button {
+  color: white;
+  padding: 12px 20px;
+  border-radius: 10px;
+  border: none;
 }
 /* Общие стили для всех кнопок */
 button,
@@ -48,55 +123,6 @@ button:active,
   transform: translateY(2px); /* Опускаем при нажатии */
 }
 
-#adminPanel th,
-#adminPanel td {
-  border: 1px solid #ddd;
-  padding: 8px;
-  text-align: center;
-  vertical-align: middle;
-}
-#adminPanel table tr th {
-  background-color: rgb(237, 240, 245);
-}
-
-#controls {
-  display: flex;
-  flex-wrap: wrap; 
-  justify-content: flex-start;
-  align-items: center;
-  width: 100%;
-  margin-top: 400px;
-  gap: 20px;
-}
-#controls button,
-#controls input[type="submit"],
-#controls input[type="text"],
-.cancel-button {
-  font-family: "Montserrat", sans-serif;
-  cursor: pointer;
-}
-
-#controls input[type="submit"]:hover {
-  background-color: #5cff7a;
-}
-#controls input[type="submit"]:active {
-  background-color: #1ff346;
-}
-#controls > button:hover {
-  background-color: #f91111;
-}
-#controls > button:active {
-  background-color: #f91111d8;
-}
-#controls button,
-#controls input[type="submit"],
-.cancel-button {
-  color: white;
-  padding: 12px 20px;
-  border-radius: 10px;
-  border: none;
-}
-
 input[type="text"] {
   outline: none;
   border: none;
@@ -107,14 +133,15 @@ input[type="text"] {
 #searchForm,
 #searchForm1 {
   display: flex;
-  justify-content: center;
+  justify-content: flex-start;
   align-items: center;
-  gap: 30px;
+  gap: 10px; /* Отступ между полем и кнопкой */
 }
 #searchInput {
   border-radius: 10px;
   padding: 5px 10px;
   box-sizing: border-box;
+  width: 138px;
 }
 #searchInput1 {
   border-radius: 10px;
@@ -122,18 +149,15 @@ input[type="text"] {
   box-sizing: border-box;
   width: 360px;
 }
-
-.find {
+#searchInput,
+#searchInput1 {
+  min-width: 100px; /* Убираем сильные разрывы при сжатии */
+}
+#bookSearchButton,
+#studentSearchButton {
   background-color: #a5dca7;
   border-radius: 0 10px 10px 0;
   border-left: 1px solid #ddd;
-}
-
-#exit {
-  background-color: #c61d1de7;
-  position: relative;
-  left: 32px;
-  width: 140px;
 }
 
 #search-outline,
@@ -142,8 +166,8 @@ input[type="text"] {
 }
 
 #notFoundMessage-searchForm,
-  #notFoundMessage-searchStudentForm,  /* И другие сообщения, если есть */
-  [id^="notFoundMessage-"] {
+#notFoundMessage-searchStudentForm,  /* И другие сообщения, если есть */
+[id^="notFoundMessage-"] {
   /*  Селектор для всех ID, начинающихся с "notFoundMessage-" */
   width: 50%; /*  Или другая подходящая ширина  */
   margin: auto;
@@ -175,4 +199,7 @@ input[type="text"] {
 .tooltip-container:hover .tooltiptext {
   visibility: visible;
   opacity: 1;
+}
+a:visited {
+  color: inherit; /*  Наследовать цвет от родительского элемента */
 }
