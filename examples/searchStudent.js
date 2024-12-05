@@ -1,379 +1,193 @@
-// admin0.js
-const STUDENTS_KEY = "students";
-const BOOKS_KEY = "books";
-let students = [];
-let isNotFoundMessageShown = false; // Флаг для отслеживания показа сообщения
-
-// Настройка axios для глобального использования
-axios.defaults.baseURL = "http://localhost:3000"; // Базовый URL вашего Flask API
-axios.defaults.headers.common["Content-Type"] = "application/json";
-
-function edit() {
-  window.location.href = "admin.html";
-}
-
-function exit() {
-  window.location.href = "../index.html";
-}
-
-async function fetchBooks(query = "") {
-  try {
-    const token = localStorage.getItem("token"); // Получаем токен из localStorage
-    const response = await axios.get("/api/books", {
-      params: { query },
-      headers: {
-        Authorization: `Bearer ${token}`, // Добавляем заголовок авторизации
-      },
-    });
-    return response.data;
-  } catch (error) {
-    console.error("Ошибка при загрузке книг:", error);
-    return [];
+// Функция для открытия модального окна
+function openTakeModal(book) {
+  if (isTakeModalOpen) {
+    showToast("Вы уже пытаетесь взять книгу.");
+    return;
   }
+  bookToTake = book;
+  document.getElementById(
+    "takeBookMessage"
+  ).textContent = `Вы уверены, что хотите взять книгу "${book[1]}"?`;
+  document.getElementById("takeBookModal").style.display = "block";
+  isTakeModalOpen = true; // Устанавливаем флаг
 }
+// Функция для подтверждения взятия книги
+async function confirmTakeBook() {
+  const urlParams = getURLParams();
+  console.log("URL Params:", urlParams);
 
-async function fetchStudents(query = "") {
-  try {
-    const token = localStorage.getItem("token"); // Получите токен из локального хранилища
-    const response = await axios.get("/api/students", {
-      params: { query },
-      headers: {
-        Authorization: `Bearer ${token}`, // Передача токена в заголовке
-      },
-    });
-    return response.data;
-  } catch (error) {
-    console.error("Ошибка при загрузке студентов:", error);
-    return [];
-  }
-}
+  let studentId;
 
-function displayBooks(books) {
-  const oldTable = document.getElementById("bookTable");
-  if (oldTable) {
-    oldTable.remove();
+  // Получаем studentId из параметров URL
+  if (urlParams.id) {
+    studentId = parseInt(urlParams.id, 10);
+    console.log("Student ID:", studentId);
   }
 
-  const adminPanel = document.getElementById("adminPanel");
-  const table = document.createElement("table");
-  table.id = "bookTable";
-  adminPanel.appendChild(table);
-
-  const headerRow = table.insertRow();
-  const headers = ["Название", "Автор", "Количество", "Электронная версия", "Местоположение"];
-  headers.forEach((headerText) => {
-    const header = headerRow.insertCell();
-    header.textContent = headerText;
-  });
-
-  if (!books || books.length === 0) {
-    updateControlsMargin(false);
-
-    // Отображаем сообщение, если книг нет
-    displayMessage("Книга не найдена"); // Вызываем функцию для отображения сообщения
+  if (!bookToTake) {
+    showToast("Ошибка: книга не выбрана.");
+    closeTakeModal();
     return;
   }
 
+  if (!studentId) {
+    showToast("Ошибка: текущий студент не определен.");
+    closeTakeModal();
+    return;
+  }
 
-  books.forEach((book) => {
-      if (!Array.isArray(book)) {
-        console.error("Invalid book data:", book);
-        return; // Пропускаем некорректные данные
+  console.log("Объект bookToTake:", bookToTake);
+
+  try {
+    // Получаем токен из localStorage
+    const token = localStorage.getItem("token");
+    if (!token) {
+      showToast("Ошибка авторизации. Войдите в систему.");
+      closeTakeModal();
+      return;
+    }
+
+    // Fetch available books and the user's current borrowed books from the DB
+    const [booksResponse, takenBooksResponse] = await Promise.all([
+      axios.get("/api/books", {
+        headers: { Authorization: `Bearer ${token}` },
+      }),
+      axios.get(`/api/taken_books/${studentId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      }),
+    ]);
+
+    const books = booksResponse.data;
+    const userBooksData = takenBooksResponse.data;
+
+    // Ищем книгу в библиотеке по названию, используя индексы
+    const bookInLibrary = books.find(
+      (b) => b[1] === bookToTake[1] // bookToTake[0] - это название книги
+    );
+    console.log(bookInLibrary);
+
+    if (!bookInLibrary || bookInLibrary[3] === 0) {
+      // bookInLibrary[2] - это ID книги, если количество равно 0
+      showToast("Эта книга в данный момент отсутствует.");
+      closeTakeModal();
+      return;
+    }
+
+    // Проверяем, взял ли студент уже эту книгу
+    const bookAlreadyTaken = await checkIfBookTaken(
+      studentId,
+      bookToTake[1],
+      token
+    );
+    if (bookAlreadyTaken) {
+      showToast("Вы уже взяли эту книгу!");
+      closeTakeModal();
+      return;
+    }
+
+    // Рассчитываем дату возврата книги
+    const dueDate = new Date();
+    dueDate.setDate(dueDate.getDate() + 14);
+    const formattedDueDate = dueDate.toISOString().split("T")[0]; // ISO формат даты
+
+    // Добавляем книгу в список взятых книг студента
+    userBooksData.books.push({
+      id: bookInLibrary[0], // ID книги
+      name: bookToTake[1], // Название книги
+      author: bookToTake[2], // Автор книги
+      dueDate: formattedDueDate, // Дата возврата
+    });
+
+    // Удаляем некорректные данные
+    userBooksData.books = userBooksData.books.filter(
+      (book) => book.name && book.author && book.dueDate
+    );
+
+    if (userBooksData.books.length === 0) {
+      showToast("Нет корректных данных для отправки.");
+      return;
+    }
+
+    // Отправляем обновленные данные о взятых книгах на сервер
+    console.log("Отправка данных на сервер:", userBooksData);
+    const response = await axios.post(
+      `/api/taken_books/${studentId}`,
+      userBooksData,
+      {
+        headers: { Authorization: `Bearer ${token}` },
       }
-    const row = table.insertRow();
+    );
+    console.log("Ответ сервера:", response.data);
 
+    // Уменьшаем количество книги в библиотеке
+    bookInLibrary[3]--; // Уменьшаем количество книги
+    console.log("Обновление количества книг:", bookInLibrary);
 
-    const titleCell = row.insertCell();
-    titleCell.textContent = book[0] || ""; // Название
+    try {
+      // Логируем данные перед отправкой запроса
+      console.log(
+        "Отправка запроса на обновление книги. Данные:",
+        bookInLibrary
+      );
 
-    const authorCell = row.insertCell();
-    authorCell.textContent = book[1] || ""; // Автор
+      // Отправляем PUT-запрос для обновления данных о книге
+      const bookResponse = await axios.post(
+        `/api/books/${bookInLibrary[0]}`, // ID книги, который мы передаем
+        bookInLibrary, // Данные о книге
+        {
+          headers: { Authorization: `Bearer ${token}` }, // Добавляем токен авторизации
+        }
+      );
 
-    const quantityCell = row.insertCell();
-    const quantity = book[2];
-    quantityCell.textContent = quantity !== null && quantity !== undefined ? quantity : ""; // Количество, обработка null и undefined
-    updateCellColor(quantityCell, quantity); 
+      // Логируем успешный ответ
+      console.log("Ответ сервера при обновлении книги:", bookResponse.data);
+    } catch (error) {
+      // Логируем ошибку, если что-то пошло не так
+      console.error("Ошибка при обновлении книги:", error);
 
-
-    const linkCell = row.insertCell();
-    const linkValue = book[3];
-
-    if (linkValue) {
-      const linkElement = document.createElement("a");
-      linkElement.href = linkValue;
-      linkElement.target = "_blank"; 
-
-      const tooltipText = document.createElement("span");
-      tooltipText.classList.add("tooltiptext");
-      tooltipText.textContent = "Открыть ссылку в новой вкладке"; 
-
-      const bookIcon = document.createElement("ion-icon");
-      bookIcon.name = "book"; 
-      bookIcon.style.fontSize = "24px";
-      bookIcon.style.color = "#8000ff";
-      linkElement.appendChild(bookIcon);
-
-      const tooltipContainer = document.createElement("div");
-      tooltipContainer.classList.add("tooltip-container");
-      tooltipContainer.appendChild(linkElement);
-      tooltipContainer.appendChild(tooltipText);
-      linkCell.appendChild(tooltipContainer);
-    } else {
-      linkCell.textContent = "Отсутствует";
-      linkCell.style.color = "gray";
+      // Дополнительный вывод ошибок
+      if (error.response) {
+        // Сервер вернул ответ с ошибкой
+        console.error("Ответ от сервера:", error.response.data);
+        console.error("Статус ответа:", error.response.status);
+      } else if (error.request) {
+        // Запрос был отправлен, но ответа не было
+        console.error(
+          "Запрос был отправлен, но не получен ответ:",
+          error.request
+        );
+      } else {
+        // Ошибка при настройке запроса
+        console.error("Ошибка настройки запроса:", error.message);
+      }
     }
 
-    const locationCell = row.insertCell();
-    locationCell.textContent = book[4] || "Неизвестно"; // Местоположение, обработка null/undefined
-});
-    
-
-  const controls = document.getElementById("controls");
-  adminPanel.insertBefore(table, controls);
-  updateControlsMargin(true);
-}
-
-function updateCellColor(cell, value) {
-    const numValue = parseInt(value, 10);
-
-    if (isNaN(numValue)) {
-        cell.style.color = "black";
-        return;
+    // Обновляем UI
+    // Обновляем UI
+    console.log(studentId);
+    const bookList = document.querySelector(".book-list");
+    bookList.style.display = "block"; // Показываем список книг
+    if (!bookList) {
+      throw new Error("Элемент '.book-list' не найден.");
     }
+    await displayUserBooks(studentId); // Используйте studentId, чтобы UI обновился корректно
+    updateBooksTable();
+    updateUserDebtDisplay(studentId);
 
-    if (numValue > 0) {
-        cell.style.color = "rgb(102, 191, 102)";
-    } else if (numValue === 0) {
-        cell.style.color = "red";
-    } else {
-        cell.style.color = "blue"; 
-    }
-}
-window.addEventListener("message", (event) => {
-  if (event.data && event.data.type === "updateBookList") {
-    displayBooks(event.data.books); // Обновляем список книг
-  }
-});
-
-async function updateBookTable() {
-  const books = await fetchBooks();
-  displayBooks(books);
-}
-
-window.addEventListener("message", (event) => {
-  console.log("Message from:", event.origin, event.data);
-  if (event.data.type === "updateBookQuantity") {
-    updateBookTable(); // Обновляем таблицу
-  }
-});
-
-async function searchBook() {
-  clearPreviousResults();
-  const query = document.getElementById("searchInput").value.trim().toLowerCase();
-
-  if (query !== "") { // Если поле поиска НЕ пустое (содержит текст)
-    const books = await fetchBooks(query);
-    displayBooks(books);
-  } // Иначе (поле поиска пустое или содержит только пробелы) - ничего не делаем
-
-
-  // Обновляем margin в зависимости от наличия данных
-  const bookTable = document.getElementById("bookTable");
-  updateControlsMargin(bookTable !== null); 
-}
-async function searchStudent() {
-  clearPreviousResults();
-  const query = document
-    .getElementById("searchInput1")
-    .value.trim()
-    .toLowerCase();
-  const students = await fetchStudents(query);
-  displayStudents(students);
-}
-
-function displayStudents(students) {
-  const oldTable = document.getElementById("studentsTable");
-  if (oldTable) {
-    oldTable.remove();
-  }
-
-  const adminPanel = document.getElementById("adminPanel");
-  const studentsTable = document.createElement("table");
-  studentsTable.id = "studentsTable";
-  adminPanel.appendChild(studentsTable);
-  studentsTable.style.width = "80%"; // Устанавливаем ширину таблицы 80%
-  studentsTable.style.margin = "0 auto"; // Центрируем таблицу
-   const headerRow = studentsTable.insertRow();
-  const headers = ["ФИО", "Группа", "Действия"];
-  headers.forEach((headerText) => {
-    const headerCell = headerRow.insertCell();
-    headerCell.textContent = headerText;
-  });
-
-  if (!students || students.length === 0) {
-    updateControlsMargin(false);
-
-    // Отображаем сообщение, если книг нет
-    displayMessage("Студент не найден"); // Вызываем функцию для отображения сообщения
-    return;
-  }
-
- 
-  students.forEach((student) => {
-    if (!Array.isArray(student)) {
-      console.error("Invalid student data:", student);
-      return; // Пропускаем некорректные данные
-    }
-  const row = studentsTable.insertRow();
-
-
-    const fioCell = row.insertCell();
-    fioCell.textContent = student[1]||"";
-
-    const groupCell = row.insertCell();
-    groupCell.textContent = student[2]||"";
-
-    const actionsCell = row.insertCell();
-    const openHistoryButton = document.createElement("button");
-    openHistoryButton.textContent = "Открыть";
-    openHistoryButton.style.backgroundColor = "#87a8ff";
-    openHistoryButton.style.color = "white";
-    openHistoryButton.style.border = "none";
-    openHistoryButton.style.padding = "12px 20px";
-    openHistoryButton.style.borderRadius = "10px";
-    openHistoryButton.style.width = "137px";
-    openHistoryButton.style.cursor = "pointer";
-
-    actionsCell.appendChild(openHistoryButton);
-    actionsCell.style.textAlign = "center";
-    openHistoryButton.addEventListener("click", () => {
-      goToPersonalCabinet(student);
-    });
-  });
-
- 
-  const controls = document.getElementById("controls");
-  adminPanel.insertBefore(studentsTable, controls);
-  updateControlsMargin(true);
-}
-
-function displayMessage(messageText, formId = null) {
-  clearPreviousResults();
-
-  const adminPanel = document.getElementById("adminPanel");
-
-  // Создаем контейнер для сообщения
-  const messageContainer = document.createElement("div");
-  messageContainer.id = "notFoundMessageContainer";
-  messageContainer.style.display = "flex";
-  messageContainer.style.justifyContent = "center";
-  messageContainer.style.alignItems = "center";
-  messageContainer.style.position = "absolute";
-  messageContainer.style.top = "50%";
-  messageContainer.style.left = "50%";
-  messageContainer.style.transform = "translate(-50%, -50%)";
-  messageContainer.style.textAlign = "center";
-
-  // Создаем текстовое сообщение
-  const message = document.createElement("p");
-  message.textContent = messageText;
-  message.style.margin = "0";
-  message.style.fontSize = "18px";
-  message.style.color = "#333";
-
-  // Вставляем сообщение в контейнер
-  messageContainer.appendChild(message);
-  adminPanel.appendChild(messageContainer);
-
-  isNotFoundMessageShown = true;
-}
-
-function clearPreviousResults() {
-  // Удаляем таблицу книг
-  const bookTable = document.getElementById("bookTable");
-  if (bookTable) {
-    bookTable.remove();
-  }
-
-  // Удаляем таблицу студентов
-  const studentsTable = document.getElementById("studentsTable");
-  if (studentsTable) {
-    studentsTable.remove();
-  }
-
-  const messageContainer = document.getElementById("notFoundMessageContainer");
-  if (messageContainer) {
-    messageContainer.remove();
+    showToast(`Книга "${bookToTake[1]}" успешно взята.`);
+    closeTakeModal();
+    bookToTake = null;
+  } catch (error) {
+    console.error(
+      "Ошибка при подтверждении взятия книги:",
+      error.response?.data || error.message
+    );
+    showToast("Произошла ошибка при взятии книги.");
+    closeTakeModal();
   }
 }
-
-function updateControlsMargin(isDataExist) {
-  const controls = document.getElementById("controls");
-  if (isDataExist) {
-    controls.style.marginTop = "20px";
-  } else {
-    controls.style.marginTop = "200px";
-  }
+// Функция для закрытия модального окна
+function closeTakeModal() {
+  document.getElementById("takeBookModal").style.display = "none";
+  isTakeModalOpen = false; // Устанавливаем флаг
 }
-function updateCellColor(cell, value) {
-  const numValue = parseInt(value, 10); // Парсим в число
-
-  if (isNaN(numValue)) { // Проверяем на NaN
-    cell.style.color = "black"; // Или другой цвет по умолчанию
-    return; // Выходим из функции, если NaN
-  }
-
-  if (numValue > 0) {
-    cell.style.color = "rgb(102, 191, 102)";
-  } else if (numValue === 0) {
-    cell.style.color = "red";
-  } else { // Добавлено условие для отрицательных чисел (если нужно)
-    cell.style.color = "blue"; // Или другой цвет для отрицательных значений
-  }
-}
-function goToPersonalCabinet(student) {
-  const studentId = student[0];
-  const fio = student[1];
-  const group = student[2];
-
-  // Добавляем ФИО и группу в URL
-  window.location.href = `../user/personalCabinet.html?fio=${encodeURIComponent(fio)}&group=${encodeURIComponent(group)}&id=${encodeURIComponent(studentId)}`;
-}
-function handleSearchFormSubmit(formId, inputId, searchFunction) {
-  const form = document.getElementById(formId);
-  const input = document.getElementById(inputId);
-
-  if (!form || !input) {
-    console.error(`Form or input not found: ${formId}, ${inputId}`);
-    return;
-  }
-
-  form.addEventListener("submit", (event) => {
-    event.preventDefault(); // Отключаем стандартное поведение формы
-    searchFunction(); // Вызываем переданную функцию поиска
-  });
-
-  input.addEventListener("input", () => {
-    if (!input.value.trim()) {
-      searchFunction(); // Обновляем таблицу при очистке поля поиска
-    }
-  });
-}
-document.getElementById("searchForm").addEventListener("submit", async (event) => {
-  event.preventDefault(); // Предотвращаем стандартное поведение формы (перезагрузку страницы)
-
-  const query = document.getElementById("searchInput").value.trim().toLowerCase();
-  const books = await fetchBooks(query); // Выполняем запрос с учётом query
-  displayBooks(books);
-
-  // Обновляем margin
-  const bookTable = document.getElementById("bookTable");
-  updateControlsMargin(bookTable !== null);
-});
-document.addEventListener("DOMContentLoaded", async () => {
-  displayStudents(await fetchStudents()); // Отображаем студентов
- // await updateBookTable(); // Загружаем книги с сервера и отображаем их
-  handleSearchFormSubmit("searchForm", "searchInput", searchBook); // Для поиска книг
-  handleSearchFormSubmit("searchStudentForm", "searchInput1", searchStudent); // Для поиска студентов
-  document.getElementById("edit-book").addEventListener("click", edit);
-});
