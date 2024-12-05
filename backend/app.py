@@ -1,4 +1,5 @@
 #app.py
+from datetime import timedelta
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from flask_bcrypt import Bcrypt
@@ -96,7 +97,7 @@ def login():
 
     # Генерация JWT токена
     identity = {"id": user["id"], "role": user.get("role", "user")}
-    token = create_access_token(identity=json.dumps(identity))
+    token = create_access_token(identity=json.dumps(identity), expires_delta=timedelta(days=1))
     return jsonify({"success": True, "token": token}), 200
 
 @app.route('/api/auth/user-info', methods=['GET'])
@@ -154,16 +155,9 @@ def search_students():
     except Exception as e:
         return jsonify({"success": False, "message": str(e)}), 500
 
-@app.route("/api/taken-books", methods=["DELETE"])
+@app.route("/api/taken_books/<int:book_id>/<int:student_id>", methods=["DELETE"])
 @jwt_required()
-def return_book_route():
-    data = request.get_json()
-    book_id = data.get("bookId")
-    student_id = data.get("studentId")
-
-    if not (book_id and student_id):
-        return jsonify({"success": False, "message": "bookId и studentId обязательны"}), 400
-
+def return_book_route(book_id, student_id):
     try:
         return_book(conn, book_id, student_id)
         return jsonify({"success": True, "message": "Книга успешно возвращена"}), 200
@@ -382,6 +376,55 @@ def update_books():
         return jsonify({"success": False, "message": str(e)}), 500
 
 
+@app.route("/api/taken_books/return", methods=["POST"])
+def return_book():
+    # Получаем данные из запроса
+    data = request.get_json()
+    if not data:
+        return jsonify({"message": "Некорректные данные запроса."}), 400
+    book_name = data.get('bookName')
+    student_id = data.get('studentId')
+
+    if not book_name or not student_id:
+        return jsonify({"message": "Название книги и studentId обязательны."}), 400
+
+    try:
+        # Получаем id книги по её названию
+        with conn.cursor() as cursor:
+            cursor.execute("SELECT id FROM books WHERE title = %s", (book_name,))
+            book = cursor.fetchone()
+
+            if not book:
+                return jsonify({"message": "Книга не найдена."}), 404
+
+            book_id = book[0]
+
+            # Проверяем, взята ли книга студентом
+            cursor.execute(
+                "SELECT * FROM taken_books WHERE book_id = %s AND student_id = %s", 
+                (book_id, student_id)
+            )
+            taken_book = cursor.fetchone()
+
+            if not taken_book:
+                return jsonify({"message": "Книга не была взята данным студентом."}), 404
+
+            # Если книга взята, удаляем запись из таблицы taken_books
+            cursor.execute(
+                "DELETE FROM taken_books WHERE book_id = %s AND student_id = %s", 
+                (book_id, student_id)
+            )
+             #  Увеличиваем количество  книг
+            cursor.execute("UPDATE books SET quantity = quantity + 1 WHERE title = %s", (book_name,))
+
+            conn.commit()
+
+        return jsonify({"message": "Книга успешно возвращена.", "success": True})
+
+    except Exception as e:
+        conn.rollback()  # Откат в случае ошибки
+        print("Ошибка при возврате книги:", e)
+        return jsonify({"message": "Ошибка сервера.", "success": False, "error": str(e)}), 500  # Более подробная ошибка
 
 
 
