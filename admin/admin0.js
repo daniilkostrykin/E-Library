@@ -14,7 +14,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   const role = getUserRole(); // Получаем роль пользователя
   const searchForms = [document.getElementById("searchForm"), document.getElementById("searchStudentForm")];
 
-  if (role === "admin") {
+  if (role === "librarian") {
     searchForms.forEach((form) => {
       if (form) {
         form.style.flex = "unset"; // Убираем flex: 1

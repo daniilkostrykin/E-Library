@@ -166,7 +166,7 @@ function checkRoleMock() {
   if (role === "admin") {
     window.location.href = "admin/admin0.html";
   } else if (role === "librarian") {
-    window.location.href = "librarian/librarian.html";
+    window.location.href = "admin/admin0.html";
   }
 }
 async function getUserInfo(token) {
@@ -289,7 +289,7 @@ async function checkRole() {
     if (userData.role === "admin") {
       window.location.href = "admin/admin0.html";
     } else if (userData.role === "librarian") {
-      window.location.href = "librarian/librarian.html";
+      window.location.href = "admin/admin0.html";
     } else {
       window.location.href = `user/personalCabinet.html?fio=${fio}&group=${group}&id=${userData.id}`;
       //  Важно убедиться, что 'userData' содержит корректную информацию до редиректа
