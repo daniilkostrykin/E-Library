@@ -3,121 +3,131 @@ const STUDENTS_KEY = "students";
 const BOOKS_KEY = "books";
 let students = [];
 let isNotFoundMessageShown = false; // Флаг для отслеживания показа сообщения
+axios.defaults.baseURL = "http://localhost:3000";
+
+document.addEventListener("DOMContentLoaded", async () => {
+  await updateBookTable(); // Загружаем книги с сервера и отображаем их
+
+  handleSearchFormSubmit("searchForm", "searchInput", searchBook); // Для поиска книг
+  const bookSearchInput = document.getElementById("searchInput");
+  const bookSearchButton = document.querySelector(".find");
+
+  bookSearchInput.addEventListener("input", () => {
+    bookSearchButton.value = bookSearchInput.value.trim()
+      ? "Найти"
+      : "Показать книги";
+  });
+  bookSearchButton.addEventListener("click", () => {
+    searchBook();
+  });
+});
 
 function back() {
   window.history.back();
 }
 function displayBooks(books) {
-  //Удаляем предыдущую таблицу книг, если она существует
-  const oldTable = document.getElementById("bookTable"); //находим предыдущую
+  const oldTable = document.getElementById("bookTable");
   if (oldTable) {
-    oldTable.remove(); //если существует, удаляем её перед добавлением новой
+    oldTable.remove();
   }
-  const adminPanel = document.getElementById("adminPanel");
 
-  //Создаем таблицу динамически
+  const adminPanel = document.getElementById("adminPanel");
   const table = document.createElement("table");
   table.id = "bookTable";
   adminPanel.appendChild(table);
 
-  // Заголовок таблицы
   const headerRow = table.insertRow();
-  const headers = ["Название", "Автор", "Количество", "Электронная версия"];
+  const headers = [
+    "Название",
+    "Автор",
+    "Количество",
+    "Электронная версия",
+   
+  ];
   headers.forEach((headerText) => {
     const header = headerRow.insertCell();
     header.textContent = headerText;
   });
 
-  // Проверяем есть ли данные, чтобы не выводить пустую таблицу
-
   if (!books || books.length === 0) {
     updateControlsMargin(false);
-    return; // Прерываем функцию, если нет данных
+
+    // Отображаем сообщение, если книг нет
+    displayMessage("Книга не найдена"); // Вызываем функцию для отображения сообщения
+    return;
   }
 
   books.forEach((book) => {
+    if (!Array.isArray(book)) {
+      console.error("Invalid book data:", book);
+      return; // Пропускаем некорректные данные
+    }
     const row = table.insertRow();
-    Object.entries(book)
-      .filter(([key]) => key !== "Местоположение") // Фильтруем ключи
-      .forEach(([key, value]) => {
-        const cell = row.insertCell();
-        if (key === "Электронная версия") {
-          if (value) {
-            const linkElement = document.createElement("a");
-            linkElement.href = value;
-            linkElement.target = "_blank"; // Открыть в новой вкладке
 
-            // Создаем элемент подсказки
-            const tooltipText = document.createElement("span");
-            tooltipText.classList.add("tooltiptext");
-            tooltipText.textContent = "Открыть ссылку в новой вкладке"; // Текст подсказки
+    const titleCell = row.insertCell();
+    titleCell.textContent = book[1] || ""; // Название
 
-            // Создаем иконку книги
-            const bookIcon = document.createElement("ion-icon");
-            bookIcon.name = "book"; // Устанавливаем имя иконки книги
-            bookIcon.style.fontSize = "24px";
-            bookIcon.style.color = "#8000ff";
-            // Добавляем иконку в ссылку
-            linkElement.appendChild(bookIcon);
+    const authorCell = row.insertCell();
+    authorCell.textContent = book[2] || ""; // Автор
 
-            // Оборачиваем ссылку и подсказку в контейнер для стилизации
-            const tooltipContainer = document.createElement("div");
-            tooltipContainer.classList.add("tooltip-container");
-            tooltipContainer.appendChild(linkElement);
-            tooltipContainer.appendChild(tooltipText);
+    const quantityCell = row.insertCell();
+    const quantity = book[3];
+    quantityCell.textContent =
+      quantity !== null && quantity !== undefined ? quantity : ""; // Количество, обработка null и undefined
+    updateCellColor(quantityCell, quantity);
 
-            // Добавляем контейнер в ячейку таблицы
-            cell.appendChild(tooltipContainer);
-          } else {
-            cell.textContent = "Отсутствует";
-            cell.style.color = "gray"; // Серый цвет текста
-          }
-        } else if (key === "Количество") {
-          cell.textContent = value;
-          // Установить цвет текста в зависимости от значения
-          updateCellColor(cell, value);
-        } else {
-          cell.textContent = value;
-        }
-      });
-  });
+    const linkCell = row.insertCell();
+    const linkValue = book[4];
+
+    if (linkValue) {
+      const linkElement = document.createElement("a");
+      linkElement.href = linkValue;
+      linkElement.target = "_blank";
+
+      const tooltipText = document.createElement("span");
+      tooltipText.classList.add("tooltiptext");
+      tooltipText.textContent = "Открыть ссылку в новой вкладке";
+
+      const bookIcon = document.createElement("ion-icon");
+      bookIcon.name = "book";
+      bookIcon.style.fontSize = "24px";
+      bookIcon.style.color = "#8000ff";
+      linkElement.appendChild(bookIcon);
+
+      const tooltipContainer = document.createElement("div");
+      tooltipContainer.classList.add("tooltip-container");
+      tooltipContainer.appendChild(linkElement);
+      tooltipContainer.appendChild(tooltipText);
+      linkCell.appendChild(tooltipContainer);
+    } else {
+      linkCell.textContent = "Отсутствует";
+      linkCell.style.color = "gray";
+    }
+
+     });
 
   const controls = document.getElementById("controls");
   adminPanel.insertBefore(table, controls);
   updateControlsMargin(true);
 }
 
+
 async function searchBook() {
   clearPreviousResults();
-  const books = await fetchBooks();
   const query = document
     .getElementById("searchInput")
     .value.trim()
     .toLowerCase();
 
-  // Если поле ввода пустое, отображаем все книги
-  if (!query) {
+  if (query !== "") {
+    // Если поле поиска НЕ пустое (содержит текст)
+    const books = await fetchBooks(query);
     displayBooks(books);
-    updateControlsMargin(true);
-    return;
-  }
+  } // Иначе (поле поиска пустое или содержит только пробелы) - ничего не делаем
 
-  const filteredBooks = books.filter(
-    (book) =>
-      book.Название.toLowerCase().includes(query) ||
-      book.Автор.toLowerCase().includes(query)
-  );
-
-  if (filteredBooks.length) {
-    displayBooks(filteredBooks);
-    updateControlsMargin(true); // Устанавливаем маленький отступ
-  } else {
-    displayMessage(
-      `Книга с названием или автором "${query}" не найдена`,
-      "searchForm"
-    );
-    updateControlsMargin(false);
-  }
+  // Обновляем margin в зависимости от наличия данных
+  const bookTable = document.getElementById("bookTable");
+  updateControlsMargin(bookTable !== null);
 }
 
 function displayMessage(messageText, formId = null) {
@@ -175,21 +185,45 @@ function clearPreviousResults() {
   isNotFoundMessageShown = false;
 }
 
-function handleSearchFormSubmit(formId, inputId) {
+function handleSearchFormSubmit(formId, inputId, searchFunction) {
   const form = document.getElementById(formId);
+  const input = document.getElementById(inputId);
+
+  if (!form || !input) {
+    console.error(`Form or input not found: ${formId}, ${inputId}`);
+    return;
+  }
 
   form.addEventListener("submit", (event) => {
-    event.preventDefault();
-    const input = document.getElementById(inputId);
+    event.preventDefault(); // Отключаем стандартное поведение формы
+    searchFunction(); // Вызываем переданную функцию поиска
+  });
 
-    if (formId === "searchForm") {
-      searchBook();
+  input.addEventListener("input", () => {
+    if (!input.value.trim()) {
+      searchFunction(); // Обновляем таблицу при очистке поля поиска
     }
   });
 }
+document
+  .getElementById("searchForm")
+  .addEventListener("submit", async (event) => {
+    event.preventDefault(); // Предотвращаем стандартное поведение формы (перезагрузку страницы)
+
+    const query = document
+      .getElementById("searchInput")
+      .value.trim()
+      .toLowerCase();
+    const books = await fetchBooks(query); // Выполняем запрос с учётом query
+    displayBooks(books);
+
+    // Обновляем margin
+    const bookTable = document.getElementById("bookTable");
+    updateControlsMargin(bookTable !== null);
+  });
 function updateControlsMargin(hasData) {
   const controls = document.getElementById("controls");
-  controls.style.marginTop = hasData ? "40px" : "400px";
+  controls.style.marginTop = hasData ? "20px" : "400px";
 }
 function updateCellColor(cell, value) {
   const numValue = parseInt(value, 10);
@@ -210,22 +244,31 @@ function goToPersonalCabinet(student, index) {
   )}&group=${encodeURIComponent(group)}&id=${encodeURIComponent(index)}`;
   // Правильный  путь  и  использование  id
 }
-async function fetchBooks() {
+async function fetchBooks(query = "") {
   try {
-    const response = await axios.get("/books"); // Получение всех книг
-    return response.data; // Предполагается, что сервер возвращает JSON с массивом книг
+    const token = localStorage.getItem("token"); // Получаем токен из localStorage
+
+    const response = await axios.get("/api/books", {
+      params: { query },
+      headers: {
+        Authorization: `Bearer ${token}`, // Добавляем токен в заголовок
+      },
+    });
+    return response.data;
   } catch (error) {
-    console.error("Ошибка при загрузке книг:", error);
-    return [];
+    // Обработка ошибок, если сервер вернет ошибку, даже с токеном
+    console.error("Ошибка при получении книг:", error);
+
+    if (error.response && error.response.status === 401) {
+      showToast("Сессия истекла. Пожалуйста, войдите снова.");
+
+      logout(); //  Вызываем функцию logout для перенаправления
+    }
+
+    throw error;
   }
 }
 async function updateBookTable() {
   const books = await fetchBooks();
   displayBooks(books);
 }
-document.addEventListener("DOMContentLoaded", async () => {
-  await updateBookTable(); // Загружаем книги с сервера и отображаем их
-
-  handleSearchFormSubmit("searchForm", "searchInput"); // Для  книг
-  displayBooks(books);
-});

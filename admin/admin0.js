@@ -176,7 +176,7 @@ function displayBooks(books) {
     }
 
     const locationCell = row.insertCell();
-    locationCell.textContent = book[4] || "Неизвестно"; // Местоположение, обработка null/undefined
+    locationCell.textContent = book[5] || "Неизвестно"; // Местоположение, обработка null/undefined
   });
 
   const controls = document.getElementById("controls");
