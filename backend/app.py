@@ -235,10 +235,6 @@ def update_taken_books_route(student_id):
         print(f"Error updating taken books: {str(e)}")
         return jsonify({'success': False, 'message': 'Ошибка обновления данных о книгах'}), 500
 
-
-
-
-
 @app.route("/api/taken-books/<int:student_id>", methods=["DELETE"])
 @jwt_required()
 def delete_taken_books_route(student_id):
@@ -450,8 +446,59 @@ def delete_book(book_id):
             conn.rollback()
             return jsonify({"error": "Ошибка при удалении книги", "details": str(e), "success": False}), 500  # Добавил success: False и details
 
+# Эндпоинт для добавления книги
+@app.route('/api/books', methods=['POST'])
+@jwt_required()
+def add_book():
+    try:
+        data = request.json
 
+        # Проверка обязательных полей
+        title = data.get("Название")
+        author = data.get("Автор")
+        quantity = data.get("Количество")
+        online_version = data.get("Электронная версия")
+        location = data.get("Местоположение")
 
+        if not title or not author or quantity is None:
+            return jsonify({"message": "Обязательные поля: Название, Автор, Количество"}), 400
+
+        # Проверка корректности данных
+        try:
+            quantity = int(quantity)
+            if quantity < 0:
+                return jsonify({"message": "Количество должно быть неотрицательным числом"}), 400
+        except ValueError:
+            return jsonify({"message": "Количество должно быть числом"}), 400
+
+        # Подключение к базе данных
+        cur = conn.cursor()
+
+        # Вставка данных в таблицу books
+        cur.execute("""
+            INSERT INTO books (title, author, quantity, online_version, location)
+            VALUES (%s, %s, %s, %s, %s)
+        """, (title, author, quantity, online_version, location))
+
+        conn.commit()
+        cur.close()
+
+        return jsonify({"message": "Книга успешно добавлена!"}), 201
+
+    except Exception as e:
+        return jsonify({"message": "Ошибка при добавлении книги", "error": str(e)}), 500
+
+@app.route("/api/books/all", methods=["GET"])
+@jwt_required()
+def get_all_books():
+    try:
+        with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
+            cur.execute("SELECT * FROM books")
+            books = cur.fetchall()
+        return jsonify(books), 200
+    except Exception as e:
+        app.logger.error(f"Ошибка при получении всех книг: {e}")
+        return jsonify({"success": False, "message": str(e)}), 500
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=3000, debug=True)
