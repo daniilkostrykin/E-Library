@@ -426,8 +426,29 @@ def return_book():
         print("Ошибка при возврате книги:", e)
         return jsonify({"message": "Ошибка сервера.", "success": False, "error": str(e)}), 500  # Более подробная ошибка
 
+@app.route('/api/books/<int:book_id>', methods=['DELETE'])
+def delete_book(book_id):
+    try:
+        # Подключаемся к базе данных
+        with conn.cursor() as cur:
 
+        # Проверяем, существует ли книга с данным ID
+            cur.execute("SELECT * FROM books WHERE id = %s", (book_id,))
+            book = cur.fetchone()
 
+            if book is None:
+                return jsonify({"error": "Книга не найдена"}), 404
+
+            # Удаляем книгу
+            cur.execute("DELETE FROM books WHERE id = %s", (book_id,))
+            conn.commit()
+
+            cur.close()
+        
+            return jsonify({"message": f"Книга с ID {book_id} успешно удалена", "success": True}), 200  # Добавил success: True для проверки на фронтенде
+    except Exception as e:
+            conn.rollback()
+            return jsonify({"error": "Ошибка при удалении книги", "details": str(e), "success": False}), 500  # Добавил success: False и details
 
 
 

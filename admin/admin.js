@@ -70,8 +70,12 @@ document.addEventListener("DOMContentLoaded", async () => {
 });
 // Обновление таблицы с книгами
 async function updateBookTable() {
+  const token = localStorage.getItem("token");
   try {
-    const response = await axios.get("/api/books"); // Предполагаемый эндпоинт
+    const response = await axios.get("/api/books", {
+      // и передаем его в headers
+      headers: { Authorization: `Bearer ${token}` },
+    }); // Предполагаемый эндпоинт
     originalBooks = response.data;
     displayBooks(originalBooks);
   } catch (error) {
@@ -166,6 +170,7 @@ async function processAddBook(
   onlineVersion,
   location
 ) {
+  const token = localStorage.getItem("token");
   // Проверка обязательных полей
   if (!title) {
     showToast("Введите название книги.");
@@ -202,7 +207,10 @@ async function processAddBook(
   };
 
   try {
-    await axios.post("/api/books", newBook); // Эндпоинт для добавления
+    await axios.post("/api/books", newBook, {
+      // и передаем его в headers
+      headers: { Authorization: `Bearer ${token}` },
+    }); // Эндпоинт для добавления
     await updateBookTable();
     showToast("Книга успешно добавлена!");
     return true;
@@ -257,8 +265,8 @@ async function fetchBooks(query = "") {
     const response = await axios.get("/api/books", {
       params: { query },
       headers: {
-        Authorization: `Bearer ${token}`,  // Исправлено
-    },
+        Authorization: `Bearer ${token}`, // Исправлено
+      },
     });
     return response.data;
   } catch (error) {
@@ -275,9 +283,25 @@ async function fetchBooks(query = "") {
   }
 }
 async function displayBooks(books) {
-  const table = document.getElementById("bookTable");
+  const resultContainer = document.getElementById("result"); // Контейнер для сообщения
+  const table = document.getElementById("bookTable"); // Таблица книг
+
+  // Проверяем наличие контейнера и таблицы
+  if (!resultContainer) {
+    console.error("Элемент result не найден.");
+    return;
+  }
+
+  if (!table) {
+    console.error("Элемент bookTable не найден.");
+    resultContainer.innerHTML = "Книги не найдены"; // Сообщение в resultContainer
+    resultContainer.style.fontSize = "30px"
+    resultContainer.style.display = "block"; // Показываем сообщение
+    return;
+  }
+
   table.innerHTML = ""; // Очищаем таблицу
-  const token = localStorage.getItem("token"); // Получаем токен
+ const token = localStorage.getItem("token"); // Получаем токен
 
   if (!token) {
     alert("Необходима авторизация.");
@@ -287,24 +311,23 @@ async function displayBooks(books) {
 
   console.log("Books from server:", books); // Добавьте эту строку для отладки
   // Всегда очищаем таблицу и resultContainer перед отображением результатов
-  const resultContainer = document.getElementById("result"); // Контейнер для сообщения
   resultContainer.innerHTML = "";
   if (books.length === 0) {
     // Если книги не найдены
     resultContainer.innerHTML = "<p>Книги не найдены</p>"; // Сообщение в resultContainer
-    booksTable.style.display = "none"; // Скрываем таблицу
+    table.style.display = "none"; // Скрываем таблицу
     resultContainer.style.display = "block"; // Показываем сообщение
   } else {
     resultContainer.innerHTML = ""; // Очищаем resultContainer, если книги найдены
     resultContainer.style.display = "none"; // Скрываем сообщение
-
   }
 
   // Обновляем margin в зависимости от наличия данных
   updateControlsMargin(books.length > 0);
   // Заголовок таблицы
   const headerRow = table.insertRow();
-  const headers = ["ID",
+  const headers = [
+    "ID",
     "Название",
     "Автор",
     "Количество",
@@ -319,7 +342,6 @@ async function displayBooks(books) {
       header.style.color = "black"; // Заголовок черного цвета
     }
   });
-
 
   books.forEach((book, rowIndex) => {
     if (!Array.isArray(book)) {
@@ -455,7 +477,7 @@ async function displayBooks(books) {
     deleteButton.style.fontFamily = "Montserrat !important";
 
     deleteButton.addEventListener("click", () => {
-      openDeleteModal(book.Название, row);
+      openDeleteModal(book, row);
     });
 
     actionCell.appendChild(deleteButton);
@@ -464,9 +486,9 @@ async function displayBooks(books) {
 
 let bookToDelete = null; // Переменная для хранения удаляемой книги
 
-function openDeleteModal(bookName, row) {
-  bookToDelete = { bookName, row }; // Сохраняем информацию о книге и строке
-  const message = `Вы уверены, что хотите удалить книгу "${bookName}"?`;
+function openDeleteModal(book) {
+  bookToDelete = book; // Сохраняем информацию о книге и строке
+  const message = `Вы уверены, что хотите удалить книгу "${book[1]}"?`;
   document.getElementById("deleteBookMessage").textContent = message;
   document.getElementById("deleteBookModal").style.display = "block";
 }
@@ -481,10 +503,19 @@ async function confirmDeleteBook() {
   if (!bookToDelete) return;
 
   try {
-    await axios.delete(`/api/books/${bookToDelete.bookName}`); // Эндпоинт удаления
+    const token = localStorage.getItem("token");
+    if (!token) {
+      showToast("Ошибка авторизации. Войдите в систему.");
+      closeDeleteModal();
+      return;
+    }
+    await axios.delete(`/api/books/${bookToDelete[0]}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    }); // Эндпоинт удаления
     await updateBookTable();
     closeDeleteModal();
-    showToast(`Книга "${bookToDelete.bookName}" успешно удалена.`);
+    console.log("bookToDelete:", bookToDelete)
+   // showToast(`Книга "${bookToDelete[1]}" успешно удалена.`);
   } catch (error) {
     console.error("Ошибка при удалении книги", error);
     showToast("Не удалось удалить книгу. Попробуйте позже.");
@@ -538,7 +569,7 @@ async function saveEditBook() {
     } else {
       cells[1].classList.remove("error-cell");
     }
-/*
+    /*
     // Проверка URL
     if (onlineVersion && !isValidURL(onlineVersion)) {
       showToast("Электронная версия должна иметь корректный URL.");
@@ -558,9 +589,12 @@ async function saveEditBook() {
       Местоположение: location,
     };
   }
-
+  const token = localStorage.getItem("token");
   try {
-    await axios.put("/api/books", updatedBooks); // Эндпоинт для обновления
+    await axios.put("/api/books", updatedBooks, {
+      // и передаем его в headers
+      headers: { Authorization: `Bearer ${token}` },
+    }); // Эндпоинт для обновления
     await updateBookTable();
     showToast("Изменения успешно сохранены.");
   } catch (error) {
@@ -571,8 +605,12 @@ async function saveEditBook() {
 
 async function cancelEditBook() {
   try {
+    const token = localStorage.getItem("token");
     // Загружаем актуальный список книг с сервера
-    const response = await axios.get("/api/books"); // Эндпоинт для получения всех книг
+    const response = await axios.get("/api/books", {
+      // и передаем его в headers
+      headers: { Authorization: `Bearer ${token}` },
+    }); // Эндпоинт для получения всех книг
     const books = response.data;
 
     originalBooks = books.map((book) => ({ ...book })); // Обновляем оригинал
@@ -588,23 +626,21 @@ async function cancelEditBook() {
 }
 
 async function searchBook() {
-  const query = document.getElementById("searchInput").value.toLowerCase();
+ // clearPreviousResults();
+  const query = document
+    .getElementById("searchInput")
+    .value.trim()
+    .toLowerCase();
 
-  try {
-    const response = await axios.get("/api/books/search", {
-      params: { query },
-    }); // Предполагаемый эндпоинт поиска
-    const books = response.data;
+  if (query !== "") {
+    // Если поле поиска НЕ пустое (содержит текст)
+    const books = await fetchBooks(query);
+    displayBooks(books);
+  } // Иначе (поле поиска пустое или содержит только пробелы) - ничего не делаем
 
-    if (books.length) {
-      displayBooks(books);
-    } else {
-      showToast("Совпадений не найдено!");
-    }
-  } catch (error) {
-    console.error("Ошибка при поиске книг", error);
-    showToast("Не удалось выполнить поиск. Попробуйте позже.");
-  }
+  // Обновляем margin в зависимости от наличия данных
+  const bookTable = document.getElementById("bookTable");
+  updateControlsMargin(bookTable !== null);
 }
 
 function openModal() {
