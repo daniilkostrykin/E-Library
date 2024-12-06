@@ -557,18 +557,18 @@ async function saveEditBook() {
   const rows = table.rows;
   const newBooks = [];
   let hasErrors = false;
-
+  const updatedBooks = [];
   for (let i = 1; i < rows.length; i++) {
     // Пропускаем заголовок
     const row = rows[i];
     const cells = row.cells;
 
-    const title = cells[0]?.textContent.trim();
-    const author = cells[1]?.textContent.trim();
-    const quantity = parseInt(cells[2]?.textContent.trim(), 10) || 0;
-    const onlineVersion = cells[3]?.firstChild?.value || "";
-    const location = cells[4]?.firstChild?.value || ""; // Из input
-
+    const id = cells[0].textContent.trim(); // Получаем ID книги!
+    const title = cells[1].textContent.trim();
+    const author = cells[2].textContent.trim();
+    const quantity = parseInt(cells[3].textContent.trim(), 10) || 0;
+    const onlineVersion = cells[4]?.firstChild?.value || "";
+    const location = cells[5]?.firstChild?.value || "";
     // Проверка на пустые поля
     if (!title) {
       hasErrors = true;
@@ -595,13 +595,15 @@ async function saveEditBook() {
       cells[3]?.firstChild?.classList.remove("invalid-url"); // Убираем ошибку, если URL корректный
     }
 */
-    const newBook = {
+    updatedBooks.push({
+      // Добавляем данные в массив
+      id: id,
       Название: title,
       Автор: author,
       Количество: quantity,
       "Электронная версия": onlineVersion,
       Местоположение: location,
-    };
+    });
   }
   const token = localStorage.getItem("token");
   try {
