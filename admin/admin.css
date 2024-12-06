@@ -422,3 +422,16 @@ button:active,
   background-color: #6c757d !important;
   color: white;
 }
+#adminPanel #result {
+  display: flex;
+  justify-content: center; /* Центрируем горизонтально */
+
+  align-items: center; /* Центрируем  вертикально */
+
+  width: 100%; /*  Занимаем всю ширину  родительского  элемента  */
+  margin: 20px 0;
+}
+
+#adminPanel #result p {
+  margin: 0; /* Убираем отступы у  параграфа */
+}
