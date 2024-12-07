@@ -517,84 +517,51 @@ def add_book():
         return jsonify({"message": "Ошибка при добавлении книги", "error": str(e)}), 500
 
 
-def get_info(link):
-    response = requests.get(link)
-    soup = BeautifulSoup(response.text, "html.parser")
-    author_tag = soup.find("a", {'id': "biblio_book__author"})
-    book_title_tag = soup.find('h1', {'data-widget-litres-book': '1'})
-    
-    author_name = author_tag.text if author_tag else "Неизвестный автор"
-    book_title = book_title_tag.text if book_title_tag else "Неизвестное название"
-    return author_name, book_title
 
-def check_availability(link):
-    response = requests.get(link)
-    soup = BeautifulSoup(response.text, "html.parser")
-    result_tag = soup.find("div", {'class': "item_info border_bottom"})
-    if result_tag and result_tag.text.strip() == "Результаты поиска В результате поиска ничего не найдено":
-        return False
-    return True
 
-def get_link_to_download(link):
-    list_links = []
+def find_first_read_link(search_url):
+    """
+    Ищет первую ссылку на чтение книги в результатах поиска на сайте Aldebaran.
+    """
     try:
-        response = requests.get(link).text
-        if "pdf" not in response or "<a href=\"/download" not in response:
-            return []
-        for index in range(len(response)):
-            if response[index: index + 18] != "<a href=\"/download":
-                continue
-            download_link = ""
-            index_of_ssilka = index + 10
-            while index_of_ssilka < len(response) and response[index_of_ssilka] != "\"":
-                download_link += response[index_of_ssilka]
-                index_of_ssilka += 1
-            list_links.append("https://aldebaran.ru/" + download_link)
-    except Exception as e:
-        print(f"Ошибка: {e}")
-    return list_links
+        response = requests.get(search_url)
+        response.raise_for_status()
+        soup = BeautifulSoup(response.text, "html.parser")
 
-@app.route('/search_books', methods=['GET'])
-def search_books_parse():
+        # Ищем ссылки, которые ведут на страницы с чтением книг
+        read_links = [
+            "https://aldebaran.ru" + link.get("href")
+            for link in soup.select('a[href*="/read/"]')  # Ищем ссылки с "/read/"
+        ]
+
+        # Возвращаем первую ссылку на чтение, если она есть
+        if read_links:
+            print(f"Найдена ссылка на чтение: {read_links[0]}")
+            return read_links[0]
+        else:
+            print("Ссылки на чтение не найдены")
+            return None
+    except Exception as e:
+        print(f"Ошибка при поиске ссылки на чтение: {e}")
+        return None
+
+@app.route('/api/search_first_read_link', methods=['GET'])
+def search_first_read_link():
     book_name = request.args.get('book_name')
     if not book_name:
-        return jsonify({"error": "Название книги является обязательным"}), 400
+        return jsonify({"error": "Название книги обязательно"}), 400
 
-    link_search = f"https://aldebaran.ru/pages/rmd_search/?q={book_name}"
-    books = []
+    search_url = f"https://aldebaran.ru/pages/rmd_search/?q={book_name}"
+    print(f"Ищем книгу по URL: {search_url}")  # Логируем запрос
 
-    if check_availability(link_search):
-        # Поиск ссылок на книги
-        links_to_books = []
-        response = requests.get(link_search).text
-        for index in range(len(response)):
-            if response[index: index + 17] != "<a href=\"/author/":
-                continue
+    # Поиск первой ссылки на чтение
+    first_read_link = find_first_read_link(search_url)
+    if not first_read_link:
+        print(f"Ссылка на чтение не найдена для запроса: {book_name}")  # Логируем ошибку
+        return jsonify({"error": "Ссылка на книгу не найдена"}), 404
 
-            link = ""
-            index_of_ssilka = index + 9
-            while index_of_ssilka < len(response) and response[index_of_ssilka] != "\"":
-                link += response[index_of_ssilka]
-                index_of_ssilka += 1
-            link = "https://aldebaran.ru" + link
-            if link not in links_to_books:
-                links_to_books.append(link)
-
-        # Поиск информации о книгах и ссылок на скачивание
-        for link_index, book_link in enumerate(links_to_books[:5]):
-            info = get_info(book_link)
-            download_links = get_link_to_download(book_link)
-            books.append({
-                "author": info[0],
-                "title": info[1],
-                "details_link": book_link,
-                "download_links": download_links or ["Ссылок на скачивание не найдено"]
-            })
-    else:
-        return jsonify({"message": "Книги не найдены"}), 404
-
-    return jsonify({"books": books}), 200
-
+    print(f"Первая ссылка на чтение: {first_read_link}")  # Логируем успех
+    return jsonify({"read_link": first_read_link})
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=3000, debug=True)
