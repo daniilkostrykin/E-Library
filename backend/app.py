@@ -463,10 +463,11 @@ def get_all_books():
         return jsonify({"success": False, "message": str(e)}), 500
 
 
+
 @app.route('/api/books/update', methods=['POST'])
 def update_books():
-    books_to_update = request.json  # Получение данных из запроса
-
+    books_to_update = request.json
+    
     if not isinstance(books_to_update, list) or len(books_to_update) == 0:
         return jsonify({"error": "Передан некорректный массив книг"}), 400
 
@@ -480,12 +481,11 @@ def update_books():
                 author = book.get('author')
                 quantity = book.get('quantity')
                 online_version = book.get('online_version')
-                location = book.get('location')
+                location = book.get('location') or "Неизвестно"  # Значение по умолчанию, если location пустое
 
                 if not all([book_id, title, author, quantity is not None]):
                     print("Некорректные данные книги:", book)
                     return jsonify({"error": "Некорректные данные книги", "book": book}), 400
-
                 cursor.execute(
                     """
                     UPDATE books
@@ -496,7 +496,11 @@ def update_books():
                 )
             except Exception as e:
                 print(f"Ошибка при обработке книги {book}: {e}")
+                conn.rollback()  # Откат изменений, если ошибка внутри цикла
                 return jsonify({"error": f"Ошибка при обработке книги {book}", "details": str(e)}), 500
+
+        conn.commit() # Фиксируем транзакцию после успешного обновления всех книг!
+        return jsonify({"success": True}), 200 # <--- ВАЖНО: вернуть ответ здесь
 
     except Exception as e:
         conn.rollback()
@@ -505,7 +509,6 @@ def update_books():
 
     finally:
         if cursor:
-            cursor.close()
-       
+            cursor.close()      
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=3000, debug=True)
