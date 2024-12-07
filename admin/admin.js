@@ -37,7 +37,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   document.getElementById("addBookBtn").addEventListener("click", addBook);
 
   // Обработчик для сохранения изменений
-  document.getElementById("save-changes").addEventListener("click", saveEditBook);
+  document
+    .getElementById("save-changes")
+    .addEventListener("click", saveEditBook);
 
   // Обработчик для отмены изменений
   document.getElementById("cancel").addEventListener("click", cancelEditBook);
@@ -94,7 +96,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   });
 });
-
 
 // Обновление таблицы с книгами
 async function updateBookTable() {
@@ -496,7 +497,7 @@ function handleArrowNavigation(event, rowIndex, colIndex, table) {
     }
   }
 }
-async function processAddBook(title, author, quantity, onlineVersion, location) {
+async function processAddBook(title, author, quantity, onlineVersionInput, location) {
   const token = localStorage.getItem("token");
 
   // Проверка обязательных полей
@@ -520,27 +521,56 @@ async function processAddBook(title, author, quantity, onlineVersion, location) 
     return false;
   }
 
+  let onlineVersion = null;
+
+  // Если электронная версия не введена, ищем автоматически
+  if (!onlineVersionInput) {
+    try {
+      const searchResponse = await axios.get(
+        `/api/search_first_read_link?book_name=${encodeURIComponent(title)}`
+      );
+      if (searchResponse.data && searchResponse.data.read_link) {
+        onlineVersion = searchResponse.data.read_link;
+        showToast("Ссылка на онлайн-версию найдена!");
+      } else {
+        throw new Error("Ссылка на книгу не найдена.");
+      }
+    } catch (error) {
+      console.error("Ошибка поиска электронной версии:", error);
+      showToast("Не удалось найти электронную версию книги. Продолжайте без неё.");
+      onlineVersion = null; // Устанавливаем null, чтобы продолжить добавление книги
+    }
+  } else {
+    onlineVersion = onlineVersionInput;
+  }
+  
+
   const newBook = {
     Название: title,
     Автор: author,
     Количество: quantity,
     Местоположение: location,
-    "Электронная версия": onlineVersion || null, // Если есть онлайн-версия
+    "Электронная версия": onlineVersion, // Используем найденную или введённую ссылку
   };
-  
 
   try {
     const response = await axios.post("/api/books", newBook, {
       headers: { Authorization: `Bearer ${token}` },
     });
 
-    const books = await fetchAllBooks();
-    displayBooks(books);
-    showToast("Книга успешно добавлена!");
-    return true;
+    if (response.status === 201) {
+      const books = await fetchAllBooks();
+      displayBooks(books);
+      showToast("Книга успешно добавлена!");
+      return true;
+    } else {
+      console.error("Ошибка при добавлении книги:", response.data);
+      showToast("Ошибка сервера при добавлении книги. Попробуйте позже.");
+      return false;
+    }
   } catch (error) {
-    console.error("Ошибка при добавлении книги", error);
-    showToast("Не удалось добавить книгу. Попробуйте позже.");
+    console.error("Ошибка при добавлении книги:", error);
+    showToast("Ошибка при добавлении книги.");
     return false;
   }
 }
@@ -602,7 +632,8 @@ async function confirmDeleteBook() {
       headers: { Authorization: `Bearer ${token}` },
     }); // Эндпоинт удаления
     const books = await fetchAllBooks();
-    displayBooks(books);    closeDeleteModal();
+    displayBooks(books);
+    closeDeleteModal();
     console.log("bookToDelete:", bookToDelete);
     // showToast(`Книга "${bookToDelete[1]}" успешно удалена.`);
   } catch (error) {
