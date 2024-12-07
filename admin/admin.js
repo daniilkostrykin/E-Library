@@ -77,12 +77,291 @@ async function updateBookTable() {
       headers: { Authorization: `Bearer ${token}` },
     }); // Предполагаемый эндпоинт
     originalBooks = response.data;
+    originalBooks.sort((a, b) => parseInt(a.id, 10) - parseInt(b.id, 10)); // Сортируем по ID
+
     displayBooks(originalBooks);
   } catch (error) {
     console.error("Ошибка при загрузке данных с сервера", error);
     showToast("Не удалось загрузить данные. Попробуйте позже.");
   }
 }
+async function fetchAllBooks() {
+  try {
+    const token = localStorage.getItem("token");
+    const response = await axios.get("/api/books/all", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Ошибка при получении всех книг:", error);
+    showToast("Не удалось получить книги. Проверьте соединение."); // Или более подробное сообщение об ошибке
+    return []; // Возвращаем пустой массив в случае ошибки
+  }
+}
+document
+  .getElementById("searchForm")
+  .addEventListener("submit", async (event) => {
+    event.preventDefault(); // Предотвращаем стандартное поведение формы (перезагрузку страницы)
+
+    const query = document
+      .getElementById("searchInput")
+      .value.trim()
+      .toLowerCase();
+    const books = await fetchBooks(query); // Выполняем запрос с учётом query
+    displayBooks(books);
+  });
+async function fetchBooks(query = "") {
+  try {
+    const token = localStorage.getItem("token"); // Получаем токен из localStorage
+
+    const response = await axios.get("/api/books", {
+      params: { query },
+      headers: {
+        Authorization: `Bearer ${token}`, // Исправлено
+      },
+    });
+    const books = await response.json();
+    originalBooks = books; // Сохраняем оригинальные данные
+    return books;
+  } catch (error) {
+    // Обработка ошибок, если сервер вернет ошибку, даже с токеном
+    console.error("Ошибка при получении книг:", error);
+
+    if (error.response && error.response.status === 401) {
+      showToast("Сессия истекла. Пожалуйста, войдите снова.");
+
+      logout(); //  Вызываем функцию logout для перенаправления
+    }
+
+    throw error;
+  }
+}
+async function displayBooks(books) {
+  const table = document.getElementById("bookTable");
+  table.innerHTML = "";
+
+  // Заголовок таблицы
+  const headerRow = table.insertRow();
+  const headers = [
+    "ID",
+    "Название",
+    "Автор",
+    "Количество",
+    "Электронная версия",
+    "Местоположение",
+    "Удаление",
+  ];
+  headers.forEach((headerText, index) => {
+    const header = headerRow.insertCell();
+    header.textContent = headerText;
+    if (headerText === "Количество") {
+      header.style.color = "black"; // Заголовок черного цвета
+    }
+  });
+  books.sort((a, b) => {
+    const idA = parseInt(a.id, 10) || 0; // Преобразуем в число, или 0, если не число
+    const idB = parseInt(b.id, 10) || 0;
+    return idA - idB;
+  });
+  // Данные книг
+  books.forEach((book) => {
+    const row = table.insertRow();
+    Object.entries(book).forEach(([key, value]) => {
+      const cell = row.insertCell();
+      console.log("Key:", key);
+      if (key === "4") {
+        cell.textContent = value || "Не указано"; // Текст вместо поля ввода
+        cell.contentEditable = true; // Сделать ячейку редактируемой
+
+        // Добавляем обработчик на изменение содержимого ячейки
+        cell.addEventListener("input", () => {
+          document.getElementById("save-changes").disabled = false;
+          document.getElementById("cancel").disabled = false;
+        });
+
+        // Можно также обрабатывать событие "blur" (когда ячейка теряет фокус)
+        cell.addEventListener("blur", () => {
+          const newValue = cell.textContent.trim();
+          if (!newValue) {
+            cell.textContent = "Не указано"; // Восстановление значения, если оставлено пустым
+          }
+        });
+      } else if (key === "3") {
+        cell.textContent = value;
+        cell.contentEditable = true;
+
+        // Установить цвет текста в зависимости от значения
+        updateCellColor(cell, value);
+
+        cell.addEventListener("input", () => {
+          let newValue = cell.textContent.trim();
+
+          // Убираем лидирующие нули
+          if (/^0\d+/.test(newValue)) {
+            newValue = parseInt(newValue, 10).toString();
+            cell.textContent = newValue;
+          }
+
+          // Запрет на отрицательные значения и некорректный ввод
+          if (isNaN(newValue) || parseInt(newValue, 10) < 0) {
+            cell.textContent = 0; // Устанавливаем 0 по умолчанию
+          }
+          updateCellColor(cell, cell.textContent);
+          document.getElementById("save-changes").disabled = false;
+          document.getElementById("cancel").disabled = false;
+        });
+      } else if (key === "4") {
+        cell.textContent = value || "Неизвестно"; // Текст вместо поля ввода
+        cell.contentEditable = true; // Сделать ячейку редактируемой
+    
+        // Добавляем обработчик на изменение содержимого ячейки
+        cell.addEventListener("input", () => {
+            document.getElementById("save-changes").disabled = false;
+            document.getElementById("cancel").disabled = false;
+        });
+    
+        // Можно также обрабатывать событие "blur" (когда ячейка теряет фокус)
+        cell.addEventListener("blur", () => {
+            const newValue = cell.textContent.trim();
+            if (!newValue) {
+                cell.textContent = "Неизвестно"; // Восстановление значения, если оставлено пустым
+            }
+        });
+    }
+     else {
+        cell.textContent = value;
+        cell.contentEditable = true;
+        cell.addEventListener("input", () => {
+          document.getElementById("save-changes").disabled = false;
+          document.getElementById("cancel").disabled = false;
+        });
+      }
+    });
+
+    // Кнопка удаления
+    const actionCell = row.insertCell();
+    const deleteButton = document.createElement("button");
+    deleteButton.classList.add("action-button");
+    deleteButton.textContent = "Удалить";
+    deleteButton.style.backgroundColor = "rgb(255, 101, 101)";
+    deleteButton.style.color = "white";
+    deleteButton.style.border = "none";
+    deleteButton.style.padding = "8px 40px";
+    deleteButton.style.borderRadius = "10px";
+    deleteButton.style.fontFamily = "Montserrat !important";
+
+    deleteButton.addEventListener("click", () => {
+      openDeleteModal(book.Название, row);
+    });
+
+    actionCell.appendChild(deleteButton);
+  });
+}
+// Сохранение изменений
+
+// Метод для сохранения изменений в книгах
+async function saveEditBook() {
+  const table = document.getElementById("bookTable");
+  const rows = table.rows;
+  const updatedBooks = [];
+  let hasErrors = false;
+
+  for (let i = 1; i < rows.length; i++) {
+    const row = rows[i];
+    const cells = row.cells;
+
+    const title = cells[0].textContent.trim(); // Первая колонка — название
+    const author = cells[1].textContent.trim(); // Вторая колонка — автор
+    const quantity = parseInt(cells[2].textContent.trim(), 10) || 0;
+
+    const onlineVersionInput = row.querySelector(".online-version");
+    const locationInput = row.querySelector(".location");
+    const online_version = onlineVersionInput
+      ? onlineVersionInput.value.trim()
+      : "Неизвестность";
+    const location = locationInput ? locationInput.value.trim() : null;
+
+    // Валидация
+    if (!title || !author) {
+      hasErrors = true;
+      if (!title) cells[0].classList.add("error-cell");
+      if (!author) cells[1].classList.add("error-cell");
+      showToast("Заполните название и автора для всех книг.");
+      return; // Останавливаемся, если есть ошибки
+    } else {
+      cells[0].classList.remove("error-cell");
+      cells[1].classList.remove("error-cell");
+    }
+
+    updatedBooks.push({
+      id: parseInt(cells[0].textContent.trim(), 10), // Преобразуем ID в число
+      title: cells[1].textContent.trim() || "Без названия", // Устанавливаем значение по умолчанию
+      author: cells[2].textContent.trim() || "Неизвестный автор",
+      quantity: parseInt(cells[3].textContent.trim(), 10) || 0, // Устанавливаем 0, если пусто
+      online_version: cells[4].textContent.trim() || "Неизвестность",
+      location: cells[5].textContent.trim() || "Неизвестно", // Обрабатываем пустое поле location
+    });
+    
+  }
+
+  const token = localStorage.getItem("token");
+
+  try {
+    const response = await axios.post("/api/books/update", updatedBooks, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    if (response.status === 200) {
+      const books = await fetchAllBooks();
+      displayBooks(books);
+
+      showToast("Изменения успешно сохранены.");
+
+      document.getElementById("save-changes").disabled = true;
+      document.getElementById("cancel").disabled = true;
+    } else {
+      showToast(
+        `Ошибка при обновлении книг: ${response.status} - ${response.data.error}`
+      );
+    }
+  } catch (error) {
+    console.error("Ошибка при сохранении изменений", error);
+    if (error.response) {
+      showToast(
+        `Ошибка ${error.response.status}: ${
+          error.response.data.error || error.response.data.message
+        }`
+      );
+    } else if (error.request) {
+      showToast("Ошибка сети! Проверьте соединение");
+    } else {
+      showToast("Ошибка отправки запроса");
+    }
+  }
+}
+
+async function cancelEditBook() {
+  try {
+    const token = localStorage.getItem("token");
+    // Загружаем актуальный список книг с сервера
+    const response = await axios.get("/api/books", {
+      // и передаем его в headers
+      headers: { Authorization: `Bearer ${token}` },
+    }); // Эндпоинт для получения всех книг
+    const books = response.data;
+
+    originalBooks = books.map((book) => ({ ...book })); // Обновляем оригинал
+    displayBooks(originalBooks);
+
+    // Отключаем кнопки после отмены редактирования
+    document.getElementById("save-changes").disabled = true;
+    document.getElementById("cancel").disabled = true;
+  } catch (error) {
+    console.error("Ошибка при отмене редактирования", error);
+    showToast("Не удалось отменить изменения. Попробуйте позже.");
+  }
+}
+
 // Навигация по ячейкам и полям формы с помощью стрелок
 function handleArrowNavigationForForm(event, fields, currentIndex) {
   event.preventDefault();
@@ -207,7 +486,7 @@ async function processAddBook(
   };
 
   try {
-    await axios.post("/api/books", newBook, {
+    const response = await axios.post("/api/books", newBook, {
       // и передаем его в headers
       headers: { Authorization: `Bearer ${token}` },
     }); // Эндпоинт для добавления
@@ -222,19 +501,7 @@ async function processAddBook(
     return false;
   }
 }
-async function fetchAllBooks() {
-  try {
-    const token = localStorage.getItem("token");
-    const response = await axios.get("/api/books/all", {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    return response.data;
-  } catch (error) {
-    console.error("Ошибка при получении всех книг:", error);
-    showToast("Не удалось получить книги. Проверьте соединение."); // Или более подробное сообщение об ошибке
-    return []; // Возвращаем пустой массив в случае ошибки
-  }
-}
+
 function showError(inputField, message) {
   const errorSpan = document.getElementById(inputField.id + "Error");
   errorSpan.textContent = message;
@@ -259,243 +526,6 @@ function isValidURL(url) {
 }
 function back() {
   window.location.href = "admin0.html";
-}
-document
-  .getElementById("searchForm")
-  .addEventListener("submit", async (event) => {
-    event.preventDefault(); // Предотвращаем стандартное поведение формы (перезагрузку страницы)
-
-    const query = document
-      .getElementById("searchInput")
-      .value.trim()
-      .toLowerCase();
-    const books = await fetchBooks(query); // Выполняем запрос с учётом query
-    displayBooks(books);
-  });
-async function fetchBooks(query = "") {
-  try {
-    const token = localStorage.getItem("token"); // Получаем токен из localStorage
-
-    const response = await axios.get("/api/books", {
-      params: { query },
-      headers: {
-        Authorization: `Bearer ${token}`, // Исправлено
-      },
-    });
-    return response.data;
-  } catch (error) {
-    // Обработка ошибок, если сервер вернет ошибку, даже с токеном
-    console.error("Ошибка при получении книг:", error);
-
-    if (error.response && error.response.status === 401) {
-      showToast("Сессия истекла. Пожалуйста, войдите снова.");
-
-      logout(); //  Вызываем функцию logout для перенаправления
-    }
-
-    throw error;
-  }
-}
-async function displayBooks(books) {
-  const resultContainer = document.getElementById("result"); // Контейнер для сообщения
-  const table = document.getElementById("bookTable"); // Таблица книг
-
-  // Проверяем наличие контейнера и таблицы
-  if (!resultContainer) {
-    console.error("Элемент result не найден.");
-    return;
-  }
-
-  if (!table) {
-    console.error("Элемент bookTable не найден.");
-    resultContainer.innerHTML = "Книги не найдены"; // Сообщение в resultContainer
-    resultContainer.style.fontSize = "30px";
-    resultContainer.style.display = "block"; // Показываем сообщение
-    return;
-  }
-
-  table.innerHTML = ""; // Очищаем таблицу
-  const token = localStorage.getItem("token"); // Получаем токен
-
-  if (!token) {
-    alert("Необходима авторизация.");
-    window.location.href = "/login"; // Перенаправление на страницу входа
-    return;
-  }
-
-  console.log("Books from server:", books); // Добавьте эту строку для отладки
-  // Всегда очищаем таблицу и resultContainer перед отображением результатов
-  resultContainer.innerHTML = "";
-  if (books.length === 0) {
-    // Если книги не найдены
-    resultContainer.innerHTML = "<p>Книги не найдены</p>"; // Сообщение в resultContainer
-    table.style.display = "none"; // Скрываем таблицу
-    resultContainer.style.display = "block"; // Показываем сообщение
-  } else {
-    resultContainer.innerHTML = ""; // Очищаем resultContainer, если книги найдены
-    resultContainer.style.display = "none"; // Скрываем сообщение
-  }
-
-  // Обновляем margin в зависимости от наличия данных
-  updateControlsMargin(books.length > 0);
-  // Заголовок таблицы
-  const headerRow = table.insertRow();
-  const headers = [
-    "ID",
-    "Название",
-    "Автор",
-    "Количество",
-    "Электронная версия",
-    "Местоположение",
-    "Удаление",
-  ];
-  headers.forEach((headerText) => {
-    const header = headerRow.insertCell();
-    header.textContent = headerText;
-    if (headerText === "Количество") {
-      header.style.color = "black"; // Заголовок черного цвета
-    }
-  });
-
-  books.forEach((book, rowIndex) => {
-    if (!Array.isArray(book)) {
-      console.error("Invalid book data:", book);
-      return; // Пропускаем некорректные данные
-    }
-    const row = table.insertRow(); // Создаем строку
-
-    Object.entries(book).forEach(([key, value], colIndex) => {
-      const cell = row.insertCell();
-
-      // Ограничиваем высоту ячейки
-      cell.style.maxHeight = "50px";
-      cell.style.overflow = "hidden"; // Скрываем лишний контент
-      cell.style.whiteSpace = "nowrap"; // Предотвращаем перенос строк
-      // Делаем ячейку фокусируемой
-      cell.setAttribute("tabindex", "-1");
-
-      if (key === "Электронная версия" || key === "Местоположение") {
-        const input = document.createElement("input"); // Всегда создаем новый input
-        input.type = "text";
-        input.value = value || "";
-        input.placeholder =
-          key === "Электронная версия"
-            ? "Введите URL"
-            : "Введите местоположение";
-        input.style.textAlign = "center";
-
-        input.addEventListener("input", () => {
-          document.getElementById("save-changes").disabled = false;
-          document.getElementById("cancel").disabled = false;
-        });
-
-        input.addEventListener("keydown", (event) => {
-          if (event.key === "Enter") {
-            event.preventDefault();
-            input.blur(); // Убираем фокус
-            saveEditBook(); // Сохраняем изменения
-          }
-        });
-
-        input.addEventListener("keydown", (event) =>
-          handleArrowNavigation(
-            event,
-            rowIndex + 1, // +1, чтобы учесть заголовок
-            colIndex,
-            table
-          )
-        );
-
-        cell.appendChild(input);
-      } else if (key === "Количество") {
-        cell.textContent = value;
-        cell.contentEditable = true;
-
-        updateCellColor(cell, value);
-
-        cell.addEventListener("input", () => {
-          let newValue = cell.textContent.trim();
-
-          // Убираем лидирующие нули
-          if (/^0\d+/.test(newValue)) {
-            newValue = parseInt(newValue, 10).toString();
-            cell.textContent = newValue;
-          }
-
-          // Запрет на некорректный ввод
-          if (isNaN(newValue) || parseInt(newValue, 10) < 0) {
-            cell.textContent = 0;
-          }
-
-          book[key] = parseInt(cell.textContent, 10) || 0; // Сохраняем изменения в объекте книги
-          updateCellColor(cell, cell.textContent);
-
-          document.getElementById("save-changes").disabled = false;
-          document.getElementById("cancel").disabled = false;
-        });
-
-        cell.addEventListener("keydown", (event) => {
-          if (event.key === "Enter") {
-            event.preventDefault();
-            cell.blur(); // Убираем фокус
-            saveEditBook(); // Сохраняем изменения
-            showToast("Изменения сохранены."); // или другой обработчик
-          }
-        });
-
-        cell.addEventListener("keydown", (event) =>
-          handleArrowNavigation(
-            event,
-            rowIndex + 1, // +1, чтобы учесть заголовок
-            colIndex,
-            table
-          )
-        );
-      } else {
-        cell.textContent = value;
-        cell.contentEditable = true;
-
-        cell.addEventListener("input", () => {
-          document.getElementById("save-changes").disabled = false;
-          document.getElementById("cancel").disabled = false;
-        });
-        cell.addEventListener("keydown", (event) => {
-          if (event.key === "Enter") {
-            event.preventDefault();
-            cell.blur(); // Убираем фокус
-            saveEditBook(); // Сохраняем изменения
-          }
-        });
-
-        cell.addEventListener("keydown", (event) =>
-          handleArrowNavigation(
-            event,
-            rowIndex + 1, // +1, чтобы учесть заголовок
-            colIndex,
-            table
-          )
-        );
-      }
-    });
-
-    // Кнопка удаления
-    const actionCell = row.insertCell();
-    const deleteButton = document.createElement("button");
-    deleteButton.classList.add("action-button");
-    deleteButton.textContent = "Удалить";
-    deleteButton.style.backgroundColor = "rgb(255, 101, 101)";
-    deleteButton.style.color = "white";
-    deleteButton.style.border = "none";
-    deleteButton.style.padding = "8px 40px";
-    deleteButton.style.borderRadius = "10px";
-    deleteButton.style.fontFamily = "Montserrat !important";
-
-    deleteButton.addEventListener("click", () => {
-      openDeleteModal(book, row);
-    });
-
-    actionCell.appendChild(deleteButton);
-  });
 }
 
 let bookToDelete = null; // Переменная для хранения удаляемой книги
@@ -545,99 +575,9 @@ document
 function updateCellColor(cell, value) {
   const numValue = parseInt(value, 10);
   if (numValue > 0) {
-    cell.style.color = "rgb(134, 243, 132)";
+    cell.style.color = "pink";
   } else if (numValue === 0) {
     cell.style.color = "red";
-  }
-}
-
-// Сохранение изменений
-async function saveEditBook() {
-  const table = document.getElementById("bookTable");
-  const rows = table.rows;
-  const newBooks = [];
-  let hasErrors = false;
-  const updatedBooks = [];
-  for (let i = 1; i < rows.length; i++) {
-    // Пропускаем заголовок
-    const row = rows[i];
-    const cells = row.cells;
-
-    const id = cells[0].textContent.trim(); // Получаем ID книги!
-    const title = cells[1].textContent.trim();
-    const author = cells[2].textContent.trim();
-    const quantity = parseInt(cells[3].textContent.trim(), 10) || 0;
-    const onlineVersion = cells[4]?.firstChild?.value || "";
-    const location = cells[5]?.firstChild?.value || "";
-    // Проверка на пустые поля
-    if (!title) {
-      hasErrors = true;
-      cells[0].classList.add("error-cell");
-    } else {
-      cells[0].classList.remove("error-cell");
-    }
-
-    if (!author) {
-      hasErrors = true;
-      cells[1].classList.add("error-cell");
-    } else {
-      cells[1].classList.remove("error-cell");
-    }
-    /*
-    // Проверка URL
-    if (onlineVersion && !isValidURL(onlineVersion)) {
-      showToast("Электронная версия должна иметь корректный URL.");
-      cells[3].firstChild.focus();
-      cells[3].firstChild.classList.add("invalid-url"); // Добавляем визуальный индикатор ошибки
-      hasErrors = true;
-      continue; // Пропускаем сохранение этой строки
-    } else {
-      cells[3]?.firstChild?.classList.remove("invalid-url"); // Убираем ошибку, если URL корректный
-    }
-*/
-    updatedBooks.push({
-      // Добавляем данные в массив
-      id: id,
-      Название: title,
-      Автор: author,
-      Количество: quantity,
-      "Электронная версия": onlineVersion,
-      Местоположение: location,
-    });
-  }
-  const token = localStorage.getItem("token");
-  try {
-    await axios.put("/api/books", updatedBooks, {
-      // и передаем его в headers
-      headers: { Authorization: `Bearer ${token}` },
-    }); // Эндпоинт для обновления
-    await updateBookTable();
-    showToast("Изменения успешно сохранены.");
-  } catch (error) {
-    console.error("Ошибка при сохранении изменений", error);
-    showToast("Не удалось сохранить изменения. Попробуйте позже.");
-  }
-}
-
-async function cancelEditBook() {
-  try {
-    const token = localStorage.getItem("token");
-    // Загружаем актуальный список книг с сервера
-    const response = await axios.get("/api/books", {
-      // и передаем его в headers
-      headers: { Authorization: `Bearer ${token}` },
-    }); // Эндпоинт для получения всех книг
-    const books = response.data;
-
-    originalBooks = books.map((book) => ({ ...book })); // Обновляем оригинал
-    displayBooks(originalBooks);
-
-    // Отключаем кнопки после отмены редактирования
-    document.getElementById("save-changes").disabled = true;
-    document.getElementById("cancel").disabled = true;
-  } catch (error) {
-    console.error("Ошибка при отмене редактирования", error);
-    showToast("Не удалось отменить изменения. Попробуйте позже.");
   }
 }
 

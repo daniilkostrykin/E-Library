@@ -332,44 +332,6 @@ def get_user_debt_count_route(student_id):
     except Exception as e:
         return jsonify({"success": False, "message": str(e)}), 500
 
-@app.route("/api/books", methods=["PUT"])
-@jwt_required()
-def update_books():
-    data = request.get_json()
-
-    if not isinstance(data, list):
-        return jsonify({"success": False, "message": "Ожидается список книг для обновления"}), 400
-
-    try:
-        with conn.cursor() as cur:
-            for book in data:
-                book_id = book.get("id")
-                title = book.get("Название")
-                author = book.get("Автор")
-                quantity = book.get("Количество")
-                online_version = book.get("Электронная версия")
-                location = book.get("Местоположение")
-
-                if not book_id:
-                    return jsonify({"success": False, "message": "ID книги обязателен для обновления"}), 400
-
-                cur.execute(
-                    """
-                    UPDATE books
-                    SET title = %s, author = %s, quantity = %s, 
-                        online_version = %s, location = %s
-                    WHERE id = %s
-                    """,
-                    (title, author, quantity, online_version, location, book_id)
-                )
-
-        conn.commit()
-        return jsonify({"success": True, "message": "Книги успешно обновлены"}), 200
-
-    except Exception as e:
-        conn.rollback()
-        app.logger.error(f"Ошибка при обновлении книг: {e}")
-        return jsonify({"success": False, "message": str(e)}), 500
 
 
 @app.route("/api/taken_books/return", methods=["POST"])
@@ -500,5 +462,50 @@ def get_all_books():
         app.logger.error(f"Ошибка при получении всех книг: {e}")
         return jsonify({"success": False, "message": str(e)}), 500
 
+
+@app.route('/api/books/update', methods=['POST'])
+def update_books():
+    books_to_update = request.json  # Получение данных из запроса
+
+    if not isinstance(books_to_update, list) or len(books_to_update) == 0:
+        return jsonify({"error": "Передан некорректный массив книг"}), 400
+
+    try:
+        cursor = conn.cursor()
+
+        for book in books_to_update:
+            try:
+                book_id = book.get('id')
+                title = book.get('title')
+                author = book.get('author')
+                quantity = book.get('quantity')
+                online_version = book.get('online_version')
+                location = book.get('location')
+
+                if not all([book_id, title, author, quantity is not None]):
+                    print("Некорректные данные книги:", book)
+                    return jsonify({"error": "Некорректные данные книги", "book": book}), 400
+
+                cursor.execute(
+                    """
+                    UPDATE books
+                    SET title = %s, author = %s, quantity = %s, online_version = %s, location = %s
+                    WHERE id = %s
+                    """,
+                    (title, author, quantity, online_version, location, book_id),
+                )
+            except Exception as e:
+                print(f"Ошибка при обработке книги {book}: {e}")
+                return jsonify({"error": f"Ошибка при обработке книги {book}", "details": str(e)}), 500
+
+    except Exception as e:
+        conn.rollback()
+        app.logger.error(f"Ошибка при обновлении книг: {e}")
+        return jsonify({"success": False, "message": str(e)}), 500
+
+    finally:
+        if cursor:
+            cursor.close()
+       
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=3000, debug=True)
