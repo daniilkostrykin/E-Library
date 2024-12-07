@@ -168,7 +168,7 @@ async function displayBooks(books) {
     const row = table.insertRow();
     Object.entries(book).forEach(([key, value]) => {
       const cell = row.insertCell();
-      console.log("Key:", key);
+     // console.log("Key:", key);
       if (key === "4") {
         cell.textContent = value || "Не указано"; // Текст вместо поля ввода
         cell.contentEditable = true; // Сделать ячейку редактируемой
