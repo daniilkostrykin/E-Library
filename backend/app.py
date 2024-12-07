@@ -410,47 +410,6 @@ def delete_book(book_id):
             conn.rollback()
             return jsonify({"error": "Ошибка при удалении книги", "details": str(e), "success": False}), 500  # Добавил success: False и details
 
-# Эндпоинт для добавления книги
-@app.route('/api/books', methods=['POST'])
-@jwt_required()
-def add_book():
-    try:
-        data = request.json
-
-        # Проверка обязательных полей
-        title = data.get("Название")
-        author = data.get("Автор")
-        quantity = data.get("Количество")
-        online_version = data.get("Электронная версия")
-        location = data.get("Местоположение")
-
-        if not title or not author or quantity is None:
-            return jsonify({"message": "Обязательные поля: Название, Автор, Количество"}), 400
-
-        # Проверка корректности данных
-        try:
-            quantity = int(quantity)
-            if quantity < 0:
-                return jsonify({"message": "Количество должно быть неотрицательным числом"}), 400
-        except ValueError:
-            return jsonify({"message": "Количество должно быть числом"}), 400
-
-        # Подключение к базе данных
-        cur = conn.cursor()
-
-        # Вставка данных в таблицу books
-        cur.execute("""
-            INSERT INTO books (title, author, quantity, online_version, location)
-            VALUES (%s, %s, %s, %s, %s)
-        """, (title, author, quantity, online_version, location))
-
-        conn.commit()
-        cur.close()
-
-        return jsonify({"message": "Книга успешно добавлена!"}), 201
-
-    except Exception as e:
-        return jsonify({"message": "Ошибка при добавлении книги", "error": str(e)}), 500
 
 @app.route("/api/books/all", methods=["GET"])
 @jwt_required()
@@ -515,6 +474,47 @@ def update_books():
 
 
 
+# Эндпоинт для добавления книги
+@app.route('/api/books', methods=['POST'])
+@jwt_required()
+def add_book():
+    try:
+        data = request.json
+        print("Полученные данные:", data)
+        # Проверка обязательных полей
+        title = data.get("Название")
+        author = data.get("Автор")
+        quantity = data.get("Количество")
+        online_version = data.get("Электронная версия")
+        location = data.get("Местоположение")
+
+        if not title or not author or quantity is None:
+            return jsonify({"message": "Обязательные поля: Название, Автор, Количество"}), 400
+
+        # Проверка корректности данных
+        try:
+            quantity = int(quantity)
+            if quantity < 0:
+                return jsonify({"message": "Количество должно быть неотрицательным числом"}), 400
+        except ValueError:
+            return jsonify({"message": "Количество должно быть числом"}), 400
+
+        # Подключение к базе данных
+        cur = conn.cursor()
+
+        # Вставка данных в таблицу books
+        cur.execute("""
+            INSERT INTO books (title, author, quantity, online_version, location)
+            VALUES (%s, %s, %s, %s, %s)
+        """, (title, author, quantity, online_version, location))
+
+        conn.commit()
+        cur.close()
+
+        return jsonify({"message": "Книга успешно добавлена!"}), 201
+
+    except Exception as e:
+        return jsonify({"message": "Ошибка при добавлении книги", "error": str(e)}), 500
 
 
 def get_info(link):
@@ -555,7 +555,7 @@ def get_link_to_download(link):
     return list_links
 
 @app.route('/search_books', methods=['GET'])
-def search_books():
+def search_books_parse():
     book_name = request.args.get('book_name')
     if not book_name:
         return jsonify({"error": "Название книги является обязательным"}), 400
