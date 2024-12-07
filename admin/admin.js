@@ -18,24 +18,36 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     handleArrowNavigation(event, rowIndex, colIndex, table);
   });
+
+  // Загружаем все книги и отображаем их
   const books = await fetchAllBooks();
   displayBooks(books);
+
+  // Деактивируем кнопки сохранения и отмены по умолчанию
   document.getElementById("save-changes").disabled = true;
   document.getElementById("cancel").disabled = true;
 
+  // Обработчик отправки формы поиска
   document.getElementById("searchForm").addEventListener("submit", (event) => {
     event.preventDefault();
     searchBook();
   });
+
+  // Обработчик для кнопки добавления книги
   document.getElementById("addBookBtn").addEventListener("click", addBook);
-  document
-    .getElementById("save-changes")
-    .addEventListener("click", saveEditBook);
+
+  // Обработчик для сохранения изменений
+  document.getElementById("save-changes").addEventListener("click", saveEditBook);
+
+  // Обработчик для отмены изменений
   document.getElementById("cancel").addEventListener("click", cancelEditBook);
+
+  // Обработчик для кнопки возврата
   document.getElementById("back-button").addEventListener("click", back);
 
   const addBookForm = document.getElementById("addBookForm");
 
+  // Обработчик отправки формы добавления книги
   addBookForm.addEventListener("submit", async (event) => {
     event.preventDefault();
 
@@ -57,7 +69,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   });
 
-  // Логика перехода между полями с помощью Enter
+  // Логика перехода между полями с помощью Enter в форме добавления книги
   const formFields = addBookForm.querySelectorAll("input, textarea, select");
   formFields.forEach((field, index) => {
     field.addEventListener("keydown", (event) => {
@@ -66,12 +78,14 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         // Если это последнее поле, отправляем форму
         if (index === formFields.length - 1) {
-          addBookForm.requestSubmit();
+          addBookForm.requestSubmit(); // Явная отправка формы
         } else {
           // Перемещаем фокус на следующее поле
           formFields[index + 1].focus();
         }
-      } // Добавляем стрелки
+      }
+
+      // Добавляем обработку стрелок для перехода между полями
       if (
         ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(event.key)
       ) {
@@ -80,6 +94,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   });
 });
+
+
 // Обновление таблицы с книгами
 async function updateBookTable() {
   const token = localStorage.getItem("token");
@@ -180,16 +196,15 @@ async function displayBooks(books) {
     const row = table.insertRow();
     Object.entries(book).forEach(([key, value]) => {
       const cell = row.insertCell();
-        // Ограничиваем высоту ячейки
+      // Ограничиваем высоту ячейки
       cell.style.maxHeight = "50px";
       cell.style.overflow = "hidden"; // Скрываем лишний контент
       cell.style.whiteSpace = "nowrap"; // Предотвращаем перенос строк
       // Делаем ячейку фокусируемой
-      
+
       cell.setAttribute("tabindex", "-1");
 
-
-     // console.log("Key:", key);
+      // console.log("Key:", key);
       if (key === "4") {
         cell.textContent = value || "Не указано"; // Текст вместо поля ввода
         cell.contentEditable = true; // Сделать ячейку редактируемой
@@ -207,7 +222,7 @@ async function displayBooks(books) {
             cell.textContent = "Не указано"; // Восстановление значения, если оставлено пустым
           }
         });
-          } else if (key === "3") {
+      } else if (key === "3") {
         cell.textContent = value;
         cell.contentEditable = true;
 
@@ -231,29 +246,27 @@ async function displayBooks(books) {
           document.getElementById("save-changes").disabled = false;
           document.getElementById("cancel").disabled = false;
         });
-
-       
       } else if (key === "4") {
         cell.textContent = value || "Неизвестно"; // Текст вместо поля ввода
         cell.contentEditable = true; // Сделать ячейку редактируемой
-    
+
         // Добавляем обработчик на изменение содержимого ячейки
         cell.addEventListener("input", () => {
-            document.getElementById("save-changes").disabled = false;
-            document.getElementById("cancel").disabled = false;
+          document.getElementById("save-changes").disabled = false;
+          document.getElementById("cancel").disabled = false;
         });
-    
+
         // Можно также обрабатывать событие "blur" (когда ячейка теряет фокус)
         cell.addEventListener("blur", () => {
-            const newValue = cell.textContent.trim();
-            if (!newValue) {
-                cell.textContent = "Неизвестно"; // Восстановление значения, если оставлено пустым
-            }
+          const newValue = cell.textContent.trim();
+          if (!newValue) {
+            cell.textContent = "Неизвестно"; // Восстановление значения, если оставлено пустым
+          }
         });
-    }else if (key === "0") {
-      cell.textContent = value;
-      cell.contentEditable = false;}
-     else {
+      } else if (key === "0") {
+        cell.textContent = value;
+        cell.contentEditable = false;
+      } else {
         cell.textContent = value;
         cell.contentEditable = true;
         cell.addEventListener("input", () => {
@@ -280,7 +293,6 @@ async function displayBooks(books) {
     });
 
     actionCell.appendChild(deleteButton);
-    
   });
 }
 // Сохранение изменений
@@ -327,7 +339,6 @@ async function saveEditBook() {
       online_version: cells[4].textContent.trim() || "Неизвестность",
       location: cells[5].textContent.trim() || "Неизвестно", // Обрабатываем пустое поле location
     });
-    
   }
 
   const token = localStorage.getItem("token");
@@ -421,11 +432,20 @@ function handleArrowNavigation(event, rowIndex, colIndex, table) {
   if (colIndex === 0) {
     return;
   }
-
+  if (event.key === "Enter") {
+    event.preventDefault(); // Убираем действие Enter в ячейках таблицы
+    saveEditBook();
+    return;
+  }
   const isContentEditable = cell && cell.isContentEditable;
 
   // Если нажата стрелка влево и мы находимся в первой позиции ячейки первого столбца
-  if (key === "ArrowLeft" && colIndex === 1 && cell && cell.textContent.length === 0) {
+  if (
+    key === "ArrowLeft" &&
+    colIndex === 1 &&
+    cell &&
+    cell.textContent.length === 0
+  ) {
     // Отключаем переход влево, если курсор в начале ячейки
     event.preventDefault();
     return;
