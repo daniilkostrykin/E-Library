@@ -289,7 +289,7 @@ async function displayBooks(books) {
     deleteButton.style.fontFamily = "Montserrat !important";
 
     deleteButton.addEventListener("click", () => {
-      openDeleteModal(book.Название, row);
+      openDeleteModal(book);
     });
 
     actionCell.appendChild(deleteButton);
@@ -504,6 +504,7 @@ async function processAddBook(
   location
 ) {
   const token = localStorage.getItem("token");
+
   // Проверка обязательных полей
   if (!title) {
     showToast("Введите название книги.");
@@ -586,6 +587,7 @@ let bookToDelete = null; // Переменная для хранения уда�
 
 function openDeleteModal(book) {
   bookToDelete = book; // Сохраняем информацию о книге и строке
+  console.log("bookToDelete:", bookToDelete);
   const message = `Вы уверены, что хотите удалить книгу "${book[1]}"?`;
   document.getElementById("deleteBookMessage").textContent = message;
   document.getElementById("deleteBookModal").style.display = "block";

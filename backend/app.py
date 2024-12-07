@@ -1,11 +1,13 @@
 #app.py
 from datetime import timedelta
+from bs4 import BeautifulSoup
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from flask_bcrypt import Bcrypt
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
 import psycopg2
 from psycopg2.extras import DictCursor
+import requests
 from db import init_db
 from models import (
     get_student_by_id, get_user_debt_count, register_user, get_user_by_email, 
@@ -509,6 +511,90 @@ def update_books():
 
     finally:
         if cursor:
-            cursor.close()      
+            cursor.close()    
+
+
+
+
+
+def get_info(link):
+    response = requests.get(link)
+    soup = BeautifulSoup(response.text, "html.parser")
+    author_tag = soup.find("a", {'id': "biblio_book__author"})
+    book_title_tag = soup.find('h1', {'data-widget-litres-book': '1'})
+    
+    author_name = author_tag.text if author_tag else "Неизвестный автор"
+    book_title = book_title_tag.text if book_title_tag else "Неизвестное название"
+    return author_name, book_title
+
+def check_availability(link):
+    response = requests.get(link)
+    soup = BeautifulSoup(response.text, "html.parser")
+    result_tag = soup.find("div", {'class': "item_info border_bottom"})
+    if result_tag and result_tag.text.strip() == "Результаты поиска В результате поиска ничего не найдено":
+        return False
+    return True
+
+def get_link_to_download(link):
+    list_links = []
+    try:
+        response = requests.get(link).text
+        if "pdf" not in response or "<a href=\"/download" not in response:
+            return []
+        for index in range(len(response)):
+            if response[index: index + 18] != "<a href=\"/download":
+                continue
+            download_link = ""
+            index_of_ssilka = index + 10
+            while index_of_ssilka < len(response) and response[index_of_ssilka] != "\"":
+                download_link += response[index_of_ssilka]
+                index_of_ssilka += 1
+            list_links.append("https://aldebaran.ru/" + download_link)
+    except Exception as e:
+        print(f"Ошибка: {e}")
+    return list_links
+
+@app.route('/search_books', methods=['GET'])
+def search_books():
+    book_name = request.args.get('book_name')
+    if not book_name:
+        return jsonify({"error": "Название книги является обязательным"}), 400
+
+    link_search = f"https://aldebaran.ru/pages/rmd_search/?q={book_name}"
+    books = []
+
+    if check_availability(link_search):
+        # Поиск ссылок на книги
+        links_to_books = []
+        response = requests.get(link_search).text
+        for index in range(len(response)):
+            if response[index: index + 17] != "<a href=\"/author/":
+                continue
+
+            link = ""
+            index_of_ssilka = index + 9
+            while index_of_ssilka < len(response) and response[index_of_ssilka] != "\"":
+                link += response[index_of_ssilka]
+                index_of_ssilka += 1
+            link = "https://aldebaran.ru" + link
+            if link not in links_to_books:
+                links_to_books.append(link)
+
+        # Поиск информации о книгах и ссылок на скачивание
+        for link_index, book_link in enumerate(links_to_books[:5]):
+            info = get_info(book_link)
+            download_links = get_link_to_download(book_link)
+            books.append({
+                "author": info[0],
+                "title": info[1],
+                "details_link": book_link,
+                "download_links": download_links or ["Ссылок на скачивание не найдено"]
+            })
+    else:
+        return jsonify({"message": "Книги не найдены"}), 404
+
+    return jsonify({"books": books}), 200
+
+
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=3000, debug=True)
