@@ -1,4 +1,5 @@
 /*
+
 function searchBook(event) {
   event.preventDefault();
   document.getElementById("booksTable").style.display = "none"; // изначально  скрываем  таблицу
@@ -700,7 +701,7 @@ function searchBook() {
   adminPanel.insertBefore(table, controls);
   updateControlsMargin(true);
 }
-*/
+
 async function confirmTakeBook() {
   const urlParams = getURLParams();
   console.log("URL Params:", urlParams);
@@ -959,3 +960,4 @@ console.log("Взятые книги:", takenBooks);
     }
   }
 }
+*/

@@ -52,10 +52,10 @@ body {
 #adminPanel th:nth-child(4) {
   color: black; /* Цвет текста для заголовка третьего столбца */
 }
-
+/*
 #adminPanel td:nth-child(4) {
-  color: green; /* Цвет текста для ячеек третьего столбца */
-}
+  color: green; /* Цвет текста для ячеек третьего столбца 
+}*/
 
 #adminPanel td:nth-child(5),
 #adminPanel td:nth-child(1),
