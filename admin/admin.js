@@ -6,6 +6,18 @@ let originalBooks = [];
 document.addEventListener("DOMContentLoaded", async () => {
   // Загружаем книги с сервера и сохраняем их в originalBooks
   // await updateBookTable();
+  const table = document.getElementById("bookTable");
+
+  // Добавляем обработчик событий для всей таблицы
+  table.addEventListener("keydown", (event) => {
+    const cell = event.target.closest("td");
+    if (!cell) return;
+
+    const rowIndex = cell.parentNode.rowIndex;
+    const colIndex = cell.cellIndex;
+
+    handleArrowNavigation(event, rowIndex, colIndex, table);
+  });
   const books = await fetchAllBooks();
   displayBooks(books);
   document.getElementById("save-changes").disabled = true;
@@ -168,6 +180,15 @@ async function displayBooks(books) {
     const row = table.insertRow();
     Object.entries(book).forEach(([key, value]) => {
       const cell = row.insertCell();
+        // Ограничиваем высоту ячейки
+      cell.style.maxHeight = "50px";
+      cell.style.overflow = "hidden"; // Скрываем лишний контент
+      cell.style.whiteSpace = "nowrap"; // Предотвращаем перенос строк
+      // Делаем ячейку фокусируемой
+      
+      cell.setAttribute("tabindex", "-1");
+
+
      // console.log("Key:", key);
       if (key === "4") {
         cell.textContent = value || "Не указано"; // Текст вместо поля ввода
@@ -186,7 +207,7 @@ async function displayBooks(books) {
             cell.textContent = "Не указано"; // Восстановление значения, если оставлено пустым
           }
         });
-      } else if (key === "3") {
+          } else if (key === "3") {
         cell.textContent = value;
         cell.contentEditable = true;
 
@@ -210,6 +231,8 @@ async function displayBooks(books) {
           document.getElementById("save-changes").disabled = false;
           document.getElementById("cancel").disabled = false;
         });
+
+       
       } else if (key === "4") {
         cell.textContent = value || "Неизвестно"; // Текст вместо поля ввода
         cell.contentEditable = true; // Сделать ячейку редактируемой
@@ -227,7 +250,9 @@ async function displayBooks(books) {
                 cell.textContent = "Неизвестно"; // Восстановление значения, если оставлено пустым
             }
         });
-    }
+    }else if (key === "0") {
+      cell.textContent = value;
+      cell.contentEditable = false;}
      else {
         cell.textContent = value;
         cell.contentEditable = true;
@@ -255,6 +280,7 @@ async function displayBooks(books) {
     });
 
     actionCell.appendChild(deleteButton);
+    
   });
 }
 // Сохранение изменений
@@ -386,10 +412,24 @@ function handleArrowNavigationForForm(event, fields, currentIndex) {
 }
 
 // Обработка навигации для ячеек таблицы
+// Обработка навигации для ячеек таблицы
 function handleArrowNavigation(event, rowIndex, colIndex, table) {
   const key = event.key;
   const cell = event.target.closest("td");
+
+  // Игнорируем первый столбец (если colIndex === 0)
+  if (colIndex === 0) {
+    return;
+  }
+
   const isContentEditable = cell && cell.isContentEditable;
+
+  // Если нажата стрелка влево и мы находимся в первой позиции ячейки первого столбца
+  if (key === "ArrowLeft" && colIndex === 1 && cell && cell.textContent.length === 0) {
+    // Отключаем переход влево, если курсор в начале ячейки
+    event.preventDefault();
+    return;
+  }
 
   if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(key)) {
     // Если пользователь в режиме редактирования, проверяем, нужно ли передвигать фокус
@@ -414,13 +454,13 @@ function handleArrowNavigation(event, rowIndex, colIndex, table) {
 
     switch (key) {
       case "ArrowUp":
-        targetRow = Math.max(1, rowIndex - 1);
+        targetRow = Math.max(1, rowIndex - 1); // Не выходим за границы таблицы
         break;
       case "ArrowDown":
         targetRow = Math.min(table.rows.length - 1, rowIndex + 1);
         break;
       case "ArrowLeft":
-        targetCol = Math.max(0, colIndex - 1);
+        targetCol = Math.max(1, colIndex - 1); // Не переходим в первый столбец
         break;
       case "ArrowRight":
         targetCol = Math.min(
@@ -432,13 +472,7 @@ function handleArrowNavigation(event, rowIndex, colIndex, table) {
 
     const targetCell = table.rows[targetRow]?.cells[targetCol];
     if (targetCell) {
-      const input = targetCell.querySelector("input, textarea");
-      if (input) {
-        input.focus();
-        input.selectionStart = input.selectionEnd = input.value.length;
-      } else {
-        targetCell.focus();
-      }
+      targetCell.focus(); // Перемещаем фокус на новую ячейку
     }
   }
 }
@@ -575,7 +609,7 @@ document
 function updateCellColor(cell, value) {
   const numValue = parseInt(value, 10);
   if (numValue > 0) {
-    cell.style.color = "pink";
+    cell.style.color = "green";
   } else if (numValue === 0) {
     cell.style.color = "red";
   }
