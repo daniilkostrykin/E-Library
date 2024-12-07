@@ -496,13 +496,7 @@ function handleArrowNavigation(event, rowIndex, colIndex, table) {
     }
   }
 }
-async function processAddBook(
-  title,
-  author,
-  quantity,
-  onlineVersion,
-  location
-) {
+async function processAddBook(title, author, quantity, onlineVersion, location) {
   const token = localStorage.getItem("token");
 
   // Проверка обязательных полей
@@ -526,26 +520,20 @@ async function processAddBook(
     return false;
   }
 
-  // Проверка URL для электронной версии
-  if (onlineVersion && !isValidURL(onlineVersion)) {
-    showToast("Электронная версия должна иметь корректный URL.");
-    return false;
-  }
-
   const newBook = {
     Название: title,
     Автор: author,
     Количество: quantity,
-    "Электронная версия": onlineVersion,
     Местоположение: location,
+    "Электронная версия": onlineVersion || null, // Если есть онлайн-версия
   };
+  
 
   try {
     const response = await axios.post("/api/books", newBook, {
-      // и передаем его в headers
       headers: { Authorization: `Bearer ${token}` },
-    }); // Эндпоинт для добавления
-    //  await updateBookTable();
+    });
+
     const books = await fetchAllBooks();
     displayBooks(books);
     showToast("Книга успешно добавлена!");
@@ -556,6 +544,7 @@ async function processAddBook(
     return false;
   }
 }
+
 
 function showError(inputField, message) {
   const errorSpan = document.getElementById(inputField.id + "Error");
@@ -612,8 +601,8 @@ async function confirmDeleteBook() {
     await axios.delete(`/api/books/${bookToDelete[0]}`, {
       headers: { Authorization: `Bearer ${token}` },
     }); // Эндпоинт удаления
-    await updateBookTable();
-    closeDeleteModal();
+    const books = await fetchAllBooks();
+    displayBooks(books);    closeDeleteModal();
     console.log("bookToDelete:", bookToDelete);
     // showToast(`Книга "${bookToDelete[1]}" успешно удалена.`);
   } catch (error) {
