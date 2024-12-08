@@ -149,7 +149,7 @@ async function fetchBooks(query = "") {
         Authorization: `Bearer ${token}`, // Исправлено
       },
     });
-    const books = await response.json();
+    const books = await response.data;
     originalBooks = books; // Сохраняем оригинальные данные
     return books;
   } catch (error) {
