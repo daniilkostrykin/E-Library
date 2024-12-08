@@ -24,23 +24,7 @@ def check_availability(link):
     return True
 
 
-def getLinkToDownload(link):
-    try:
-        response = requests.get(link).text
-        if ("pdf" not in response) or ("<a href=\"/download" not in response):
-            return None
-        index = response.find("<a href=\"/download")
-        if index == -1:
-            return None
-        download_link = ""
-        index_of_link = index + 10
-        while response[index_of_link] != "\"" and index_of_link < len(response):
-            download_link += response[index_of_link]
-            index_of_link += 1
-        return "https://aldebaran.ru/" + download_link
-    except Exception as e:
-        print(f"Ошибка: {e}")
-        return None
+
 
 
 enter = input("Введите название книги: ")
@@ -66,7 +50,7 @@ if check_availability(linkSearch):
     if linksToBook:
         first_book_link = linksToBook[0] + "read"
         info = getInfo(first_book_link)
-        download_link = getLinkToDownload(first_book_link)
+        
         #print(f"Автор: {info[0]}")
         #print(f"Книга: {info[1]}")
         print(f"Ссылка для чтения: {first_book_link}")
