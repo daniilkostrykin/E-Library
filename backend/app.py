@@ -519,49 +519,42 @@ def add_book():
 
 
 
-def find_first_read_link(search_url):
-    """
-    Ищет первую ссылку на чтение книги в результатах поиска на сайте Aldebaran.
-    """
-    try:
-        response = requests.get(search_url)
-        response.raise_for_status()
-        soup = BeautifulSoup(response.text, "html.parser")
+def get_book_info(book_name):
+    # Формирование поисковой ссылки
+    search_link = f"https://aldebaran.ru/pages/rmd_search/?q={book_name}"
 
-        # Ищем ссылки, которые ведут на страницы с чтением книг
-        read_links = [
-            "https://aldebaran.ru" + link.get("href")
-            for link in soup.select('a[href*="/read/"]')  # Ищем ссылки с "/read/"
-        ]
-
-        # Возвращаем первую ссылку на чтение, если она есть
-        if read_links:
-            print(f"Найдена ссылка на чтение: {read_links[0]}")
-            return read_links[0]
-        else:
-            print("Ссылки на чтение не найдены")
-            return None
-    except Exception as e:
-        print(f"Ошибка при поиске ссылки на чтение: {e}")
+    # Проверка доступности книги
+    response = requests.get(search_link)
+    soup = BeautifulSoup(response.text, "html.parser")
+    result_tag = soup.find("div", {'class': "item_info border_bottom"})
+    if not result_tag or "ничего не найдено" in result_tag.text.strip().lower():
         return None
+
+    # Поиск ссылок на книги
+    links_to_books = []
+    for link in soup.find_all("a", href=True):
+        href = link['href']
+        if href.startswith("/author/") and href not in links_to_books:
+            links_to_books.append("https://aldebaran.ru" + href)
+
+    # Если ссылки найдены, извлечь информацию о первой книге
+    if links_to_books:
+        first_book_link = links_to_books[0] + "read"
+        return first_book_link
+
+    return None
 
 @app.route('/api/search_first_read_link', methods=['GET'])
 def search_first_read_link():
     book_name = request.args.get('book_name')
     if not book_name:
-        return jsonify({"error": "Название книги обязательно"}), 400
+        return jsonify({"error": "Название книги не указано"}), 400
 
-    search_url = f"https://aldebaran.ru/pages/rmd_search/?q={book_name}"
-    print(f"Ищем книгу по URL: {search_url}")  # Логируем запрос
-
-    # Поиск первой ссылки на чтение
-    first_read_link = find_first_read_link(search_url)
-    if not first_read_link:
-        print(f"Ссылка на чтение не найдена для запроса: {book_name}")  # Логируем ошибку
+    read_link = get_book_info(book_name)
+    if read_link:
+        return jsonify({"read_link": read_link})
+    else:
         return jsonify({"error": "Ссылка на книгу не найдена"}), 404
-
-    print(f"Первая ссылка на чтение: {first_read_link}")  # Логируем успех
-    return jsonify({"read_link": first_read_link})
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=3000, debug=True)
