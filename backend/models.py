@@ -54,7 +54,7 @@ def search_books(conn, query):
         with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
             # Передаем два параметра: для title и для author
             cur.execute(
-                "SELECT id, title, author, quantity, online_version, location FROM books WHERE LOWER(title) LIKE %s OR LOWER(author) LIKE %s",
+                "SELECT id, title, author, quantity, online_version, location FROM books WHERE LOWER(title) LIKE %s OR LOWER(author) LIKE %s ORDER BY id ASC",
                 (f"%{query.lower()}%", f"%{query.lower()}%")  # Два параметра для title и author
             )
             return cur.fetchall()

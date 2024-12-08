@@ -416,7 +416,7 @@ def delete_book(book_id):
 def get_all_books():
     try:
         with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
-            cur.execute("SELECT * FROM books")
+            cur.execute("SELECT * FROM books ORDER BY id ASC")
             books = cur.fetchall()
         return jsonify(books), 200
     except Exception as e:
@@ -555,6 +555,54 @@ def search_first_read_link():
         return jsonify({"read_link": read_link})
     else:
         return jsonify({"error": "Ссылка на книгу не найдена"}), 404
+
+
+
+
+
+
+
+
+@app.route('/books/update-online-versions', methods=['PUT'])
+def update_online_versions():
+    try:
+        updates = request.get_json()
+        if not isinstance(updates, list):
+            return jsonify({"message": "Ожидается массив объектов."}), 400
+
+        cursor = conn.cursor()
+
+        updated_books = []
+
+        for update in updates:
+            title = update.get('title')
+            online_version = update.get('online_version')
+
+            if not title or not online_version:
+                continue
+
+            # Проверка и обновление
+            cursor.execute("SELECT id FROM books WHERE title = %s;", (title,))
+            book = cursor.fetchone()
+            if book:
+                cursor.execute("""
+                    UPDATE books 
+                    SET online_version = %s 
+                    WHERE title = %s;
+                """, (online_version, title))
+                updated_books.append({"title": title, "online_version": online_version})
+
+        conn.commit()
+        cursor.close()
+        conn.close()
+
+        return jsonify({
+            "message": "Обновление завершено.",
+            "updated_books": updated_books
+        })
+
+    except Exception as e:
+        return jsonify({"message": "Ошибка сервера.", "error": str(e)}), 500
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=3000, debug=True)
