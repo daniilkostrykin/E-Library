@@ -526,9 +526,12 @@ async function processAddBook(title, author, quantity, onlineVersionInput, locat
   // Если электронная версия не введена, ищем автоматически
   if (!onlineVersionInput) {
     try {
+      // Запрос к Python API для поиска электронной версии книги
       const searchResponse = await axios.get(
-        `/api/search_first_read_link?book_name=${encodeURIComponent(title)}`
+        `http://localhost:3000/api/search_first_read_link?book_name=${encodeURIComponent(title)}`
       );
+
+      // Обработка ответа
       if (searchResponse.data && searchResponse.data.read_link) {
         onlineVersion = searchResponse.data.read_link;
         showToast("Ссылка на онлайн-версию найдена!");
@@ -543,8 +546,8 @@ async function processAddBook(title, author, quantity, onlineVersionInput, locat
   } else {
     onlineVersion = onlineVersionInput;
   }
-  
 
+  // Создание объекта новой книги
   const newBook = {
     Название: title,
     Автор: author,
@@ -554,26 +557,31 @@ async function processAddBook(title, author, quantity, onlineVersionInput, locat
   };
 
   try {
+    // Запрос на добавление книги
     const response = await axios.post("/api/books", newBook, {
       headers: { Authorization: `Bearer ${token}` },
     });
 
     if (response.status === 201) {
+      // Успешное добавление книги
       const books = await fetchAllBooks();
       displayBooks(books);
       showToast("Книга успешно добавлена!");
       return true;
     } else {
+      // Ошибка сервера
       console.error("Ошибка при добавлении книги:", response.data);
       showToast("Ошибка сервера при добавлении книги. Попробуйте позже.");
       return false;
     }
   } catch (error) {
+    // Обработка ошибки добавления книги
     console.error("Ошибка при добавлении книги:", error);
     showToast("Ошибка при добавлении книги.");
     return false;
   }
 }
+
 
 
 function showError(inputField, message) {
