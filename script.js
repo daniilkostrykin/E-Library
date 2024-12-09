@@ -82,7 +82,7 @@ async function createAccount(event) {
     handleError(error, "Ошибка при регистрации пользователя");
   }
 }
-
+/*
 let students = [];
 function updateStudentsInLocalStorage(newStudentData) {
   if (newStudentData.role !== "admin" && newStudentData.role !== "librarian") {
@@ -120,7 +120,7 @@ function updateStudentsInLocalStorage(newStudentData) {
     }
   }
 }
-
+*/
 // Авторизация
 signInButton.addEventListener("click", login);
 async function login(event) {
@@ -166,7 +166,7 @@ async function login(event) {
     handleError(error, "Ошибка при авторизации");
   }
 }
-
+/*
 function checkRoleMock() {
   const role = localStorage.getItem("mockRole"); // Получаем mock роль.
 
@@ -175,7 +175,7 @@ function checkRoleMock() {
   } else if (role === "librarian") {
     window.location.href = "admin/admin0.html";
   }
-}
+}*/
 async function getUserInfo(token) {
   try {
     const response = await axios.get("/api/auth/user-info", {
@@ -270,7 +270,6 @@ function validateRegistration(name, group, email, password, confirmPassword) {
 }
 
 async function checkRole() {
-  // ... (остальной код)
 
   try {
     const userDataString = localStorage.getItem("userData");
@@ -284,7 +283,7 @@ async function checkRole() {
       return;
     }
 
-    const userData = JSON.parse(userDataString).user; // <--- обращаемся к свойству .user
+    const userData = JSON.parse(userDataString).user;
 
     if (userData.user) {
       userData = userData.user; // Если есть свойство user, то используем его
