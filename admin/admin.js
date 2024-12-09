@@ -582,8 +582,6 @@ async function processAddBook(title, author, quantity, onlineVersionInput, locat
   }
 }
 
-
-
 function showError(inputField, message) {
   const errorSpan = document.getElementById(inputField.id + "Error");
   errorSpan.textContent = message;
