@@ -63,8 +63,7 @@ def reset_password_request():
     )
 
     # Ссылка для восстановления
-    reset_link = f"http://127.0.0.1:5500/reset-password.html?token={token}"
-
+    reset_link = f"http://127.0.0.1:5500/forgotPassword/newPassword.html?token={token}"
     # Отправка письма
     try:
         msg = Message(
@@ -85,9 +84,11 @@ def reset_password(token):
         email = data["email"]
 
         # Обновление пароля
-        new_password = request.json.get("password")
+        new_password = request.json.get("newPassword")
         hashed_password = bcrypt.generate_password_hash(new_password).decode("utf-8")
 
+        if not new_password: # проверка нового пароля
+            return jsonify({'success': False, 'message': 'Новый пароль не предоставлен.'}), 400
         with conn.cursor() as cur:
             cur.execute(
                 "UPDATE users SET password = %s WHERE email = %s",
@@ -99,6 +100,9 @@ def reset_password(token):
         return jsonify({"success": False, "message": "Токен истёк"}), 400
     except jwt.InvalidTokenError:
         return jsonify({"success": False, "message": "Неверный токен"}), 400
+    except Exception as e:
+            print(f"Error in reset_password: {e}")  #  Подробный вывод ошибки в консоль
+            return jsonify({'success': False, 'message': str(e)}), 500
 
 @app.route('/api/accounts', methods=['GET'])
 def check_account_exists():
