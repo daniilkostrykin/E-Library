@@ -22,12 +22,113 @@ CORS(app, resources={r"/api/*": {"origins": "http://127.0.0.1:5500", "supports_c
 bcrypt = Bcrypt(app)
 
 # Настройка JWT
-app.config["JWT_SECRET_KEY"] = "my-secret-key"  
+app.config["JWT_SECRET_KEY"] = "5otijgojfjo3r3o4uo84u3tj3480534059340952"  
 jwt = JWTManager(app)
 
 # Подключение к базе данных
 conn = init_db()
 
+from flask_mail import Mail, Message
+import jwt
+from datetime import datetime, timedelta
+SECRET_KEY = 'g345b635467653v4324124v5yjfdsfesgfdhyjuyky' 
+app.config['MAIL_SERVER'] = 'smtp.gmail.com'  # Или другой SMTP-сервер
+app.config['MAIL_PORT'] = 587  # Или другой порт, в зависимости от сервера
+app.config['MAIL_USE_TLS'] = True  # Или SSL, если требуется
+app.config['MAIL_USERNAME'] = 'daniilkostrykin1@gmail.com'  # Ваш email
+app.config['MAIL_PASSWORD'] = 'vcyy oyog zuig rmse'  # Ваш пароль (или пароль приложения)
+app.config['MAIL_DEFAULT_SENDER'] = 'daniilkostrykin1@gmail.com' # Отправитель по-умолчанию
+
+
+mail = Mail(app)
+
+@app.route('/api/auth/reset-password', methods=['POST'])
+def reset_password_request():
+    data = request.get_json()
+    email = data.get("email")
+    app.logger.info(f"Sending reset email to: {email}") #  Логируем попытку отправки письма
+
+    user = get_user_by_email(conn, email)
+    if not user:
+        return jsonify({"success": False, "message": "Пользователь не найден"}), 404
+
+    # Генерация токена для восстановления пароля
+    token = jwt.encode(
+        {
+            "email": email,
+            "exp": datetime.utcnow() + timedelta(hours=1)
+        },
+        SECRET_KEY,
+        algorithm="HS256"
+    )
+
+    # Ссылка для восстановления
+    reset_link = f"http://127.0.0.1:5500/reset-password.html?token={token}"
+
+    # Отправка письма
+    try:
+        msg = Message(
+            subject="Восстановление пароля",
+            sender=app.config['MAIL_DEFAULT_SENDER'],
+            recipients=[email],
+            body=f"Для восстановления пароля перейдите по ссылке: {reset_link}"
+        )
+        mail.send(msg)
+        return jsonify({"success": True, "message": "Ссылка для восстановления отправлена на email"}), 200
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)}), 500
+
+@app.route('/api/auth/reset-password/<token>', methods=['POST'])
+def reset_password(token):
+    try:
+        data = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
+        email = data["email"]
+
+        # Обновление пароля
+        new_password = request.json.get("password")
+        hashed_password = bcrypt.generate_password_hash(new_password).decode("utf-8")
+
+        with conn.cursor() as cur:
+            cur.execute(
+                "UPDATE users SET password = %s WHERE email = %s",
+                (hashed_password, email)
+            )
+            conn.commit()
+        return jsonify({"success": True, "message": "Пароль успешно обновлен"}), 200
+    except jwt.ExpiredSignatureError:
+        return jsonify({"success": False, "message": "Токен истёк"}), 400
+    except jwt.InvalidTokenError:
+        return jsonify({"success": False, "message": "Неверный токен"}), 400
+
+@app.route('/api/accounts', methods=['GET'])
+def check_account_exists():
+    try:
+        # Получаем email из параметров запроса
+        email = request.args.get('email')
+        if not email:
+            return jsonify({"exists": False, "message": "Email не предоставлен"}), 400
+
+        # Поиск пользователя в базе данных
+        with conn.cursor(cursor_factory=DictCursor) as cur:
+            cur.execute("SELECT id FROM users WHERE email = %s", (email,))
+            user = cur.fetchone()
+
+        # Если пользователь найден, возвращаем exists: True
+        if user:
+            return jsonify({"exists": True}), 200
+        else:
+            return jsonify({"exists": False}), 200
+    except Exception as e:
+        app.logger.error(f"Ошибка при проверке email: {e}")
+        return jsonify({"exists": False, "message": "Ошибка сервера"}), 500
+@app.route('/api/test_email', methods=['GET'])  # <= Новый маршрут
+def test_email():
+    try:
+       msg = Message("Test Email", sender=app.config['MAIL_USERNAME'], recipients=['your_test_email@example.com'])
+       mail.send(msg)
+       return "Test email sent!", 200
+    except Exception as e:
+       return str(e), 500
 @app.route("/", methods=["GET"])
 def home():
     return "API is running. Use /api/auth/register or /api/auth/login endpoints."
@@ -555,12 +656,6 @@ def search_first_read_link():
         return jsonify({"read_link": read_link})
     else:
         return jsonify({"error": "Ссылка на книгу не найдена"}), 404
-
-
-
-
-
-
 
 
 @app.route('/books/update-online-versions', methods=['PUT'])
