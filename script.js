@@ -21,8 +21,15 @@ signUpButton.addEventListener("click", () => {
 signInOverlayButton.addEventListener("click", () => {
   container.classList.remove("right-panel-active");
 });
+// В script.js, перед другими обработчиками:
 
-//Регистрация нового пользователя
+const forgotPasswordLink = document.getElementById('forgotPassword');
+forgotPasswordLink.addEventListener('click', function(event) {
+    event.preventDefault(); // Prevents default link behavior
+    window.location.href = 'forgotPassword/mail.html';
+});
+
+
 async function createAccount(event) {
   event.preventDefault();
 
