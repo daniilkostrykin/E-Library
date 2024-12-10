@@ -15,6 +15,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   const searchForms = [document.getElementById("searchForm"), document.getElementById("searchStudentForm")];
 
   if (role === "librarian") {
+    document.title = "Панель библиотекаря";
+
     searchForms.forEach((form) => {
       if (form) {
         form.style.flex = "unset"; // Убираем flex: 1
