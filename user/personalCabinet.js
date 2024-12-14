@@ -1,10 +1,6 @@
 // personalCabinet.js
 axios.defaults.baseURL = "http://localhost:3000";
 
-const BOOKS_KEY = "books";
-const STUDENTS_KEY = "students"; //  Ключ для студентов
-const TAKEN_BOOKS_KEY = "takenBooks"; //  Ключ для взятых книг
-
 let studentId;
 let bookToTake = null;
 let isTakeModalOpen = false;
@@ -36,6 +32,25 @@ document.addEventListener("DOMContentLoaded", async () => {
     console.warn("JWT токен отсутствует. Редирект на страницу входа.");
     return;
   }
+  const searchInput = document.getElementById("searchInput");
+  const searchButton = document.getElementById("find");
+
+  // Устанавливаем начальное значение кнопки
+
+  searchButton.textContent = "Показать книги";
+
+  // Обработчик события input на поле ввода
+
+  searchInput.addEventListener("input", () => {
+    searchButton.textContent = searchInput.value.trim()
+      ? "Найти"
+      : "Показать книги";
+  });
+  searchButton.addEventListener("click", () => {  //  Добавлен обработчик click
+    searchBook();
+
+
+  });
 
   try {
     const account = await getLoggedInAccount();
@@ -68,7 +83,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       const searchButton = document.getElementById("find");
       if (searchButton) {
-        console.log("Success")
+        console.log("Success");
       }
       const searchInput = document.getElementById("searchInput");
 
@@ -754,8 +769,9 @@ async function searchBook() {
   const account = await getLoggedInAccount();
 
   try {
-    // Если запрос пустой, загружаем все книги
-    const books = query === "" ? await fetchBooks() : await fetchBooks(query);
+    const books = query === "" ? await fetchBooks() : await fetchBooks(query); // Use fetchBooks
+
+    console.log("Books received:", books);
 
     // Очищаем тело таблицы и контейнер результата
     booksTableBody.innerHTML = "";
@@ -767,12 +783,11 @@ async function searchBook() {
       resultContainer.style.display = "block"; // Показываем сообщение
     } else {
       // Показываем таблицу и заполняем её
-      updateBooksTable(books, account);
+      updateBooksTable(books);
       booksTable.style.display = "table";
       resultContainer.style.display = "none"; // Скрываем сообщение
     }
-
-    updateControlsMargin(books.length > 0); // Обновляем марджины
+    controls.style.marginTop = "20px";
   } catch (error) {
     console.error("Ошибка при поиске книг:", error);
     resultContainer.innerHTML =
@@ -967,7 +982,7 @@ function removeBookRow(book) {
   }
 }
 
-async function updateBooksTable() {
+async function updateBooksTable(books) {
   try {
     const token = localStorage.getItem("token"); // Получаем токен
 
@@ -992,10 +1007,13 @@ async function updateBooksTable() {
     }
 
     // Получаем список всех книг
-    const booksResponse = await axios.get("/api/books", {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    let books = booksResponse.data;
+    if (!books) {
+      const booksResponse = await axios.get("/api/books", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      books = booksResponse.data;
+    }
 
     // Получаем список книг, уже взятых указанным студентом
     const takenBooksResponse = await axios.get(
