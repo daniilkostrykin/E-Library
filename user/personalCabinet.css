@@ -1,6 +1,6 @@
 body {
-  font-family: "Montserrat", sans-serif; /* Подключаем шрифт Montserrat */
-  background-color: #2b7bff; /* Голубой цвет фона */
+  font-family: "Montserrat", sans-serif;
+  background-color: #2b7bff;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -10,7 +10,7 @@ body {
   background-size: cover;
   background-repeat: no-repeat;
   font-size: 16px;
-  overflow-y: auto; /*  Добавляем  вертикальную прокрутку  */
+  overflow-y: auto;
 }
 
 .container {
@@ -20,18 +20,18 @@ body {
   padding: 30px;
   width: 1080px;
   display: flex;
-  flex-direction: column; /*  Располагаем  элементы  вертикально */
+  flex-direction: column;
   position: relative;
 }
 
 #controls {
-  display: flex; /* Flexbox для горизонтального расположения кнопок */
-  flex-wrap: wrap; 
-  justify-content: flex-end; /* Выравнивание по правому краю */
-  position: absolute; /* Абсолютное позиционирование */
-  top: 50px; /* Отступ сверху */
-  right: 34px; /* Отступ справа */
-  gap: 10px; /* Расстояние между кнопками */
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  position: absolute;
+  top: 50px;
+  right: 34px;
+  gap: 10px;
   font-family: "Montserrat", sans-serif;
 }
 
@@ -40,7 +40,7 @@ body {
   padding: 12px 20px;
   border-radius: 10px;
   border: none;
-  padding: 10px 20px; /* Удобный размер кнопок */
+  padding: 10px 20px;
   cursor: pointer;
   font-family: "Montserrat", sans-serif;
 }
@@ -55,40 +55,40 @@ h2 {
 }
 
 .user-info {
-  display: flex; /* Flexbox для .user-info */
+  display: flex;
   align-items: flex-start;
   margin-top: 18px;
-  margin-bottom: 10px; /* Уменьшаем нижний отступ */
+  margin-bottom: 10px;
   margin-top: 30px;
 }
 .user-info img {
-  width: 100px; /* Фиксированная ширина */
-  height: 100px; /* Фиксированная высота */
+  width: 100px;
+  height: 100px;
   border-radius: 50%;
-  object-fit: cover; /* Правильно обрезает фотографию, чтобы она вписалась в круг */
-  margin-right: 20px; /* Расстояние между фото и данными */
+  object-fit: cover;
+  margin-right: 20px;
   margin-bottom: 0;
   align-self: center;
 }
 
 .info-details {
-  display: flex; /* Делаем info-details flex-контейнером*/
+  display: flex;
 
-  flex-direction: column; /* Выравниваем элементы вертикально */
-  align-items: flex-start; /* Выравниваем элементы по левому краю */
+  flex-direction: column;
+  align-items: flex-start;
 }
 .info-details p {
-  margin: 15px 0px; /* Расстояние между p */
-  display: flex; /* Делаем p flex-контейнером */
+  margin: 15px 0px;
+  display: flex;
 
-  align-items: center; /* Выравнивание элементов по центру */
+  align-items: center;
 }
 .info-details span:first-child {
-  width: fit-content; /* Задаем ширину по содержимому*/
+  width: fit-content;
 
   font-weight: bold;
 
-  margin-right: 5px; /* Расстояние до текста*/
+  margin-right: 5px;
 }
 .info-details span + span {
   align-items: center;
@@ -104,7 +104,6 @@ hr {
 
 .buttons button,
 .container .book-list button {
-  /* Стили для кнопок */
   background-color: #41a0ff;
   color: white;
   border: none;
@@ -112,7 +111,7 @@ hr {
   padding: 10px 20px;
   margin-top: 15px;
   margin-right: 20px;
-  font-family: "Montserrat", sans-serif; /* Используем шрифт Montserrat для кнопок */
+  font-family: "Montserrat", sans-serif;
   cursor: pointer;
   transition: all 0.3s;
 }
@@ -138,13 +137,13 @@ hr {
 }
 h3 {
   text-align: left;
-  margin-bottom: 10px; /* Уменьшил нижний отступ */
-  margin-top: 0px; /* Уменьшил верхний отступ */
+  margin-bottom: 10px;
+  margin-top: 0px;
 }
-/* Стили для списка книг */
+
 .book-list {
   width: 80%;
-  margin: 0 auto; /* Центрирование списка */
+  margin: 0 auto;
   border: 1px solid #ddd;
   border-radius: 8px;
   overflow: hidden;
@@ -152,13 +151,12 @@ h3 {
   background-color: #f9f9f9;
 }
 
-/* Заголовок таблицы */
 .book-header {
   display: grid;
   grid-template-columns: 3fr 2fr 2fr 2fr;
   text-align: center;
-  align-items: center; /* Выравнивает элементы по вертикали */
-  justify-items: center; /* Центрирует элементы по горизонтали */
+  align-items: center;
+  justify-items: center;
   font-weight: bold;
   padding: 10px;
   background-color: #41a0ff;
@@ -166,13 +164,12 @@ h3 {
   font-size: 18px;
 }
 
-/* Элементы книги */
 .book-item {
   display: grid;
   grid-template-columns: 3fr 2fr 2fr 2fr;
   text-align: center;
-  align-items: center; /* Выравнивает элементы по вертикали */
-  justify-items: center; /* Центрирует элементы по горизонтали */
+  align-items: center;
+  justify-items: center;
   padding: 10px;
   border-top: 1px solid #ddd;
   font-size: 16px;
@@ -180,18 +177,17 @@ h3 {
 
 .book-header.no-return,
 .book-item.no-return {
-  grid-template-columns: 3fr 2fr 2fr; /* Убираем столбец "Сдача" */
+  grid-template-columns: 3fr 2fr 2fr;
 }
 
 .book-return:hover {
-  background-color: #45a049; /* Более темный оттенок при наведении */
+  background-color: #45a049;
 }
 
 .book-item:nth-child(odd) {
   background-color: #f2f2f2;
 }
 
-/* Общие стили для текста */
 .book-title,
 .book-author-title,
 .book-date-title,
@@ -203,7 +199,6 @@ h3 {
   text-align: center;
 }
 
-/* Сообщение об отсутствии книг */
 .no-books-message {
   text-align: center;
   font-size: 18px;
@@ -211,7 +206,6 @@ h3 {
   margin: 20px 0;
 }
 
-/* Задолженности */
 #user-debt {
   text-align: center;
   margin: 10px 0;
@@ -227,35 +221,35 @@ h3 {
   outline: none;
 }
 input {
-  outline: none; /* Убирает черную рамку */
-  border: none; /* Убирает обводку */
-  background: transparent; /* Убирает фон (если нужно) */
-  color: inherit; /* Наследует цвет текста */
+  outline: none;
+  border: none;
+  background: transparent;
+  color: inherit;
   font-size: 16px;
   align-items: center;
   justify-content: center;
-  font-family: "Montserrat", sans-serif !important; /* Принудительное использование шрифта */
+  font-family: "Montserrat", sans-serif !important;
 }
 input:focus {
-  outline: none; /* Убирает рамку при фокусе */
+  outline: none;
 }
 
 button {
   outline: none;
   border: none;
-  background: transparent; /* Убирает фон (если нужно) */
-  color: inherit; /* Наследует цвет текста */
+  background: transparent;
+  color: inherit;
   font-size: 16px;
   align-items: center;
   justify-content: center;
   font-family: "Montserrat", sans-serif;
 }
 button:focus {
-  outline: none; /* Убирает рамку при фокусе */
+  outline: none;
 }
 #booksTable {
   width: 100%;
-  border-collapse: collapse; /*  Объединение границ ячеек*/
+  border-collapse: collapse;
 
   margin-top: 20px;
   transition: opacity 0.5s ease, visibility 0.5s ease;
@@ -267,61 +261,59 @@ button:focus {
 }
 #booksTable th,
 #booksTable td {
-  border: 1px solid #ddd; /*  Границы  */
+  border: 1px solid #ddd;
   padding: 8px;
   text-align: left;
-  text-align: center; /* Центрирование  текста по горизонтали */
-  vertical-align: middle; /* Центрирование  текста  по вертикали  */
-}
-/* Стили для формы поиска */
-#searchForm {
-  display: flex; /* Горизонтальное расположение */
-  align-items: center; /* Центрирование по вертикали */
-  justify-content: left; /* Центрирование по горизонтали */
-  gap: 10px; /* Расстояние между кнопкой и инпутом */
-  margin-top: 30px; /* Отступ сверху */
+  text-align: center;
+  vertical-align: middle;
 }
 
-/* Поле ввода */
+#searchForm {
+  display: flex;
+  align-items: center;
+  justify-content: left;
+  gap: 10px;
+  margin-top: 30px;
+}
+
 #searchInput {
-  border: 2px solid #41a0ff; /* Синяя обводка */
-  border-radius: 10px; /* Закругленные углы */
-  height: 40px; /* Увеличенная высота для удобства */
-  font-size: 16px; /* Удобный размер текста */
-  padding: 0 15px; /* Отступ внутри поля */
-  width: 150px; /* Фиксированная ширина */
-  transition: border-color 0.3s, box-shadow 0.3s; /* Анимация при фокусе */
+  border: 2px solid #41a0ff;
+  border-radius: 10px;
+  height: 40px;
+  font-size: 16px;
+  padding: 0 15px;
+  width: 150px;
+  transition: border-color 0.3s, box-shadow 0.3s;
 }
 
 #searchInput:focus {
-  outline: none; /* Убирает рамку при фокусе */
-  border-color: #3788d8; /* Более темный синий цвет */
-  box-shadow: 0 0 5px rgba(56, 136, 216, 0.7); /* Светящийся эффект */
+  outline: none;
+  border-color: #3788d8;
+  box-shadow: 0 0 5px rgba(56, 136, 216, 0.7);
 }
 
-/* Кнопка поиска */
 #find {
-  background-color: #41a0ff; /* Синий фон */
-  color: white; /* Белый текст */
-  border: none; /* Убираем обводку */
-  border-radius: 10px; /* Закругленные углы */
-  padding: 10px 20px; /* Внутренние отступы */
-  font-size: 16px; /* Удобный размер текста */
-  cursor: pointer; /* Указатель в виде руки */
-  transition: background-color 0.3s, transform 0.2s; /* Анимация при наведении */
+  background-color: #41a0ff;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 20px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s, transform 0.2s;
 }
 
 #find:hover {
-  background-color: #3788d8; /* Более темный синий */
-  transform: scale(1.05); /* Небольшое увеличение */
+  background-color: #3788d8;
+  transform: scale(1.05);
 }
 
 #find:active {
-  background-color: #2b6bb3; /* Темный синий при нажатии */
-  transform: scale(1); /* Уменьшение эффекта */
+  background-color: #2b6bb3;
+  transform: scale(1);
 }
 a:visited {
-  color: inherit; /*  Наследовать цвет от родительского элемента */
+  color: inherit;
 }
 .modal {
   display: none;
@@ -332,8 +324,8 @@ a:visited {
   width: 100%;
   height: 100%;
   background-color: rgba(0, 0, 0, 0.7);
-  backdrop-filter: blur(5px); /* Размытие фона */
-  overflow-y: auto; /* Добавляем вертикальный скролл, если контент модального окна слишком большой */
+  backdrop-filter: blur(5px);
+  overflow-y: auto;
 }
 
 .modal-content1 {
@@ -341,9 +333,9 @@ a:visited {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
- padding: 20px;
-  box-sizing: border-box; /*  чтобы padding не увеличивал общую ширину */
-  width: 100%; /* Задаем ширину в процентах от родителя */
+  padding: 20px;
+  box-sizing: border-box;
+  width: 100%;
   max-width: 600px;
   background: linear-gradient(to bottom, #ffffff, #f1f1f1);
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
@@ -354,24 +346,24 @@ a:visited {
 @keyframes slideIn1 {
   0% {
     opacity: 0;
-    transform: translate(-50%, -50%) scale(0.9); /* Начинаем с центра, но уменьшенного размера */
+    transform: translate(-50%, -50%) scale(0.9);
   }
   100% {
     opacity: 1;
-    transform: translate(-50%, -50%) scale(1); /* Заканчиваем в центре, нормального размера */
+    transform: translate(-50%, -50%) scale(1);
   }
 }
-/*  Убираем лишние margin и padding у input и button */
+
 .modal-content1 input,
 .modal-content1 button {
-  width: calc(100% - 32px); /* Вычитаем padding + border  */
+  width: calc(100% - 32px);
   padding: 10px 15px;
-  margin: 0px auto; /* Центрируем по горизонтали */
-  display: block; /*  для центрирования по горизонтали */
+  margin: 0px auto;
+  display: block;
   border: 1px solid #ccc;
   border-radius: 10px;
   font-size: 16px;
-  box-sizing: border-box; /*  чтобы padding не увеличивал общую ширину */
+  box-sizing: border-box;
 }
 
 .modal-content1 h2 {
@@ -415,9 +407,9 @@ a:visited {
   display: flex;
   justify-content: center;
   align-items: center;
-  width: 100%; /* Чтобы текст был по центру */
-  height: 100%; /* Заполнит родительский контейнер */
-  margin: 0; /* Убедимся, что нет внешних отступов */
+  width: 100%;
+  height: 100%;
+  margin: 0;
 }
 .save-btn,
 .cancel-btn {
@@ -445,17 +437,17 @@ a:visited {
   width: 100%;
   height: 100%;
   background-color: rgba(0, 0, 0, 0.7);
-  backdrop-filter: blur(5px); /* Размытие фона */
-  overflow-y: auto; /* Добавляем вертикальный скролл, если контент модального окна слишком большой */
+  backdrop-filter: blur(5px);
+  overflow-y: auto;
 }
 .modal-content1 {
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
- padding: 20px;
-  box-sizing: border-box; /*  чтобы padding не увеличивал общую ширину */
-  width: 100%; /* Задаем ширину в процентах от родителя */
+  padding: 20px;
+  box-sizing: border-box;
+  width: 100%;
   max-width: 600px;
   background: linear-gradient(to bottom, #ffffff, #f1f1f1);
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
@@ -466,24 +458,24 @@ a:visited {
 @keyframes slideIn1 {
   0% {
     opacity: 0;
-    transform: translate(-50%, -50%) scale(0.9); /* Начинаем с центра, но уменьшенного размера */
+    transform: translate(-50%, -50%) scale(0.9);
   }
   100% {
     opacity: 1;
-    transform: translate(-50%, -50%) scale(1); /* Заканчиваем в центре, нормального размера */
+    transform: translate(-50%, -50%) scale(1);
   }
 }
-/*  Убираем лишние margin и padding у input и button */
+
 .modal-content1 input,
 .modal-content1 button {
-  width: calc(100% - 32px); /* Вычитаем padding + border  */
+  width: calc(100% - 32px);
   padding: 10px 15px;
-  margin: 0px auto; /* Центрируем по горизонтали */
-  display: block; /*  для центрирования по горизонтали */
+  margin: 0px auto;
+  display: block;
   border: 1px solid #ccc;
   border-radius: 10px;
   font-size: 16px;
-  box-sizing: border-box; /*  чтобы padding не увеличивал общую ширину */
+  box-sizing: border-box;
 }
 
 .modal-content1 h2 {
@@ -527,9 +519,9 @@ a:visited {
   display: flex;
   justify-content: center;
   align-items: center;
-  width: 100%; /* Чтобы текст был по центру */
-  height: 100%; /* Заполнит родительский контейнер */
-  margin: 0; /* Убедимся, что нет внешних отступов */
+  width: 100%;
+  height: 100%;
+  margin: 0;
 }
 .save-btn,
 .cancel-btn {

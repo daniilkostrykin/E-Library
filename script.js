@@ -1,5 +1,3 @@
-// script.js
-// Добавьте эту строку в начале вашего script.js
 axios.defaults.baseURL = "http://localhost:3000";
 
 const ACCOUNTS_KEY = "accounts";
@@ -13,7 +11,6 @@ const loginForm = document.querySelector(".sign-in-container form");
 function forgotPassword() {
   window.location.href = "forgotPassword/mail.html";
 }
-//Обработчики событий переключения панели
 signUpButton.addEventListener("click", () => {
   container.classList.add("right-panel-active");
 });
@@ -21,14 +18,12 @@ signUpButton.addEventListener("click", () => {
 signInOverlayButton.addEventListener("click", () => {
   container.classList.remove("right-panel-active");
 });
-// В script.js, перед другими обработчиками:
 
-const forgotPasswordLink = document.getElementById('forgotPassword');
-forgotPasswordLink.addEventListener('click', function(event) {
-    event.preventDefault(); // Prevents default link behavior
-    window.location.href = 'forgotPassword/mail.html';
+const forgotPasswordLink = document.getElementById("forgotPassword");
+forgotPasswordLink.addEventListener("click", function (event) {
+  event.preventDefault();
+  window.location.href = "forgotPassword/mail.html";
 });
-
 
 async function createAccount(event) {
   event.preventDefault();
@@ -42,8 +37,7 @@ async function createAccount(event) {
   if (!validateRegistration(name, group, email, password, confirmPassword))
     return;
 
-  // Определение роли пользователя
-  let role = "user"; // роль по умолчанию
+  let role = "user";
   if (name.toLowerCase().includes("librarian")) {
     role = "librarian";
   } else if (name.toLowerCase().includes("admin")) {
@@ -51,7 +45,6 @@ async function createAccount(event) {
   }
 
   try {
-    // Создаем запись в таблице users
     const response = await axios.post("/api/auth/register", {
       name,
       group,
@@ -61,20 +54,19 @@ async function createAccount(event) {
     });
 
     if (response.data.success) {
-      const userId = response.data.userId; // Получаем ID нового пользователя
+      const userId = response.data.userId;
 
       showToast("Аккаунт успешно создан!");
       regForm.reset();
       container.classList.remove("right-panel-active");
 
-      // Автоматический вход после регистрации
       const loginResponse = await axios.post("/api/auth/login", {
         email,
         password,
       });
       localStorage.setItem("token", loginResponse.data.token);
       await getUserInfo(loginResponse.data.token);
-      checkRole(); // Перенаправление по роли
+      checkRole();
     } else {
       showToast(response.data.message || "Ошибка регистрации");
     }
@@ -82,46 +74,6 @@ async function createAccount(event) {
     handleError(error, "Ошибка при регистрации пользователя");
   }
 }
-/*
-let students = [];
-function updateStudentsInLocalStorage(newStudentData) {
-  if (newStudentData.role !== "admin" && newStudentData.role !== "librarian") {
-    let newStudent = {
-      ФИО: newStudentData.name,
-      Группа: newStudentData.group,
-    };
-
-    let nextStudentId = 1;
-    const allAccounts = JSON.parse(localStorage.getItem(ACCOUNTS_KEY)) || [];
-    if (allAccounts.length > 0) {
-      // Получаем массив существующих ID, исключая `undefined` или `null`
-      const existingIds = allAccounts
-        .map((a) => a.id)
-        .filter((id) => id != null);
-
-      if (existingIds.length > 0) {
-        nextStudentId = Math.max(...existingIds) + 1;
-      }
-    }
-
-    newStudent.id = nextStudentId;
-
-    students.push(newStudent);
-    localStorage.setItem(STUDENTS_KEY, JSON.stringify(students));
-
-    const accounts = JSON.parse(localStorage.getItem(ACCOUNTS_KEY)) || [];
-    const newAccount = accounts.find(
-      (account) => account.email === newStudentData.email
-    );
-
-    if (newAccount) {
-      newAccount.id = nextStudentId;
-      localStorage.setItem(ACCOUNTS_KEY, JSON.stringify(accounts));
-    }
-  }
-}
-*/
-// Авторизация
 signInButton.addEventListener("click", login);
 async function login(event) {
   event.preventDefault();
@@ -133,32 +85,31 @@ async function login(event) {
     showToast("Введите email и пароль!");
     return;
   }
-  // Проверка для входа админа через 1 и 1
   if (email === "1" && password === "1") {
     try {
       const response = await axios.post("/api/auth/login", { email, password });
       const data = response.data;
 
       if (data.success && data.token) {
-        localStorage.setItem("token", data.token); // Сохраняем токен
-        await getUserInfo(data.token); // Загружаем данные пользователя
-        checkRole(); // Перенаправляем пользователя
+        localStorage.setItem("token", data.token);
+        await getUserInfo(data.token);
+        checkRole();
       } else {
         showToast(data.message || "Ошибка авторизации");
       }
     } catch (error) {
       handleError(error, "Ошибка при авторизации");
     }
-    return; // Не продолжаем обычный процесс логина
+    return;
   }
   try {
     const response = await axios.post("/api/auth/login", { email, password });
     const data = response.data;
 
     if (data.success && data.token) {
-      localStorage.setItem("token", data.token); // Сохраняем токен
-      await getUserInfo(data.token); // Загружаем данные пользователя
-      checkRole(); // Перенаправляем пользователя
+      localStorage.setItem("token", data.token);
+      await getUserInfo(data.token);
+      checkRole();
     } else {
       showToast(data.message || "Ошибка авторизации");
     }
@@ -166,16 +117,6 @@ async function login(event) {
     handleError(error, "Ошибка при авторизации");
   }
 }
-/*
-function checkRoleMock() {
-  const role = localStorage.getItem("mockRole"); // Получаем mock роль.
-
-  if (role === "admin") {
-    window.location.href = "admin/admin0.html";
-  } else if (role === "librarian") {
-    window.location.href = "admin/admin0.html";
-  }
-}*/
 async function getUserInfo(token) {
   try {
     const response = await axios.get("/api/auth/user-info", {
@@ -186,11 +127,9 @@ async function getUserInfo(token) {
 
     const userData = response.data;
 
-    // Сохраняем данные пользователя
     localStorage.setItem("userData", JSON.stringify(userData));
   } catch (error) {
     if (error.response && error.response.status === 401) {
-      // Если токен недействителен
       showToast("Сессия истекла. Выполните вход снова.");
       localStorage.removeItem("token");
       window.location.href = "index.html";
@@ -199,8 +138,6 @@ async function getUserInfo(token) {
     }
   }
 }
-
-// Функция обработки ошибок
 
 function handleError(error, defaultMessage) {
   if (error.response) {
@@ -211,12 +148,11 @@ function handleError(error, defaultMessage) {
     showToast("Ошибка  приложения.");
   }
 
-  console.error(error); //  Логирование  ошибки в консоль
+  console.error(error);
 }
 
 function validateRegistration(name, group, email, password, confirmPassword) {
-  // Валидация имени
-  const nameParts = name.trim().split(/\s+/); // Разделяем ФИО на части по пробелам
+  const nameParts = name.trim().split(/\s+/);
 
   if (nameParts.length < 2) {
     showToast("Пожалуйста, укажите полное имя и фамилию.");
@@ -232,7 +168,6 @@ function validateRegistration(name, group, email, password, confirmPassword) {
     }
   }
 
-  // Валидация группы
   const groupRegex = /^[А-Я]{3}-\d{3}$/;
 
   if (!groupRegex.test(group)) {
@@ -242,7 +177,6 @@ function validateRegistration(name, group, email, password, confirmPassword) {
     return false;
   }
 
-  // Валидация почты
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
   if (!emailRegex.test(email)) {
@@ -252,7 +186,6 @@ function validateRegistration(name, group, email, password, confirmPassword) {
     return false;
   }
 
-  // Валидация пароля
   const passwordRegex = /^(?=.*[A-Za-z])[A-Za-z\d@$!%*?&]{8,}$/;
   if (!passwordRegex.test(password)) {
     showToast(
@@ -270,23 +203,20 @@ function validateRegistration(name, group, email, password, confirmPassword) {
 }
 
 async function checkRole() {
-
   try {
     const userDataString = localStorage.getItem("userData");
 
     if (!userDataString) {
-      // более надежная проверка. userDataString может быть и пустая строка
-      //Обработка ситуации, когда данных о пользователе нет
       console.error("Данные пользователя не найдены в localStorage.");
       showToast("Ошибка авторизации. Попробуйте снова.");
-      localStorage.removeItem("token"); // очищаем токен, т.к. авторизация провалена.
+      localStorage.removeItem("token");
       return;
     }
 
     const userData = JSON.parse(userDataString).user;
 
     if (userData.user) {
-      userData = userData.user; // Если есть свойство user, то используем его
+      userData = userData.user;
     }
 
     const fio = encodeURIComponent(userData.name);
@@ -298,17 +228,14 @@ async function checkRole() {
       window.location.href = "admin/admin0.html";
     } else {
       window.location.href = `user/personalCabinet.html?fio=${fio}&group=${group}&id=${userData.id}`;
-      //  Важно убедиться, что 'userData' содержит корректную информацию до редиректа
     }
   } catch (e) {
-    // обработать ошибку парсинга
     console.error("Ошибка обработки данных пользователя:", e);
     showToast("Ошибка обработки данных пользователя.");
   }
 }
 
 function getLoggedInAccount() {
-  // Получаем email из localStorage (если есть, значит, залогинен)
   const loggedInEmail = localStorage.getItem("loggedInEmail");
 
   if (!loggedInEmail) return null;

@@ -230,26 +230,20 @@ button.ghost {
   transform: translateX(-20%);
 }
 
-/*....Animation....*/
-
-/*....Move signin to the right....*/
 .container.right-panel-active .sign-in-container {
   transform: translateX(100%);
 }
 
-/*....Move overlay to the left....*/
 .container.right-panel-active .overlay-container {
   transform: translateX(-100%);
 }
 
-/*....Bring sign up over sign in....*/
 .container.right-panel-active .sign-up-container {
   transform: translateX(100%);
   opacity: 1;
   z-index: 5;
 }
 
-/*...Move overlay back to right....*/
 .container.right-panel-active .overlay {
   transform: translateX(50%);
 }
@@ -262,29 +256,27 @@ button.ghost {
   transform: translateX(20%);
 }
 .yandex-icon {
-  width: 24px; /* Или другой подходящий размер */
+  width: 24px;
   height: 24px;
 }
 
 .social-container .social > * {
-  /* Чтобы иконки были одинакового размера */
   width: 24px;
   height: 24px;
 }
 #forgotPassword {
-  font-size: 12px; /* Размер текста */
-  text-align: left !important; /* Выравнивание текста влево */
-  display: block; /* Сделать элемент блочным для новой строки */
+  font-size: 12px;
+  text-align: left !important;
+  display: block;
   margin-top: 15px;
-  margin-left: -128px; /* Отступ слева */
-  color: #fff; /* Цвет текста */
-  cursor: pointer; /* Указатель при наведении */
+  margin-left: -128px;
+  color: #fff;
+  cursor: pointer;
 }
 
 #forgotPassword:hover {
-  text-decoration: underline; /* Подчеркивание при наведении */
+  text-decoration: underline;
 }
 .form-container form {
-  /* ... другие стили */
-  text-align: left; /* Выравнивание по левому краю */
+  text-align: left;
 }

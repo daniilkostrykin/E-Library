@@ -9,8 +9,8 @@ body {
   min-height: 100vh;
   background-image: url("../assets/background.avif");
   background-size: cover;
-  background-repeat: no-repeat; /* Убирает повторение фона */
-  background-position: center; /* Центрирует фон */
+  background-repeat: no-repeat;
+  background-position: center;
 }
 
 #adminPanel {
@@ -46,16 +46,14 @@ body {
   text-align: center;
   vertical-align: middle;
 }
+
 #adminPanel table tr th {
   background-color: rgb(237, 240, 245);
 }
+
 #adminPanel th:nth-child(4) {
-  color: black; /* Цвет текста для заголовка третьего столбца */
+  color: black;
 }
-/*
-#adminPanel td:nth-child(4) {
-  color: green; /* Цвет текста для ячеек третьего столбца 
-}*/
 
 #adminPanel td:nth-child(5),
 #adminPanel td:nth-child(1),
@@ -71,18 +69,14 @@ body {
   outline: none;
 }
 
-/* Убираем outline у input */
 #adminPanel input[type="text"]:focus {
   outline: none;
 }
 
-/* Добавляем outline к ячейке при фокусе на input внутри неё */
-/* Добавляем обводку для ячейки с фокусом на input */
 #adminPanel td:has(input:focus) {
-  outline: auto; /* Или любой стиль обводки */
+  outline: auto;
 }
 
-/* Убираем обводку у самого input */
 #adminPanel td input:focus {
   outline: none;
 }
@@ -109,74 +103,76 @@ body {
   font-family: "Montserrat";
   cursor: pointer;
 }
+
 input {
-  outline: none; /* Убирает черную рамку */
-  border: none; /* Убирает обводку */
-  background: transparent; /* Убирает фон (если нужно) */
-  color: inherit; /* Наследует цвет текста */
+  outline: none;
+  border: none;
+  background: transparent;
+  color: inherit;
   font-size: 16px;
   align-items: center;
   justify-content: center;
-  font-family: "Montserrat", sans-serif !important; /* Принудительное использование шрифта */
+  font-family: "Montserrat", sans-serif !important;
 }
+
 input:focus {
-  outline: none; /* Убирает рамку при фокусе */
+  outline: none;
 }
+
 a {
   font-family: inherit;
   color: inherit;
   text-decoration: none;
 }
+
 #searchInput {
   border-radius: 10px;
   height: 34px;
 }
+
 #searchForm {
   margin-bottom: 10px;
 }
+
 .action-button {
   font-family: "Montserrat", sans-serif;
 }
+
 #find {
   background-color: #4caf50;
   border-radius: 0 10px 10px 0;
   border-left: 1px solid #ddd;
 }
+
 #controls input,
 #controls button {
   border: none;
 }
 
-/* Добавление затемнения для кнопки "addBookBtn" */
 #addBookBtn {
   background-color: rgb(134, 243, 132) !important;
-  transition: background-color 0.3s ease; /* Анимация для плавного перехода */
+  transition: background-color 0.3s ease;
 }
 
 #addBookBtn:hover {
-  background-color: rgb(114, 223, 112) !important; /* Темнее при наведении */
+  background-color: rgb(114, 223, 112) !important;
 }
 
 #addBookBtn:active {
-  background-color: rgb(94, 203, 92) !important; /* Еще темнее при нажатии */
+  background-color: rgb(94, 203, 92) !important;
 }
 
-/* Добавление затемнения для кнопки "exit-button" */
 #back-button {
-  background-color: rgb(74, 144, 226) !important; /* Мягкий синий */
+  background-color: rgb(74, 144, 226) !important;
   transition: background-color 0.3s ease;
 }
 
 #back-button:hover {
-  background-color: rgb(
-    54,
-    124,
-    206
-  ) !important; /* Немного темнее при наведении */
+  background-color: rgb(54, 124, 206) !important;
 }
 
 #back-button:active {
-  background-color: rgb(34, 104, 186) !important; /* Еще темнее при нажатии */
+  background-color: rgb(34, 104, 186) !important;
 }
 
 #cancel {
@@ -196,9 +192,9 @@ a {
   margin-top: 23px;
 }
 a:visited {
-  color: inherit; /*  Наследовать цвет от родительского элемента */
+  color: inherit;
 }
-/* Общие стили для всех кнопок */
+
 button,
 #controls button,
 #controls input[type="submit"],
@@ -210,15 +206,16 @@ button:hover,
 #controls button:hover,
 #controls input[type="submit"]:hover,
 .cancel-button:hover {
-  transform: translateY(-2px); /* Поднимаем при наведении */
+  transform: translateY(-2px);
 }
 
 button:active,
 #controls button:active,
 #controls input[type="submit"]:active,
 .cancel-button:active {
-  transform: translateY(2px); /* Опускаем при нажатии */
+  transform: translateY(2px);
 }
+
 .modal {
   display: none;
   position: fixed;
@@ -228,16 +225,16 @@ button:active,
   width: 100%;
   height: 100%;
   background-color: rgba(0, 0, 0, 0.7);
-  backdrop-filter: blur(5px); /* Размытие фона */
-  overflow-y: auto; /* Добавляем вертикальный скролл, если контент модального окна слишком большой */
+  backdrop-filter: blur(5px);
+  overflow-y: auto;
 }
 
 .modal-content {
   position: relative;
-  margin: 5% auto; /* Центрируем модальное окно */
+  margin: 5% auto;
   padding: 20px;
-  box-sizing: border-box; /*  чтобы padding не увеличивал общую ширину */
-  width: 90%; /* Задаем ширину в процентах от родителя */
+  box-sizing: border-box;
+  width: 90%;
   max-width: 600px;
   background: linear-gradient(to bottom, #ffffff, #f1f1f1);
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
@@ -246,17 +243,16 @@ button:active,
   font-family: "Montserrat", sans-serif;
 }
 
-/*  Убираем лишние margin и padding у input и button */
 .modal-content input,
 .modal-content button {
-  width: calc(100% - 32px); /* Вычитаем padding + border  */
+  width: calc(100% - 32px);
   padding: 10px 15px;
-  margin: 0px auto; /* Центрируем по горизонтали */
-  display: block; /*  для центрирования по горизонтали */
+  margin: 0px auto;
+  display: block;
   border: 1px solid #ccc;
   border-radius: 10px;
   font-size: 16px;
-  box-sizing: border-box; /*  чтобы padding не увеличивал общую ширину */
+  box-sizing: border-box;
 }
 
 .modal-content h2 {
@@ -315,11 +311,12 @@ button:active,
     opacity: 1;
   }
 }
+
 .error-message {
   position: absolute;
   color: red;
   font-size: 14px;
-  display: none; /* Изначально скрыто */
+  display: none;
 }
 
 .modal-content1 {
@@ -328,8 +325,8 @@ button:active,
   left: 50%;
   transform: translate(-50%, -50%);
   padding: 20px;
-  box-sizing: border-box; /*  чтобы padding не увеличивал общую ширину */
-  width: 100%; /* Задаем ширину в процентах от родителя */
+  box-sizing: border-box;
+  width: 100%;
   max-width: 600px;
   background: linear-gradient(to bottom, #ffffff, #f1f1f1);
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
@@ -337,27 +334,28 @@ button:active,
   animation: slideIn1 0.3s ease-out;
   font-family: "Montserrat", sans-serif;
 }
+
 @keyframes slideIn1 {
   0% {
     opacity: 0;
-    transform: translate(-50%, -50%) scale(0.9); /* Начинаем с центра, но уменьшенного размера */
+    transform: translate(-50%, -50%) scale(0.9);
   }
   100% {
     opacity: 1;
-    transform: translate(-50%, -50%) scale(1); /* Заканчиваем в центре, нормального размера */
+    transform: translate(-50%, -50%) scale(1);
   }
 }
-/*  Убираем лишние margin и padding у input и button */
+
 .modal-content1 input,
 .modal-content1 button {
-  width: calc(100% - 32px); /* Вычитаем padding + border  */
+  width: calc(100% - 32px);
   padding: 10px 15px;
-  margin: 0px auto; /* Центрируем по горизонтали */
-  display: block; /*  для центрирования по горизонтали */
+  margin: 0px auto;
+  display: block;
   border: 1px solid #ccc;
   border-radius: 10px;
   font-size: 16px;
-  box-sizing: border-box; /*  чтобы padding не увеличивал общую ширину */
+  box-sizing: border-box;
 }
 
 .modal-content1 h2 {
@@ -391,20 +389,23 @@ button:active,
 .modal-content1 button:hover {
   background-color: #497bce;
 }
+
 .modal-actions {
   margin-top: 40px;
   display: flex;
   justify-content: space-between;
   gap: 15px;
 }
+
 #deleteBookMessage {
   display: flex;
   justify-content: center;
   align-items: center;
-  width: 100%; /* Чтобы текст был по центру */
-  height: 100%; /* Заполнит родительский контейнер */
-  margin: 0; /* Убедимся, что нет внешних отступов */
+  width: 100%;
+  height: 100%;
+  margin: 0;
 }
+
 .save-btn,
 .cancel-btn {
   padding: 10px 15px;
@@ -422,16 +423,15 @@ button:active,
   background-color: #6c757d !important;
   color: white;
 }
+
 #adminPanel #result {
   display: flex;
-  justify-content: center; /* Центрируем горизонтально */
-
-  align-items: center; /* Центрируем  вертикально */
-
-  width: 100%; /*  Занимаем всю ширину  родительского  элемента  */
+  justify-content: center;
+  align-items: center;
+  width: 100%;
   margin: 20px 0;
 }
 
 #adminPanel #result p {
-  margin: 0; /* Убираем отступы у  параграфа */
+  margin: 0;
 }
