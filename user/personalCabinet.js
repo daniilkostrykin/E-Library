@@ -23,14 +23,6 @@ function logout() {
 
   console.log("Logged out and redirected to index.html"); // все выходы обработаны одинакого
 }
-/*
-document.addEventListener("DOMContentLoaded", () => {
-  const account = getLoggedInAccount();
-
-  displayUserInfo(account);
-
-  searchBookSetup(); // Инициализация поиска
-});*/
 document.addEventListener("DOMContentLoaded", async () => {
   handleSearchFormSubmit("searchForm", "searchInput", searchBook); // Для поиска книг
   console.log("Страница загружена. Инициализация...");
@@ -74,7 +66,23 @@ document.addEventListener("DOMContentLoaded", async () => {
       displayUserInfo(account);
       loadTakenBooks(account.id); // This will trigger everything for you
 
-      //updateBooksTable();
+      const searchButton = document.getElementById("find");
+      if (searchButton) {
+        console.log("Success")
+      }
+      const searchInput = document.getElementById("searchInput");
+
+      // Устанавливаем начальное значение кнопки
+      searchButton.textContent = "Показать книги";
+
+      // Добавляем обработчик события на изменение ввода
+      searchInput.addEventListener("input", () => {
+        if (searchInput.value.trim() !== "") {
+          searchButton.textContent = "Найти";
+        } else {
+          searchButton.textContent = "Показать книги";
+        }
+      });
     }
   } catch (error) {
     if (error.response && error.response.status === 401) {
@@ -385,13 +393,13 @@ document
 // Функция для открытия модального окна
 function openTakeModal(book) {
   if (isTakeModalOpen) {
-    showToast("Вы уже пытаетесь взять книгу.");
+    showToast("Вы уже пытаетесь выдать книгу.");
     return;
   }
   bookToTake = book;
   document.getElementById(
     "takeBookMessage"
-  ).textContent = `Вы уверены, что хотите взять книгу "${book[1]}"?`;
+  ).textContent = `Вы уверены, что хотите выдать книгу "${book[1]}"?`;
   document.getElementById("takeBookModal").style.display = "block";
   isTakeModalOpen = true; // Устанавливаем флаг
 }
@@ -876,7 +884,7 @@ async function displayBooks(books) {
     actionCell.style.alignItems = "center";
 
     const takeButton = document.createElement("button");
-    takeButton.textContent = "Взять книгу";
+    takeButton.textContent = "Выдать книгу";
     takeButton.style.backgroundColor = "rgb(41, 128, 185)";
     takeButton.style.color = "white";
     takeButton.style.border = "none";
@@ -1055,7 +1063,7 @@ async function updateBooksTable() {
       // Кнопка для взятия книги
       const takeButton = document.createElement("button");
       takeButton.classList.add("action-button");
-      takeButton.textContent = "Взять книгу";
+      takeButton.textContent = "Выдать книгу";
       takeButton.style.backgroundColor = "rgb(41, 128, 185)";
       takeButton.style.color = "white";
       takeButton.style.border = "none";
