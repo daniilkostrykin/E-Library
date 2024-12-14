@@ -25,10 +25,9 @@ body {
   width: 100%;
   border-collapse: collapse;
   margin-top: 20px;
-  border-radius: 10px; /* Закругленные углы */
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Тени вокруг таблицы */
-  overflow: hidden; /* Убирает содержимое за границами закругленных углов */
-
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
 }
 
 #adminPanel th,
@@ -43,8 +42,8 @@ body {
 }
 #adminPanel table tr:first-child {
   text-align: center;
-  align-items: center; /* Выравнивает элементы по вертикали */
-  justify-items: center; /* Центрирует элементы по горизонтали */
+  align-items: center;
+  justify-items: center;
   font-weight: bold;
   padding: 10px;
   background-color: #41a0ff;
@@ -52,10 +51,11 @@ body {
   font-size: 18px;
   border-radius: 8px;
   overflow: hidden;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);}
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
 #controls {
   display: flex;
-  flex-wrap: wrap; 
+  flex-wrap: wrap;
   justify-content: flex-start;
   align-items: center;
   margin-top: 400px;
@@ -71,11 +71,7 @@ body {
 }
 
 #controls input[type="submit"]:hover {
-  background: linear-gradient(
-    45deg,
-    #5cff7a,
-    #98f5a9
-  ); /* Градиент от основного к более светлому */
+  background: linear-gradient(45deg, #5cff7a, #98f5a9);
 }
 #controls input[type="submit"]:active {
   background-color: #1ff346;
@@ -121,17 +117,16 @@ input[type="text"] {
   border-left: 1px solid #ddd;
 }
 .highlighted-row {
-  background-color: yellow; /*  Или  любой другой  цвет */
-  transition: background-color 0.3s ease; /*  Плавное изменение цвета  */
+  background-color: yellow;
+  transition: background-color 0.3s ease;
 }
 
 .highlighted-row.fade-out {
-  /*  Класс  для  анимации  исчезновения  */
   background-color: transparent;
 }
 #back {
   background-color: #7256f0e7;
-  margin-left: auto; /* "Выталкивает" кнопку в правый край */
+  margin-left: auto;
   margin-right: 20px;
   width: 92px;
 }
@@ -143,27 +138,22 @@ input[type="text"] {
 }
 #back {
   background-color: #7256f0e7;
-  margin-left: auto; /* "Выталкивает" кнопку в правый край */
+  margin-left: auto;
   margin-right: 20px;
   width: 92px;
-  transition: background-color 0.3s, transform 0.2s; /* Плавный переход */
+  transition: background-color 0.3s, transform 0.2s;
 }
 
 #back:hover {
-  background: linear-gradient(
-    45deg,
-    #7256f0,
-    #9884fa
-  ); /* Градиент от основного к более светлому */
-  transform: scale(1.05); /* Легкое увеличение */
+  background: linear-gradient(45deg, #7256f0, #9884fa);
+  transform: scale(1.05);
 }
 
 #back:active {
-  background-color: #5943c7; /* Темный вариант основного цвета */
-  transform: scale(0.95); /* Легкое уменьшение */
+  background-color: #5943c7;
+  transform: scale(0.95);
 }
 
-/* Общие стили для всех кнопок */
 button,
 #controls button,
 #controls input[type="submit"],
@@ -175,14 +165,14 @@ button:hover,
 #controls button:hover,
 #controls input[type="submit"]:hover,
 .cancel-button:hover {
-  transform: translateY(-2px); /* Поднимаем при наведении */
+  transform: translateY(-2px);
 }
 
 button:active,
 #controls button:active,
 #controls input[type="submit"]:active,
 .cancel-button:active {
-  transform: translateY(2px); /* Опускаем при нажатии */
+  transform: translateY(2px);
 }
 
 #search-outline,
@@ -191,10 +181,9 @@ button:active,
 }
 
 #notFoundMessage-searchForm,
-  #notFoundMessage-searchStudentForm,  /* И другие сообщения, если есть */
-  [id^="notFoundMessage-"] {
-  /*  Селектор для всех ID, начинающихся с "notFoundMessage-" */
-  width: 50%; /*  Или другая подходящая ширина  */
+#notFoundMessage-searchStudentForm,
+[id^="notFoundMessage-"] {
+  width: 50%;
   margin: auto;
   padding: 100px;
 }
@@ -226,7 +215,7 @@ button:active,
   opacity: 1;
 }
 a:visited {
-  color: inherit; /*  Наследовать цвет от родительского элемента */
+  color: inherit;
 }
 
 #toast-container {
@@ -247,7 +236,17 @@ a:visited {
 }
 
 @keyframes fadeInOut {
-  0% { opacity: 0; transform: translateX(100%); }
-  10%, 90% { opacity: 1; transform: translateX(0); }
-  100% { opacity: 0; transform: translateX(100%); }
+  0% {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  10%,
+  90% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(100%);
+  }
 }

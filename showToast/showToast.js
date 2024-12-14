@@ -8,11 +8,10 @@ function showToast(message) {
   setTimeout(() => {
     toast.classList.add("show");
   }, 10);
-  //  Скрываем toast  через 3 секунды
+
   setTimeout(() => {
-    toast.classList.remove("show"); // Сначала делаем прозрачным
+    toast.classList.remove("show");
     setTimeout(() => {
-      // А потом удаляем
       container.removeChild(toast);
     }, 300);
   }, 3000);

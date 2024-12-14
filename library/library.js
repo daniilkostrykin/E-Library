@@ -1,14 +1,14 @@
-//librarian.js
+
 const STUDENTS_KEY = "students";
 const BOOKS_KEY = "books";
 let students = [];
-let isNotFoundMessageShown = false; // Флаг для отслеживания показа сообщения
+let isNotFoundMessageShown = false;
 axios.defaults.baseURL = "http://localhost:3000";
 
 document.addEventListener("DOMContentLoaded", async () => {
-  await updateBookTable(); // Загружаем книги с сервера и отображаем их
+  await updateBookTable(); 
 
-  handleSearchFormSubmit("searchForm", "searchInput", searchBook); // Для поиска книг
+  handleSearchFormSubmit("searchForm", "searchInput", searchBook); 
   const bookSearchInput = document.getElementById("searchInput");
   const bookSearchButton = document.querySelector(".find");
 
@@ -52,28 +52,28 @@ function displayBooks(books) {
   if (!books || books.length === 0) {
     updateControlsMargin(false);
 
-    // Отображаем сообщение, если книг нет
-    displayMessage("Книга не найдена"); // Вызываем функцию для отображения сообщения
+    
+    displayMessage("Книга не найдена"); 
     return;
   }
 
   books.forEach((book) => {
     if (!Array.isArray(book)) {
       console.error("Invalid book data:", book);
-      return; // Пропускаем некорректные данные
+      return; 
     }
     const row = table.insertRow();
 
     const titleCell = row.insertCell();
-    titleCell.textContent = book[1] || ""; // Название
+    titleCell.textContent = book[1] || ""; 
 
     const authorCell = row.insertCell();
-    authorCell.textContent = book[2] || ""; // Автор
+    authorCell.textContent = book[2] || ""; 
 
     const quantityCell = row.insertCell();
     const quantity = book[3];
     quantityCell.textContent =
-      quantity !== null && quantity !== undefined ? quantity : ""; // Количество, обработка null и undefined
+      quantity !== null && quantity !== undefined ? quantity : ""; 
     updateCellColor(quantityCell, quantity);
 
     const linkCell = row.insertCell();
@@ -120,12 +120,12 @@ async function searchBook() {
     .toLowerCase();
 
   if (query !== "") {
-    // Если поле поиска НЕ пустое (содержит текст)
+    
     const books = await fetchBooks(query);
     displayBooks(books);
-  } // Иначе (поле поиска пустое или содержит только пробелы) - ничего не делаем
+  } 
 
-  // Обновляем margin в зависимости от наличия данных
+  
   const bookTable = document.getElementById("bookTable");
   updateControlsMargin(bookTable !== null);
 }
@@ -135,7 +135,7 @@ function displayMessage(messageText, formId = null) {
 
   const adminPanel = document.getElementById("adminPanel");
 
-  // Создаем контейнер для сообщения
+  
   const messageContainer = document.createElement("div");
   messageContainer.id = "notFoundMessageContainer";
   messageContainer.style.display = "flex";
@@ -147,14 +147,14 @@ function displayMessage(messageText, formId = null) {
   messageContainer.style.transform = "translate(-50%, -50%)";
   messageContainer.style.textAlign = "center";
 
-  // Создаем текстовое сообщение
+  
   const message = document.createElement("p");
   message.textContent = messageText;
   message.style.margin = "0";
   message.style.fontSize = "18px";
   message.style.color = "#333";
 
-  // Вставляем сообщение в контейнер
+  
   messageContainer.appendChild(message);
   adminPanel.appendChild(messageContainer);
 
@@ -162,19 +162,19 @@ function displayMessage(messageText, formId = null) {
 }
 
 function clearPreviousResults() {
-  // Удаляем таблицу книг
+  
   const bookTable = document.getElementById("bookTable");
   if (bookTable) {
     bookTable.remove();
   }
 
-  // Удаляем таблицу студентов
+  
   const studentsTable = document.getElementById("studentsTable");
   if (studentsTable) {
     studentsTable.remove();
   }
 
-  // Удаляем сообщение "не найдено"
+  
   const notFoundMessageContainer = document.getElementById(
     "notFoundMessageContainer"
   );
@@ -195,29 +195,29 @@ function handleSearchFormSubmit(formId, inputId, searchFunction) {
   }
 
   form.addEventListener("submit", (event) => {
-    event.preventDefault(); // Отключаем стандартное поведение формы
-    searchFunction(); // Вызываем переданную функцию поиска
+    event.preventDefault(); 
+    searchFunction(); 
   });
 
   input.addEventListener("input", () => {
     if (!input.value.trim()) {
-      searchFunction(); // Обновляем таблицу при очистке поля поиска
+      searchFunction(); 
     }
   });
 }
 document
   .getElementById("searchForm")
   .addEventListener("submit", async (event) => {
-    event.preventDefault(); // Предотвращаем стандартное поведение формы (перезагрузку страницы)
+    event.preventDefault(); 
 
     const query = document
       .getElementById("searchInput")
       .value.trim()
       .toLowerCase();
-    const books = await fetchBooks(query); // Выполняем запрос с учётом query
+    const books = await fetchBooks(query); 
     displayBooks(books);
 
-    // Обновляем margin
+    
     const bookTable = document.getElementById("bookTable");
     updateControlsMargin(bookTable !== null);
   });
@@ -228,13 +228,13 @@ function updateControlsMargin(hasData) {
 function updateCellColor(cell, value) {
   const numValue = parseInt(value, 10);
   if (numValue > 0) {
-    cell.style.color = "rgb(102, 191, 102)"; // Светлый пастельный зеленый
+    cell.style.color = "rgb(102, 191, 102)"; 
   } else if (numValue === 0) {
     cell.style.color = "red";
   }
 }
 function goToPersonalCabinet(student, index) {
-  // !!!! ДОБАВЛЕН  index
+  
   const fio = student.ФИО;
 
   const group = student.Группа;
@@ -242,27 +242,27 @@ function goToPersonalCabinet(student, index) {
   window.location.href = `../user/personalCabinet.html?fio=${encodeURIComponent(
     fio
   )}&group=${encodeURIComponent(group)}&id=${encodeURIComponent(index)}`;
-  // Правильный  путь  и  использование  id
+  
 }
 async function fetchBooks(query = "") {
   try {
-    const token = localStorage.getItem("token"); // Получаем токен из localStorage
+    const token = localStorage.getItem("token"); 
 
     const response = await axios.get("/api/books", {
       params: { query },
       headers: {
-        Authorization: `Bearer ${token}`, // Добавляем токен в заголовок
+        Authorization: `Bearer ${token}`, 
       },
     });
     return response.data;
   } catch (error) {
-    // Обработка ошибок, если сервер вернет ошибку, даже с токеном
+    
     console.error("Ошибка при получении книг:", error);
 
     if (error.response && error.response.status === 401) {
       showToast("Сессия истекла. Пожалуйста, войдите снова.");
 
-      logout(); //  Вызываем функцию logout для перенаправления
+      logout(); 
     }
 
     throw error;

@@ -35,18 +35,21 @@ body {
   text-align: center;
   vertical-align: middle;
 }
+
 #adminPanel table tr th {
   background-color: rgb(237, 240, 245);
 }
 
 #controls {
   display: flex;
-  flex-wrap: wrap; /* <-- Добавлена эта строка */
-  justify-content: space-between;   align-items: center;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
   margin-top: 400px;
   width: 100%;
   gap: 20px;
 }
+
 #controls button,
 #controls input[type="submit"],
 #controls input[type="text"],
@@ -54,10 +57,11 @@ body {
   font-family: "Montserrat", sans-serif;
   cursor: pointer;
 }
+
 #exit {
-  position: absolute; /* Позволяет разместить кнопку в любом месте */
-  top: 31px; /* Отступ сверху */
-  right: 20px; /* Отступ справа */
+  position: absolute;
+  top: 31px;
+  right: 20px;
   background-color: #c61d1de7;
   padding: 10px 20px;
   color: white;
@@ -70,28 +74,31 @@ body {
 }
 
 #exit:hover {
-  background-color: #a31414; /* Темнее при наведении */
+  background-color: #a31414;
 }
 
 #exit:active {
-  background-color: #7f1010; /* Еще темнее при клике */
+  background-color: #7f1010;
 }
 
 #controls input[type="submit"]:hover {
   background-color: #5cff7a;
 }
+
 #controls input[type="submit"]:active {
   background-color: #1ff346;
 }
+
 #edit-book:hover {
-  background-color: #8c88e0; /* Более темный оттенок при наведении */
-  transform: translateY(-2px); /* Небольшой эффект поднятия */
+  background-color: #8c88e0;
+  transform: translateY(-2px);
 }
 
 #edit-book:active {
-  background-color: #736cbf; /* Еще темнее при клике */
-  transform: translateY(2px); /* Легкое "нажатие" */
+  background-color: #736cbf;
+  transform: translateY(2px);
 }
+
 #controls button,
 #controls input[type="submit"],
 .cancel-button {
@@ -100,7 +107,7 @@ body {
   border-radius: 10px;
   border: none;
 }
-/* Общие стили для всех кнопок */
+
 button,
 #controls button,
 #controls input[type="submit"],
@@ -112,14 +119,14 @@ button:hover,
 #controls button:hover,
 #controls input[type="submit"]:hover,
 .cancel-button:hover {
-  transform: translateY(-2px); /* Поднимаем при наведении */
+  transform: translateY(-2px);
 }
 
 button:active,
 #controls button:active,
 #controls input[type="submit"]:active,
 .cancel-button:active {
-  transform: translateY(2px); /* Опускаем при нажатии */
+  transform: translateY(2px);
 }
 
 input[type="text"] {
@@ -129,37 +136,44 @@ input[type="text"] {
   color: inherit;
   font-size: 16px;
 }
+
 #searchForm,
 #searchForm1 {
-  flex: 1; /* Расширяем форму до доступной ширины */
+  flex: 1;
   display: flex;
   justify-content: flex-start;
   align-items: center;
-  gap: 10px; /* Отступ между полем и кнопкой */}
+  gap: 10px;
+}
+
 #searchInput {
   border-radius: 10px;
   padding: 5px 10px;
   box-sizing: border-box;
   width: 138px;
 }
+
 #searchInput1 {
   border-radius: 10px;
   padding: 5px 10px;
   box-sizing: border-box;
   width: 274px;
 }
-#searchInput{
-  flex: 1; /* Устанавливает гибкую ширину полей поиска */
-  min-width: 100px; /* Убираем сильные разрывы при сжатии */
+
+#searchInput {
+  flex: 1;
+  min-width: 100px;
 }
-#bookSearchButton, #studentSearchButton {
+
+#bookSearchButton,
+#studentSearchButton {
   background-color: #a5dca7;
   border-radius: 0 10px 10px 0;
   border-left: 1px solid #ddd;
 }
+
 #edit-book {
   background-color: #a09cf6;
-  
 }
 
 #search-outline,
@@ -168,13 +182,13 @@ input[type="text"] {
 }
 
 #notFoundMessage-searchForm,
-#notFoundMessage-searchStudentForm,  /* И другие сообщения, если есть */
+#notFoundMessage-searchStudentForm,
 [id^="notFoundMessage-"] {
-  /*  Селектор для всех ID, начинающихся с "notFoundMessage-" */
-  width: 50%; /*  Или другая подходящая ширина  */
+  width: 50%;
   margin: auto;
   padding: 100px;
 }
+
 .tooltip-container {
   position: relative;
   display: inline-block;
@@ -202,6 +216,7 @@ input[type="text"] {
   visibility: visible;
   opacity: 1;
 }
+
 a:visited {
-  color: inherit; /*  Наследовать цвет от родительского элемента */
+  color: inherit;
 }

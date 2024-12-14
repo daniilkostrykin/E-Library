@@ -16,11 +16,10 @@
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
   animation: fadeInOut 4s ease forwards;
 
-  /* Добавляем выравнивание текста */
-  text-align: center; /* Горизонтальное выравнивание текста */
-  display: flex; /* Используем flexbox */
-  align-items: center; /* Вертикальное выравнивание текста */
-  justify-content: center; /* Горизонтальное выравнивание текста */
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 @keyframes fadeInOut {
