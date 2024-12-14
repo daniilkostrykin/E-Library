@@ -10,7 +10,9 @@ def init_db():
     conn = psycopg2.connect(
         dbname=os.getenv("DB_NAME", "postgres"),
         user=os.getenv("DB_USER", "postgres"),
-        password=os.getenv("DB_PASSWORD", "***REMOVED-DB-PASSWORD***"),
+        # Пароль БД задаётся ТОЛЬКО через переменные окружения (backend/.env).
+        # Безопасного дефолта для пароля нет — без .env подключение не выполнится.
+        password=os.getenv("DB_PASSWORD", ""),
         host=os.getenv("DB_HOST", "localhost"),
         port=os.getenv("DB_PORT", "55432")
     )

@@ -1,0 +1,8 @@
+# Файлы с реальными секретами — НЕ коммитить! (.env.example — можно)
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]

@@ -1,0 +1,25 @@
+# ===== Файлы с реальными секретами — НЕ коммитить! =====
+# Локальные env-файлы (шаблон без секретов — .env.example — коммитится)
+.env
+.env.*
+!.env.example
+
+# ===== Python =====
+__pycache__/
+*.py[cod]
+*.egg-info/
+venv/
+.venv/
+env/
+
+# ===== Node.js =====
+node_modules/
+
+# ===== IDE / ОС =====
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# ===== Прочее =====
+*.log

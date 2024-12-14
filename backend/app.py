@@ -1,8 +1,9 @@
-
+import os
+import secrets
 from datetime import datetime, timedelta
+from dotenv import load_dotenv
 import jwt
 from flask_mail import Mail, Message
-from datetime import timedelta
 from bs4 import BeautifulSoup
 from flask import Flask, request, jsonify
 from flask_cors import CORS
@@ -19,6 +20,8 @@ from models import (
 )
 import json
 
+load_dotenv()
+
 app = Flask(__name__)
 CORS(app, resources={
      r"/api/*": {"origins": "http://127.0.0.1:5500", "supports_credentials": True}})
@@ -26,19 +29,27 @@ CORS(app, resources={
 bcrypt = Bcrypt(app)
 
 
-app.config["JWT_SECRET_KEY"] = "***REMOVED-JWT-SECRET***"
+# Секретные ключи читаются из переменных окружения (backend/.env).
+# Если переменная не задана, при старте генерируется случайный ключ:
+# перезапуск API инвалидирует ранее выданные токены, поэтому в проде
+# обязательно нужно задать свои значения в backend/.env (см. backend/.env.example).
+JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY") or secrets.token_hex(32)
+SECRET_KEY = os.getenv("SECRET_KEY") or secrets.token_hex(32)
+app.config["JWT_SECRET_KEY"] = JWT_SECRET_KEY
 jwt = JWTManager(app)
 
 
 conn = init_db()
 
-SECRET_KEY = '***REMOVED-RESET-TOKEN-SECRET***'
-app.config['MAIL_SERVER'] = 'smtp.gmail.com'
-app.config['MAIL_PORT'] = 587
-app.config['MAIL_USE_TLS'] = True
-app.config['MAIL_USERNAME'] = 'daniilkostrykin1@gmail.com'
-app.config['MAIL_PASSWORD'] = '***REMOVED-GMAIL-APP-PASSWORD***'
-app.config['MAIL_DEFAULT_SENDER'] = 'daniilkostrykin1@gmail.com'
+FRONTEND_BASE_URL = os.getenv("FRONTEND_BASE_URL", "http://127.0.0.1:5500")
+app.config['MAIL_SERVER'] = os.getenv('MAIL_SERVER', 'smtp.gmail.com')
+app.config['MAIL_PORT'] = int(os.getenv('MAIL_PORT', '587'))
+app.config['MAIL_USE_TLS'] = os.getenv(
+    'MAIL_USE_TLS', 'True').lower() in ('1', 'true', 'yes')
+app.config['MAIL_USERNAME'] = os.getenv('MAIL_USERNAME', '')
+app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD', '')
+app.config['MAIL_DEFAULT_SENDER'] = os.getenv(
+    'MAIL_DEFAULT_SENDER', os.getenv('MAIL_USERNAME', ''))
 
 
 mail = Mail(app)
@@ -63,7 +74,7 @@ def reset_password_request():
         algorithm="HS256"
     )
 
-    reset_link = f"http://127.0.0.1:5500/forgotPassword/newPassword.html?token={token}"
+    reset_link = f"{FRONTEND_BASE_URL}/forgotPassword/newPassword.html?token={token}"
 
     try:
         msg = Message(
